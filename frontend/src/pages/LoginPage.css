@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    font-family: 'Poppins', sans-serif;
+}
+
+.auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #0a4d68 0%, #05668d 50%, #028090 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-left::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    top: -250px;
+    right: -250px;
+}
+
+.auth-branding {
+    position: relative;
+    z-index: 1;
+    color: white;
+    max-width: 500px;
+}
+
+.auth-branding h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+}
+
+.auth-branding p {
+    font-size: 1.25rem;
+    font-weight: 300;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.auth-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: #fafafa;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.auth-header {
+    margin-bottom: 2.5rem;
+}
+
+.auth-header h2 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: #0a4d68;
+    margin: 0 0 0.5rem;
+}
+
+.auth-header p {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-field label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.form-field input {
+    padding: 0.875rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+    background: #fafafa;
+}
+
+.form-field input:focus {
+    outline: none;
+    border-color: #0a4d68;
+    background: white;
+}
+
+.form-field input::placeholder {
+    color: #94a3b8;
+}
+
+.form-field input.input-error {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.password-toggle:hover {
+    color: #0a4d68;
+}
+
+.field-error {
+    font-size: 0.8125rem;
+    color: #dc2626;
+    margin-top: -0.25rem;
+}
+
+.alert-error {
+    padding: 0.875rem 1rem;
+    background: #fee2e2;
+    border-left: 3px solid #dc2626;
+    border-radius: 6px;
+    color: #991b1b;
+    font-size: 0.875rem;
+}
+
+.btn-submit {
+    padding: 1rem;
+    background: #0a4d68;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+}
+
+.btn-submit:hover {
+    background: #05668d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10,77,104,0.3);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.auth-footer p {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.auth-footer a {
+    color: #0a4d68;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.auth-footer a:hover {
+    color: #05668d;
+    text-decoration: underline;
+}
+
+@media (max-width: 968px) {
+    .auth-left {
+        display: none;
+    }
+    
+    .auth-right {
+        flex: 1;
+    }
+}
