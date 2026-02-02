@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS "Citas" (
   "tipo" "Cita_tipo_enum" NOT NULL DEFAULT 'Normal',
   "prioridad" "Cita_prioridad_enum" NOT NULL DEFAULT 'Media',
   "inicio_ts" timestamp GENERATED ALWAYS AS (("fecha" + "hora")) STORED,
-  "fin_ts" timestamp GENERATED ALWAYS AS (("fecha" + "hora" + (("duracion_minutos"::text || ' minutes')::interval))) STORED,
+  "fin_ts" timestamp GENERATED ALWAYS AS (("fecha" + "hora" + ("duracion_minutos" * interval '1 minute'))) STORED,
   "fecha_creacion" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted" boolean NOT NULL DEFAULT false,

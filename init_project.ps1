@@ -33,8 +33,15 @@ docker compose exec -u root -e COMPOSER_PROCESS_TIMEOUT=2000 app composer instal
 Write-Host "Generando clave de aplicacion..." -ForegroundColor Yellow
 docker compose exec -u root app php artisan key:generate
 
-Write-Host "Ejecutando migraciones de base de datos..." -ForegroundColor Yellow
-docker compose exec -u root app php artisan migrate --seed --force
+if (Test-Path ".\docs\DentalMate.sql") {
+    Write-Host "Importando esquema de base de datos desde docs\DentalMate.sql..." -ForegroundColor Yellow
+    docker compose cp docs/DentalMate.sql db:/tmp/dump.sql
+    # Importamos usando psql directamente
+    docker compose exec -u root db psql -U dental_user -d dental_mate -f /tmp/dump.sql
+} else {
+    Write-Host "Ejecutando migraciones de base de datos (Default)..." -ForegroundColor Yellow
+    docker compose exec -u root app php artisan migrate --seed --force
+}
 
 # 3. Inicializar Frontend (React + Vite)
 if (-not (Test-Path ".\frontend\package.json")) {
