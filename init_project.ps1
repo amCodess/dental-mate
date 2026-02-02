@@ -38,6 +38,10 @@ if (Test-Path ".\docs\DentalMate.sql") {
     docker compose cp docs/DentalMate.sql db:/tmp/dump.sql
     # Importamos usando psql directamente
     docker compose exec -u root db psql -U dental_user -d dental_mate -f /tmp/dump.sql
+    
+    # Crear tabla sessions requerida por Laravel
+    Write-Host "Creando tabla sessions..." -ForegroundColor Yellow
+    docker compose exec -u root db psql -U dental_user -d dental_mate -c "CREATE TABLE IF NOT EXISTS sessions (id VARCHAR(255) PRIMARY KEY, user_id INT NULL, ip_address VARCHAR(45) NULL, user_agent TEXT NULL, payload TEXT NOT NULL, last_activity INT NOT NULL); CREATE INDEX IF NOT EXISTS sessions_user_id_index ON sessions (user_id); CREATE INDEX IF NOT EXISTS sessions_last_activity_index ON sessions (last_activity);"
 } else {
     Write-Host "Ejecutando migraciones de base de datos (Default)..." -ForegroundColor Yellow
     docker compose exec -u root app php artisan migrate --seed --force
