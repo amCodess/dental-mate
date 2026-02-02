@@ -37,10 +37,7 @@ class AuthController extends Controller
         if($validator->fails()){
             Log::warning('Validation failed', ['errors' => $validator->errors()]);
             return response()->json($validator->errors(), 400);
-        }
-
-
-        // Dividir nombre completo en nombre y apellido
+        } // Dividir nombre completo en nombre y apellido
         $fullName = trim($request->get('name'));
         $parts = explode(' ', $fullName, 2);
         $nombre = $parts[0];

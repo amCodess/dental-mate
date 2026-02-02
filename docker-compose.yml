@@ -9,6 +9,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./backend:/var/www/html
+      - /var/www/html/vendor
     networks:
       - dental-network
     depends_on:
