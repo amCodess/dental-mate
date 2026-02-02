@@ -38,5 +38,15 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('notifications', NotificationController::class)->only(['index', 'store']);
         Route::put('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+
+        // Gestión de Empresas y Clínicas (SuperAdmin Only para Creación/Edición)
+        Route::middleware([\App\Http\Middleware\CheckSuperAdmin::class])->group(function () {
+            Route::apiResource('companies', \App\Http\Controllers\CompanyController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('clinics', \App\Http\Controllers\ClinicController::class)->only(['store', 'update', 'destroy']);
+        });
+
+        // Lectura de Empresas y Clínicas (Puede requerir permisos menores en el futuro, por ahora auth)
+        Route::apiResource('companies', \App\Http\Controllers\CompanyController::class)->only(['index', 'show']);
+        Route::apiResource('clinics', \App\Http\Controllers\ClinicController::class)->only(['index', 'show']);
     });
 });

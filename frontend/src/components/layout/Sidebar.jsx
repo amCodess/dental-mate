@@ -4,20 +4,19 @@ import {
   Home, 
   Users, 
   Calendar, 
-  FileText, 
   Settings, 
   LogOut, 
   ChevronLeft, 
   ChevronRight,
-  Activity,
-  CreditCard
+  CreditCard,
+  Building,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const { user, logout } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -31,13 +30,6 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
     { icon: <Users size={20} />, label: 'Pacientes', path: '/patients' },
     { icon: <CreditCard size={20} />, label: 'Facturación', path: '/billing' },
   ];
-
-  // Solo mostrar Usuarios si es superadmin (role_id 3 según seeders, o verificar nombre role)
-  // Asumiendo que user tiene role_id o role object. El backend auth devuelve `user.id_role`.
-  // Role 3 es superadmin.
-  if (user && user.id_role === 3) {
-    navItems.push({ icon: <Activity size={20} />, label: 'Usuarios (Admin)', path: '/users' });
-  }
 
   const bottomItems = [
     { icon: <Settings size={20} />, label: 'Configuración', path: '/settings' },
@@ -73,7 +65,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
                   <NavLink 
                     to={item.path} 
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                    onClick={() => setMobileOpen(false)} // Close on mobile navigation
+                    onClick={() => setMobileOpen(false)}
                   >
                     <span className="nav-icon">{item.icon}</span>
                     {!collapsed && <span className="nav-label">{item.label}</span>}
@@ -86,6 +78,32 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           <div className="nav-group mt-auto">
              <span className="nav-group-title">{!collapsed && 'SISTEMA'}</span>
             <ul>
+              {/* Sección Administración (Solo SuperAdmin) */}
+              {user?.role?.nombre_role === 'superadmin' && (
+                <>
+                  <li>
+                    <NavLink 
+                      to="/companies" 
+                      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span className="nav-icon"><Building size={20} /></span>
+                      {!collapsed && <span className="nav-label">Empresas</span>}
+                    </NavLink>
+                  </li>
+                   <li>
+                    <NavLink 
+                      to="/admins" 
+                      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span className="nav-icon"><Shield size={20} /></span>
+                      {!collapsed && <span className="nav-label">Administradores</span>}
+                    </NavLink>
+                  </li>
+                </>
+              )}
+
               {bottomItems.map((item) => (
                 <li key={item.path}>
                   <NavLink 
@@ -112,11 +130,11 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           <div className="sidebar-footer">
             <div className="user-info">
               <div className="user-avatar">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="user-details">
-                <p className="user-name">{user.name}</p>
-                <p className="user-role">{user.id_role === 3 ? 'Super Admin' : 'Usuario'}</p>
+                <p className="user-name">{user.nombre}</p>
+                <p className="user-role">{user.role?.nombre_role}</p>
               </div>
             </div>
           </div>

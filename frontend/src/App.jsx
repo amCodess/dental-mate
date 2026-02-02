@@ -7,12 +7,15 @@ import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import BillingPage from './pages/BillingPage';
-import UsersPage from './pages/UsersPage';
+import CompaniesPage from './pages/CompaniesPage';
+import CompanyDetailsPage from './pages/CompanyDetailsPage';
+import ClinicDetailsPage from './pages/ClinicDetailsPage';
+import AdminsPage from './pages/AdminsPage';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
 
-    if (loading) return <div>Cargando...</div>;
+    if (loading) return <div className="flex justify-center items-center h-screen">Cargando...</div>;
     if (!user) return <Navigate to="/login" />;
 
     return children;
@@ -26,13 +29,22 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
-                    <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<DashboardPage />} />
-                        <Route path="/users" element={<UsersPage />} />
-                        <Route path="/patients" element={<PatientsPage />} />
-                        <Route path="/appointments" element={<AppointmentsPage />} />
-                        <Route path="/billing" element={<BillingPage />} />
+                    <Route path="/" element={
+                        <ProtectedRoute>
+                            <Layout />
+                        </ProtectedRoute>
+                    }>
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route path="patients" element={<PatientsPage />} />
+                        <Route path="appointments" element={<AppointmentsPage />} />
+                        <Route path="billing" element={<BillingPage />} />
+
+                        {/* Administration Routes */}
+                        <Route path="companies" element={<CompaniesPage />} />
+                        <Route path="companies/:id" element={<CompanyDetailsPage />} />
+                        <Route path="clinics/:id" element={<ClinicDetailsPage />} />
+                        <Route path="admins" element={<AdminsPage />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

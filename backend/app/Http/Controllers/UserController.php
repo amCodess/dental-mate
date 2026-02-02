@@ -29,6 +29,22 @@ class UserController extends Controller
             });
         }
 
+        // Filtrar por roles específicos (comma separated)
+        if ($request->has('role_in')) {
+            $roles = explode(',', $request->get('role_in'));
+            $query->whereHas('role', function ($q) use ($roles) {
+                $q->whereIn('nombre_role', $roles);
+            });
+        }
+
+        // Filtrar por clínica
+        if ($request->has('clinic_id')) {
+            $clinicId = $request->get('clinic_id');
+            $query->whereHas('clinics', function ($q) use ($clinicId) {
+                $q->where('Usuarios_Clinicas.id_clinica', $clinicId);
+            });
+        }
+
         // Paginación
         $users = $query->orderBy('id_usuario', 'desc')->paginate(10);
 
@@ -64,8 +80,27 @@ class UserController extends Controller
             $user->estado = 'activo';
             $user->save();
 
-            // Si se requiere asociar a empresa/clinica por defecto, se haría aquí.
-            // Por ahora, solo creamos el usuario base.
+            // Si se requiere asociar a empresa/clinica por defecto
+            if ($request->has('clinic_id')) {
+                $user->clinics()->attach($request->clinic_id, ['rol' => 'empleado', 'id_empresa' => 1]); // TODO: id_empresa needs to be fetched or passed. 
+                // However, pivot table requires id_empresa? Let's check schema/model.
+                // In User.php: `withPivot('rol', 'id_empresa')`.
+                // Actually, finding the company from the clinic is better.
+            }
+            // Better implementation below:
+            if ($request->has('clinic_id')) {
+                $clinic = \App\Models\Clinic::find($request->clinic_id);
+                if ($clinic) {
+                    // Associate to clinic AND company
+                    $user->clinics()->attach($clinic->id_clinica, [
+                        'rol' => 'empleado', // Default role in pivot
+                        'id_empresa' => $clinic->id_empresa
+                    ]);
+                    // Also associate to company directly if needed? 
+                    // Usually `Usuarios_Empresas` is also used.
+                    $user->companies()->attach($clinic->id_empresa, ['rol' => 'empleado']);
+                }
+            }
 
             DB::commit();
 

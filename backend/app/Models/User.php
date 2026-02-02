@@ -111,4 +111,24 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(Role::class, 'id_role', 'id_role');
     }
+
+    /**
+     * Relación con Clínicas (Pivot)
+     */
+    public function clinics()
+    {
+        return $this->belongsToMany(Clinic::class, 'Usuarios_Clinicas', 'id_usuario', 'id_clinica')
+                    ->withPivot('rol', 'id_empresa')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relación con Empresas (Pivot)
+     */
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'Usuarios_Empresas', 'id_usuario', 'id_empresa')
+                    ->withPivot('rol')
+                    ->withTimestamps();
+    }
 }

@@ -126,7 +126,7 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth('api')->user());
+        return response()->json(auth('api')->user()->load('role'));
     }
 
     /**
@@ -156,7 +156,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user()
+            'user' => auth('api')->user()->load('role')
         ]);
     }
 }
