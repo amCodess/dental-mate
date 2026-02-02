@@ -27,6 +27,7 @@ class AuthController extends Controller
 
         // En el frontend actual enviamos 'name', 'email', 'password'.
         
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:Usuarios,email', 
@@ -37,6 +38,7 @@ class AuthController extends Controller
             Log::warning('Validation failed', ['errors' => $validator->errors()]);
             return response()->json($validator->errors(), 400);
         }
+
 
         // Dividir nombre completo en nombre y apellido
         $fullName = trim($request->get('name'));
@@ -49,31 +51,30 @@ class AuthController extends Controller
 
         // Obtener rol por defecto (usuario)
         $defaultRole = DB::table('Roles')->where('nombre_role', 'usuario')->first();
-        Log::info('Role lookup', ['role' => $defaultRole]);
         $roleId = $defaultRole ? $defaultRole->id_role : 1; 
 
         try {
-            Log::info('Creating user', [
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'email' => $request->get('email'),
-                'role_id' => $roleId
+            // Insert user using raw SQL to avoid Eloquent issues
+            DB::statement("INSERT INTO \"Usuarios\" (nombre, apellido, email, password, id_role, estado, fecha_creacion, updated_at) VALUES (?, ?, ?, ?, ?, 'activo', NOW(), NOW())", [
+                $nombre,
+                $apellido,
+                $request->get('email'),
+                Hash::make($request->get('password')),
+                $roleId
             ]);
+            
+            // Get created user for token generation
+            $user = User::where('email', $request->get('email'))->first();
+            
+            if (!$user) {
+                throw new \Exception('User created but not found');
+            }
 
-            $user = User::create([
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'email' => $request->get('email'),
-                'password' => Hash::make($request->get('password')),
-                'id_role' => $roleId,
-                'estado' => 'activo'
-            ]);
+            Log::info('User created successfully', ['id' => $user->id_usuario]);
 
-            Log::info('User created', ['id' => $user->id_usuario]);
-
+            // Generate JWT token for auto-login
             $token = auth('api')->login($user);
-            Log::info('Token generated');
-
+            
             return response()->json([
                 'message' => 'User successfully registered',
                 'user' => [
@@ -82,11 +83,26 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'role_id' => $user->id_role
                 ],
-                'token' => $this->respondWithToken($token)->original
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $errorData = [
+                'error' => 'REGISTRATION_FAILED',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ];
+            
+            file_put_contents(public_path('last_error.json'), json_encode($errorData, JSON_PRETTY_PRINT));
             Log::error('Registration Error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return response()->json(['error' => 'Registration failed: ' . $e->getMessage()], 500);
+            
+            return response()->json($errorData, 500)->withHeaders([
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS, PUT, DELETE',
+                'Access-Control-Allow-Headers' => 'Content-Type, X-Auth-Token, Origin, Authorization'
+            ]);
         }
     }
 

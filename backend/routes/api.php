@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 Route::prefix('v1')->group(function () {
 
     // Auth Public Routes
+    Route::get('test', function() { return response()->json(['status' => 'ok', 'db' => DB::connection()->getDatabaseName()]); });
     Route::post('auth/register', [AuthController::class, 'register']);
     Route::post('auth/login', [AuthController::class, 'login']);
 

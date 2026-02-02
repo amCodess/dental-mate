@@ -33,6 +33,11 @@ docker compose exec -u root -e COMPOSER_PROCESS_TIMEOUT=2000 app composer instal
 Write-Host "Generando clave de aplicacion..." -ForegroundColor Yellow
 docker compose exec -u root app php artisan key:generate
 
+# Generar JWT Secret si no existe
+Write-Host "Configurando JWT..." -ForegroundColor Yellow
+docker compose exec -u root app bash -c "grep -q 'JWT_SECRET' .env || (php -r 'echo \"JWT_SECRET=\" . base64_encode(random_bytes(32)) . PHP_EOL;' >> .env && php -r 'echo \"JWT_ALGO=HS256\" . PHP_EOL;' >> .env && php -r 'echo \"JWT_TTL=60\" . PHP_EOL;' >> .env)"
+
+
 if (Test-Path ".\docs\DentalMate.sql") {
     Write-Host "Importando esquema de base de datos desde docs\DentalMate.sql..." -ForegroundColor Yellow
     docker compose cp docs/DentalMate.sql db:/tmp/dump.sql
@@ -42,6 +47,10 @@ if (Test-Path ".\docs\DentalMate.sql") {
     # Crear tabla sessions requerida por Laravel
     Write-Host "Creando tabla sessions..." -ForegroundColor Yellow
     docker compose exec -u root db psql -U dental_user -d dental_mate -c "CREATE TABLE IF NOT EXISTS sessions (id VARCHAR(255) PRIMARY KEY, user_id INT NULL, ip_address VARCHAR(45) NULL, user_agent TEXT NULL, payload TEXT NOT NULL, last_activity INT NOT NULL); CREATE INDEX IF NOT EXISTS sessions_user_id_index ON sessions (user_id); CREATE INDEX IF NOT EXISTS sessions_last_activity_index ON sessions (last_activity);"
+    
+    # Insertar roles por defecto
+    Write-Host "Insertando roles por defecto..." -ForegroundColor Yellow
+    docker compose exec -u root db psql -U dental_user -d dental_mate -c "INSERT INTO \"Roles\" (nombre_role, descripcion, tipo) VALUES ('admin', 'Administrador del sistema', 'empleado'), ('usuario', 'Usuario regular', 'usuario') ON CONFLICT DO NOTHING;"
 } else {
     Write-Host "Ejecutando migraciones de base de datos (Default)..." -ForegroundColor Yellow
     docker compose exec -u root app php artisan migrate --seed --force
