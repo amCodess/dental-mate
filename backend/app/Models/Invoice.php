@@ -12,6 +12,9 @@ class Invoice extends Model
     protected $table = 'Facturacion';
     protected $primaryKey = 'id_factura';
 
+    const CREATED_AT = 'fecha_creacion';
+    const UPDATED_AT = 'updated_at';
+
     protected $fillable = [
         'id_empresa',
         'id_clinica',

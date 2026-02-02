@@ -22,33 +22,34 @@ class AuthController extends Controller
     /**
      * Register a new user.
      */
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         Log::info('Login/Register Attempt', ['data' => $request->all()]);
 
         // En el frontend actual enviamos 'name', 'email', 'password'.
-        
-        
+
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:Usuarios,email', 
+            'email' => 'required|string|email|max:100|unique:Usuarios,email',
             'password' => 'required|string|min:6',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             Log::warning('Validation failed', ['errors' => $validator->errors()]);
             return response()->json($validator->errors(), 400);
         } // Dividir nombre completo en nombre y apellido
         $fullName = trim($request->get('name'));
         $parts = explode(' ', $fullName, 2);
         $nombre = $parts[0];
-        $apellido = isset($parts[1]) ? $parts[1] : ''; 
+        $apellido = isset($parts[1]) ? $parts[1] : '';
         if (empty($apellido)) {
             $apellido = '.'; // Apellido placeholder
         }
 
         // Obtener rol por defecto (usuario)
         $defaultRole = DB::table('Roles')->where('nombre_role', 'usuario')->first();
-        $roleId = $defaultRole ? $defaultRole->id_role : 1; 
+        $roleId = $defaultRole ? $defaultRole->id_role : 1;
 
         try {
             // Insert user using raw SQL to avoid Eloquent issues
@@ -59,10 +60,10 @@ class AuthController extends Controller
                 Hash::make($request->get('password')),
                 $roleId
             ]);
-            
+
             // Get created user for token generation
             $user = User::where('email', $request->get('email'))->first();
-            
+
             if (!$user) {
                 throw new \Exception('User created but not found');
             }
@@ -71,12 +72,12 @@ class AuthController extends Controller
 
             // Generate JWT token for auto-login
             $token = auth('api')->login($user);
-            
+
             return response()->json([
                 'message' => 'User successfully registered',
                 'user' => [
                     'id' => $user->id_usuario,
-                    'name' => $user->name, 
+                    'name' => $user->name,
                     'email' => $user->email,
                     'role_id' => $user->id_role
                 ],
@@ -91,10 +92,10 @@ class AuthController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ];
-            
+
             file_put_contents(public_path('last_error.json'), json_encode($errorData, JSON_PRETTY_PRINT));
             Log::error('Registration Error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            
+
             return response()->json($errorData, 500)->withHeaders([
                 'Access-Control-Allow-Origin' => '*',
                 'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS, PUT, DELETE',
@@ -111,7 +112,7 @@ class AuthController extends Controller
         Log::info('Login attempt', ['creds' => request(['email', 'password'])]);
         $credentials = request(['email', 'password']);
 
-        if (! $token = auth('api')->attempt($credentials)) {
+        if (!$token = auth('api')->attempt($credentials)) {
             Log::warning('Login failed - invalid credentials');
             return response()->json(['error' => 'Unauthorized'], 401);
         }

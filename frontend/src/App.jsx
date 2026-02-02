@@ -7,13 +7,14 @@ import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import BillingPage from './pages/BillingPage';
+import UsersPage from './pages/UsersPage';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
-    
+
     if (loading) return <div>Cargando...</div>;
     if (!user) return <Navigate to="/login" />;
-    
+
     return children;
 };
 
@@ -24,9 +25,11 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    
+
                     <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/users" element={<UsersPage />} />
                         <Route path="/patients" element={<PatientsPage />} />
                         <Route path="/appointments" element={<AppointmentsPage />} />
                         <Route path="/billing" element={<BillingPage />} />

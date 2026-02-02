@@ -13,6 +13,9 @@ class Appointment extends Model
     protected $table = 'Citas';
     protected $primaryKey = 'id_cita';
 
+    const CREATED_AT = 'fecha_creacion';
+    const UPDATED_AT = 'updated_at';
+
     protected $fillable = [
         'id_empresa',
         'id_clinica',

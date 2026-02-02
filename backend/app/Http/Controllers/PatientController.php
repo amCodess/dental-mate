@@ -11,9 +11,21 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $patients = Patient::paginate(10);
+        $query = Patient::query();
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'ilike', "%{$search}%")
+                    ->orWhere('apellido', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%")
+                    ->orWhere('telefono', 'like', "%{$search}%");
+            });
+        }
+
+        $patients = $query->orderBy('fecha_creacion', 'desc')->paginate(10);
         return response()->json($patients);
     }
 
@@ -23,18 +35,26 @@ class PatientController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id_empresa' => 'required|integer',
-            'nombre' => 'string|max:100', // Assuming name might be split
+            'id_empresa' => 'nullable|integer', // Puede ser null si se asigna después o default
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100', // Campos requeridos
+            'id_usuario' => 'nullable|integer|exists:Usuarios,id_usuario', // Id usuario nullable
             'telefono' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:150',
-            // Add other validations as needed
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
-        $patient = Patient::create($request->all());
+        // Asignar id_empresa por defecto si no viene (ej: id 1 para demo)
+        $data = $request->all();
+        if (!isset($data['id_empresa'])) {
+            $data['id_empresa'] = 1; // Default
+        }
+
+        // Asegurarse de que no incluya campos no fillable si los hubiere
+        $patient = Patient::create($data);
 
         return response()->json($patient, 201);
     }
@@ -80,7 +100,10 @@ class PatientController extends Controller
             return response()->json(['message' => 'Patient not found'], 404);
         }
 
-        $patient->delete();
+        // Manual soft delete to satisfy DB constraint (deleted=true AND deleted_at not null)
+        $patient->deleted = true;
+        $patient->deleted_at = now();
+        $patient->save();
 
         return response()->json(['message' => 'Patient deleted successfully']);
     }

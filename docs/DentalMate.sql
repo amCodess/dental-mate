@@ -1,5 +1,5 @@
 
--- https://dbdocs.io/profesionalemailame/DentalMat e?view=relationships
+-- https://dbdocs.io/profesionalemailame/DentalMate?view=relationships
 -- https://mermaid.ai/d/74b23dea-9ada-4e1b-88b9-3ea976a48c19
 
 BEGIN;

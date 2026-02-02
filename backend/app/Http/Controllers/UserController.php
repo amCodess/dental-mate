@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        // Obtener usuarios con su rol y empresa
+        // Como User tiene belongsTo role, podemos usar with('role')
+
+        $query = User::with('role')->where('deleted', false);
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('apellido', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Paginación
+        $users = $query->orderBy('id_usuario', 'desc')->paginate(10);
+
+        return response()->json($users);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100',
+            'email' => 'required|email|unique:Usuarios,email',
+            'password' => 'required|string|min:6',
+            'id_role' => 'required|exists:Roles,id_role'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $user = new User();
+            $user->nombre = $request->nombre;
+            $user->apellido = $request->apellido;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->id_role = $request->id_role;
+            $user->estado = 'activo';
+            $user->save();
+
+            // Si se requiere asociar a empresa/clinica por defecto, se haría aquí.
+            // Por ahora, solo creamos el usuario base.
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Usuario creado exitosamente',
+                'user' => $user->load('role')
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al crear usuario: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        $user = User::with('role')->find($id);
+        if (!$user)
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        return response()->json($user);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user)
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'sometimes|string|max:100',
+            'apellido' => 'sometimes|string|max:100',
+            'email' => 'sometimes|email|unique:Usuarios,email,' . $id . ',id_usuario',
+            'password' => 'sometimes|nullable|string|min:6',
+            'id_role' => 'sometimes|exists:Roles,id_role',
+            'estado' => 'sometimes|in:activo,inactivo'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        try {
+            if ($request->has('nombre'))
+                $user->nombre = $request->nombre;
+            if ($request->has('apellido'))
+                $user->apellido = $request->apellido;
+            if ($request->has('email'))
+                $user->email = $request->email;
+            if ($request->has('id_role'))
+                $user->id_role = $request->id_role;
+            if ($request->has('estado'))
+                $user->estado = $request->estado;
+
+            if ($request->has('password') && !empty($request->password)) {
+                $user->password = Hash::make($request->password);
+            }
+
+            $user->save();
+
+            return response()->json([
+                'message' => 'Usuario actualizado exitosamente',
+                'user' => $user->load('role')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al actualizar: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        $user = User::find($id);
+        if (!$user)
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+
+        // Soft delete o hard delete? 
+        // El modelo tiene 'deleted' boolean column, no un trait SoftDeletes estándar con timestamp.
+        // Pero el User model en paso 177 tiene 'deleted' => 'boolean' en casts y hidden.
+
+        // Simplemente marcamos deleted = true
+        $user->deleted = true;
+        $user->deleted_at = now(); // Required by check constraint "usuarios_deleted_chk"
+        $user->save();
+        // User.php fillable no tenía 'deleted'. Revisaré update.
+
+        // Pero espera, User.php usa 'deleted' en hidden, no está en fillable.
+        // Voy a usar forceDelete() si el modelo no tiene SoftDeletes trait configurado, 
+        // O actualizar la propiedad directamente y save().
+        // Si 'deleted' no está en fillable, $user->deleted = true funciona igual por asignación directa de propiedad.
+
+        return response()->json(['message' => 'Usuario eliminado correctamente']);
+    }
+}

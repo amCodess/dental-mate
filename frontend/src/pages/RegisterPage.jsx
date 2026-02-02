@@ -3,8 +3,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Input, Button } from '../components/ui';
 import './LoginPage.css';
 
 const schema = yup.object({
@@ -19,19 +20,19 @@ const schema = yup.object({
 const RegisterPage = () => {
     const { register: registerUser } = useAuth();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    
     const { register, handleSubmit, formState: { errors }, setError } = useForm({
         resolver: yupResolver(schema)
     });
 
     const onSubmit = async (data) => {
+        setIsLoading(true);
         try {
             await registerUser(data.name, data.email, data.password);
             navigate('/');
         } catch (error) {
             if (error.response?.status === 400 && error.response?.data) {
-                // Manejar errores de validación de campos específicos
                 const serverErrors = error.response.data;
                 let hasFieldErrors = false;
 
@@ -45,111 +46,112 @@ const RegisterPage = () => {
                     }
                 });
 
-                if (hasFieldErrors) return;
+                if (hasFieldErrors) {
+                    setIsLoading(false);
+                    return;
+                }
             }
 
             const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Error al crear la cuenta. Inténtalo de nuevo.';
             setError('root', { message: errorMessage });
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-left">
-                <div className="auth-branding">
-                    <h1>DentalMate</h1>
-                    <p>Únete a la plataforma profesional de gestión clínica dental</p>
+        <div className="login-container">
+            <div className="login-brand-section">
+                <div className="brand-pattern" />
+                <div className="brand-content">
+                    <div className="brand-logo-wrapper">
+                        <span className="brand-logo-text">DM</span>
+                    </div>
+                    <h1 className="brand-title">Únete a DentalMate.</h1>
+                    <p className="brand-subtitle">La plataforma integral para clínicas dentales modernas.</p>
+                    
+                    <div className="brand-features">
+                        <div className="feature-item">
+                            <div className="feature-dot" />
+                            <span>Gestión de pacientes simplificada</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-dot" />
+                            <span>Agenda inteligente</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-dot" />
+                            <span>Facturación automatizada</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="auth-right">
-                <div className="auth-box">
-                    <div className="auth-header">
-                        <h2>Crear cuenta</h2>
-                        <p>Completa tus datos profesionales</p>
+            <div className="login-form-section">
+                <div className="login-form-wrapper animate-fade-in">
+                    <div className="form-header">
+                        <h2 className="form-title">Crear cuenta</h2>
+                        <p className="form-subtitle">Empieza tu prueba gratuita de 30 días</p>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
-                        <div className="form-field">
-                            <label htmlFor="name">Nombre completo</label>
-                            <input
-                                id="name"
-                                type="text"
-                                {...register('name')}
-                                className={errors.name ? 'input-error' : ''}
-                                placeholder="Dr. Juan Pérez"
-                            />
-                            {errors.name && <span className="field-error">{errors.name.message}</span>}
-                        </div>
+                    <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+                        <Input
+                            label="Nombre completo"
+                            placeholder="Dr. Juan Pérez"
+                            icon={<User size={18} />}
+                            error={errors.name?.message}
+                            fullWidth
+                            {...register('name')}
+                        />
 
-                        <div className="form-field">
-                            <label htmlFor="email">Correo electrónico</label>
-                            <input
-                                id="email"
-                                type="email"
-                                {...register('email')}
-                                className={errors.email ? 'input-error' : ''}
-                                placeholder="doctor@ejemplo.com"
-                            />
-                            {errors.email && <span className="field-error">{errors.email.message}</span>}
-                        </div>
+                        <Input
+                            label="Correo electrónico"
+                            placeholder="doctor@clinica.com"
+                            icon={<Mail size={18} />}
+                            error={errors.email?.message}
+                            fullWidth
+                            {...register('email')}
+                        />
 
-                        <div className="form-field">
-                            <label htmlFor="password">Contraseña</label>
-                            <div className="password-input-wrapper">
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    {...register('password')}
-                                    className={errors.password ? 'input-error' : ''}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    aria-label="Mostrar contraseña"
-                                >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                            {errors.password && <span className="field-error">{errors.password.message}</span>}
-                        </div>
+                        <Input
+                            label="Contraseña"
+                            type="password"
+                            placeholder="••••••••"
+                            icon={<Lock size={18} />}
+                            error={errors.password?.message}
+                            fullWidth
+                            {...register('password')}
+                        />
 
-                        <div className="form-field">
-                            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-                            <div className="password-input-wrapper">
-                                <input
-                                    id="confirmPassword"
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    {...register('confirmPassword')}
-                                    className={errors.confirmPassword ? 'input-error' : ''}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    aria-label="Mostrar contraseña"
-                                >
-                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                            {errors.confirmPassword && <span className="field-error">{errors.confirmPassword.message}</span>}
-                        </div>
+                        <Input
+                            label="Confirmar contraseña"
+                            type="password"
+                            placeholder="••••••••"
+                            icon={<CheckCircle size={18} />}
+                            error={errors.confirmPassword?.message}
+                            fullWidth
+                            {...register('confirmPassword')}
+                        />
 
                         {errors.root && (
-                            <div className="alert-error">
-                                {errors.root.message}
+                            <div className="login-error-alert">
+                                <span>{errors.root.message}</span>
                             </div>
                         )}
 
-                        <button type="submit" className="btn-submit">
-                            Crear cuenta
-                        </button>
+                        <Button 
+                            type="submit" 
+                            variant="primary" 
+                            size="lg" 
+                            fullWidth 
+                            loading={isLoading}
+                            className="mt-4"
+                        >
+                            Registrarse
+                        </Button>
 
-                        <div className="auth-footer">
-                            <p>¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></p>
+                        <div className="form-footer">
+                            <p>¿Ya tienes una cuenta? <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700">Inicia sesión</Link></p>
                         </div>
                     </form>
                 </div>

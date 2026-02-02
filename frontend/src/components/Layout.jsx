@@ -1,53 +1,49 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Home, Users, Calendar, FileText, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import Sidebar from './layout/Sidebar';
+import Header from './layout/Header';
 import './Layout.css';
 
 const Layout = () => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const [collapsed, setCollapsed] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const location = useLocation();
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
+    // Determine title based on path
+    const getPageTitle = (pathname) => {
+        switch (true) {
+            case pathname === '/dashboard': return 'Dashboard';
+            case pathname === '/patients': return 'Pacientes';
+            case pathname === '/appointments': return 'Gestión de citas';
+            case pathname === '/billing': return 'Facturación';
+            case pathname === '/users': return 'Gestión de usuarios';
+            case pathname === '/settings': return 'Configuración';
+            default: return 'DentalMate';
+        }
     };
 
+    const title = getPageTitle(location.pathname);
+
     return (
-        <div className="layout">
-            <aside className="sidebar">
-                <div className="sidebar-header">
-                    <h2>DentalMate</h2>
-                    <p className="user-name">{user?.name}</p>
-                </div>
-                
-                <nav className="sidebar-nav">
-                    <Link to="/" className="nav-item">
-                        <Home size={20} />
-                        <span>Inicio</span>
-                    </Link>
-                    <Link to="/patients" className="nav-item">
-                        <Users size={20} />
-                        <span>Pacientes</span>
-                    </Link>
-                    <Link to="/appointments" className="nav-item">
-                        <Calendar size={20} />
-                        <span>Citas</span>
-                    </Link>
-                    <Link to="/billing" className="nav-item">
-                        <FileText size={20} />
-                        <span>Facturación</span>
-                    </Link>
-                </nav>
+        <div className="layout-root">
+            <Sidebar
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+                mobileOpen={mobileOpen}
+                setMobileOpen={setMobileOpen}
+            />
 
-                <button onClick={handleLogout} className="logout-btn">
-                    <LogOut size={20} />
-                    <span>Cerrar sesión</span>
-                </button>
-            </aside>
+            <div className={`layout-content-wrapper ${collapsed ? 'collapsed-content' : ''}`}>
+                <Header
+                    title={title}
+                    collapsed={collapsed}
+                    setMobileOpen={setMobileOpen}
+                />
 
-            <main className="main-content">
-                <Outlet />
-            </main>
+                <main className="layout-main">
+                    <Outlet /> {/* Renders the child route element */}
+                </main>
+            </div>
         </div>
     );
 };

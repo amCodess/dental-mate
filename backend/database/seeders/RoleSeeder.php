@@ -12,20 +12,27 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Verificar si ya existen para evitar duplicados si se corre varias veces
-        if (DB::table('Roles')->count() == 0) {
-            DB::table('Roles')->insert([
-                [
-                    'nombre_role' => 'admin',
-                    'descripcion' => 'Administrador del sistema',
-                    'tipo' => 'empleado'
-                ],
-                [
-                    'nombre_role' => 'usuario',
-                    'descripcion' => 'Usuario estándar',
-                    'tipo' => 'usuario'
-                ]
+        // Verificar si ya existen los roles básicos
+        $count = DB::selectOne('SELECT COUNT(*) as count FROM "Roles"')->count;
+        
+        if ($count == 0) {
+            // Primera vez: insertar todos los roles
+            DB::insert('INSERT INTO "Roles" (nombre_role, descripcion, tipo) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)', [
+                'superadmin', 'Superadministrador del sistema con acceso total', 'empleado',
+                'admin', 'Administrador del sistema', 'empleado',
+                'usuario', 'Usuario estándar', 'usuario'
             ]);
+        } else {
+            // Verificar si existe superadmin
+            $superadminExists = DB::selectOne('SELECT COUNT(*) as count FROM "Roles" WHERE nombre_role = ?', ['superadmin'])->count;
+            
+            if ($superadminExists == 0) {
+                // Añadir solo superadmin
+                DB::insert('INSERT INTO "Roles" (nombre_role, descripcion, tipo) VALUES (?, ?, ?)', [
+                    'superadmin', 'Superadministrador del sistema con acceso total', 'empleado'
+                ]);
+                $this->command->info('Rol superadmin creado.');
+            }
         }
     }
 }

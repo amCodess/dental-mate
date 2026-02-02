@@ -1,101 +1,133 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { Button, Input } from '../components/ui';
 import './LoginPage.css';
 
-const schema = yup.object({
-    email: yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
-    password: yup.string().min(6, 'Mínimo 6 caracteres').required('La contraseña es requerida')
+const loginSchema = yup.object().shape({
+    email: yup.string().email('Introduce un email válido').required('El email es obligatorio'),
+    password: yup.string().required('La contraseña es obligatoria'),
 });
 
 const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
-    const { register, handleSubmit, formState: { errors }, setError } = useForm({
-        resolver: yupResolver(schema)
+    const [serverError, setServerError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(loginSchema),
     });
 
     const onSubmit = async (data) => {
+        setLoading(true);
+        setServerError('');
         try {
             await login(data.email, data.password);
-            navigate('/');
+            navigate('/dashboard');
         } catch (error) {
-            setError('root', {
-                message: error.response?.data?.error || 'Credenciales incorrectas'
-            });
+            console.error('Login error:', error);
+            if (error.response?.status === 401) {
+                setServerError('Credenciales incorrectas. Por favor, inténtalo de nuevo.');
+            } else {
+                setServerError('Ocurrió un error al iniciar sesión. Inténtalo más tarde.');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-left">
-                <div className="auth-branding">
-                    <h1>DentalMate</h1>
-                    <p>Sistema profesional de gestión clínica dental</p>
-                </div>
-            </div>
-
-            <div className="auth-right">
-                <div className="auth-box">
-                    <div className="auth-header">
-                        <h2>Iniciar sesión</h2>
-                        <p>Accede a tu cuenta profesional</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
-                        <div className="form-field">
-                            <label htmlFor="email">Correo electrónico</label>
-                            <input
-                                id="email"
-                                type="email"
-                                {...register('email')}
-                                className={errors.email ? 'input-error' : ''}
-                                placeholder="doctor@ejemplo.com"
-                            />
-                            {errors.email && <span className="field-error">{errors.email.message}</span>}
+        <div className="login-page">
+            <div className="login-container">
+                {/* Left Side - Branding */}
+                <div className="login-brand-section">
+                    <div className="brand-content">
+                        <div className="brand-logo-wrapper">
+                            <span className="brand-logo-text">DM</span>
                         </div>
-
-                        <div className="form-field">
-                            <label htmlFor="password">Contraseña</label>
-                            <div className="password-input-wrapper">
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    {...register('password')}
-                                    className={errors.password ? 'input-error' : ''}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    aria-label="Mostrar contraseña"
-                                >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
+                        <h1 className="brand-title">DentalMate</h1>
+                        <p className="brand-subtitle">
+                            Gestión integral para clínicas dentales modernas.
+                        </p>
+                        <div className="brand-features">
+                            <div className="feature-item">
+                                <span className="feature-dot"></span>
+                                Gestión de pacientes simplificada
                             </div>
-                            {errors.password && <span className="field-error">{errors.password.message}</span>}
+                            <div className="feature-item">
+                                <span className="feature-dot"></span>
+                                Agenda inteligente
+                            </div>
+                            <div className="feature-item">
+                                <span className="feature-dot"></span>
+                                Facturación automatizada
+                            </div>
+                        </div>
+                    </div>
+                    <div className="brand-pattern"></div>
+                </div>
+
+                {/* Right Side - Form */}
+                <div className="login-form-section">
+                    <div className="login-form-wrapper">
+                        <div className="form-header">
+                            <h2 className="form-title">Bienvenido de nuevo</h2>
+                            <p className="form-subtitle">Ingresa tus credenciales para acceder</p>
                         </div>
 
-                        {errors.root && (
-                            <div className="alert-error">
-                                {errors.root.message}
+                        {serverError && (
+                            <div className="login-error-alert">
+                                {serverError}
                             </div>
                         )}
 
-                        <button type="submit" className="btn-submit">
-                            Iniciar sesión
-                        </button>
+                        <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+                            <Input
+                                label="Correo electrónico"
+                                type="email"
+                                placeholder="nombre@clinica.com"
+                                icon={<Mail size={18} />}
+                                fullWidth
+                                error={errors.email?.message}
+                                {...register('email')}
+                            />
 
-                        <div className="auth-footer">
-                            <p>¿No tienes cuenta? <Link to="/register">Regístrate</Link></p>
+                            <div className="password-group">
+                                <Input
+                                    label="Contraseña"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    icon={<Lock size={18} />}
+                                    fullWidth
+                                    error={errors.password?.message}
+                                    {...register('password')}
+                                />
+                                <div className="forgot-password">
+                                    <a href="#">¿Olvidaste tu contraseña?</a>
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                loading={loading}
+                                icon={<LogIn size={20} />}
+                            >
+                                Iniciar sesión
+                            </Button>
+                        </form>
+
+                        <div className="form-footer">
+                            <p>¿No tienes una cuenta? <span className="contact-support">Contacta a soporte</span></p>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

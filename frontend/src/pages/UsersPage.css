@@ -1,0 +1,224 @@
+.users-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+}
+
+.page-heading {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--color-gray-900);
+    font-family: var(--font-heading);
+}
+
+.page-subheading {
+    color: var(--color-gray-500);
+    margin-top: var(--space-1);
+}
+
+.filters-bar {
+    margin-bottom: var(--space-6);
+}
+
+.search-container {
+    position: relative;
+    max-width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.search-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-gray-400);
+}
+
+/* Table Card override */
+.users-table-card {
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background-color: var(--color-gray-50);
+    padding: var(--space-3) var(--space-5);
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.data-table td {
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--color-gray-100);
+    color: var(--color-gray-900);
+    font-size: var(--text-sm);
+    vertical-align: middle;
+}
+
+.data-table tr:hover {
+    background-color: var(--color-gray-50);
+}
+
+/* User Cell */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.text-gray-600 {
+    color: var(--color-gray-600);
+}
+
+.text-error {
+    color: var(--color-error);
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.actions-cell {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* New: Centering logic for actions */
+.actions-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+.empty-cell {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-gray-500);
+}
+
+/* Form */
+.user-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+/* Select custom styles (should be components ideally) */
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.select-icon {
+    position: absolute;
+    left: 12px;
+    pointer-events: none;
+    color: var(--color-gray-400);
+}
+
+.select-field {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    background-color: white;
+    font-family: inherit;
+    font-size: var(--text-base);
+    appearance: none;
+    /* simple chevron managed by browser or custom needed */
+}
+
+.select-field:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* Loading */
+.loading-state {
+    padding: var(--space-10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    color: var(--color-gray-500);
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-gray-200);
+    border-top-color: var(--color-primary-500);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Override table width to auto to prevent excessive spacing */

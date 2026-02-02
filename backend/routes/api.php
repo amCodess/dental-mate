@@ -24,6 +24,9 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/me', [AuthController::class, 'me']);
 
         // Resources
+        Route::apiResource('users', \App\Http\Controllers\UserController::class);
+        Route::get('roles', [\App\Http\Controllers\RoleController::class, 'index']);
+
         Route::apiResource('patients', PatientController::class);
         Route::apiResource('appointments', AppointmentController::class);
         Route::get('appointments/availability', [AppointmentController::class, 'availability']); // Custom extra route
