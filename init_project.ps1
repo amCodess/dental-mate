@@ -33,9 +33,13 @@ docker compose exec -u root -e COMPOSER_PROCESS_TIMEOUT=2000 app composer instal
 Write-Host "Generando clave de aplicacion..." -ForegroundColor Yellow
 docker compose exec -u root app php artisan key:generate
 
-# Generar JWT Secret si no existe
+# Generar JWT Secret
 Write-Host "Configurando JWT..." -ForegroundColor Yellow
-docker compose exec -u root app bash -c "grep -q 'JWT_SECRET' .env || (php -r 'echo \"JWT_SECRET=\" . base64_encode(random_bytes(32)) . PHP_EOL;' >> .env && php -r 'echo \"JWT_ALGO=HS256\" . PHP_EOL;' >> .env && php -r 'echo \"JWT_TTL=60\" . PHP_EOL;' >> .env)"
+docker compose exec -u root app php artisan jwt:secret --force
+
+# Asegurar que CACHE_STORE este configurado
+Write-Host "Configurando CACHE_STORE..." -ForegroundColor Yellow
+docker compose exec -u root app bash -c "grep -q 'CACHE_STORE' .env || echo 'CACHE_STORE=file' >> .env"
 
 
 if (Test-Path ".\docs\DentalMate.sql") {

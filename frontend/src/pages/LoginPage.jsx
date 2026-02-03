@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input } from '../components/ui';
 import './LoginPage.css';
@@ -18,6 +18,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const [serverError, setServerError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(loginSchema),
@@ -100,12 +101,30 @@ const LoginPage = () => {
                             <div className="password-group">
                                 <Input
                                     label="Contraseña"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
-                                    icon={<Lock size={18} />}
                                     fullWidth
                                     error={errors.password?.message}
                                     {...register('password')}
+                                    iconPosition="right"
+                                    icon={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: '#6b7280',
+                                                padding: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                pointerEvents: 'auto'
+                                            }}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    }
                                 />
                                 <div className="forgot-password">
                                     <a href="#">¿Olvidaste tu contraseña?</a>

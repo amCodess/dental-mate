@@ -109,16 +109,32 @@ class AuthController extends Controller
      */
     public function login()
     {
-        Log::info('Login attempt', ['creds' => request(['email', 'password'])]);
-        $credentials = request(['email', 'password']);
+        try {
+            Log::info('Login attempt START', [
+                'headers' => request()->headers->all(),
+                'input' => request()->all()
+            ]);
 
-        if (!$token = auth('api')->attempt($credentials)) {
-            Log::warning('Login failed - invalid credentials');
-            return response()->json(['error' => 'Unauthorized'], 401);
+            $credentials = request(['email', 'password']);
+
+            if (!$token = auth('api')->attempt($credentials)) {
+                Log::warning('Login failed - invalid credentials');
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            Log::info('Login success, returning token');
+            return $this->respondWithToken($token);
+        } catch (\Throwable $e) {
+            Log::error('Login EXCEPTION: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Login Exception',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        Log::info('Login success');
-        return $this->respondWithToken($token);
     }
 
     /**
