@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal, Badge, ConfirmDialog } from '../components/ui';
+import './CompanyClinicDetails.css';
 
 // Esquema para usuarios (similar a UsersPage pero simplificado/adaptado)
 const userSchema = yup.object().shape({
@@ -157,11 +158,20 @@ const ClinicDetailsPage = () => {
                     <ArrowLeft size={18} className="mr-2" /> Volver a {clinic.company?.nombre || 'Empresa'}
                 </Button>
 
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                    <MapPin className="text-success" size={28} />
-                    {clinic.nombre}
-                </h2>
-                <p className="text-gray-600 mt-1 ml-10">{clinic.direccion} • {clinic.telefono}</p>
+                <div className="details-header">
+                    <div className="details-heading">
+                        <MapPin className="text-success" size={28} />
+                        <span>{clinic.nombre}</span>
+                    </div>
+                    <p className="details-subtitle">Datos principales de la clínica</p>
+                    <div className="details-metadata">
+                        <span className="details-chip"><MapPin size={14} /> {clinic.direccion}</span>
+                        <span className="details-chip"><Phone size={14} /> {clinic.telefono}</span>
+                        {clinic.email_recordatorios && (
+                            <span className="details-chip"><Mail size={14} /> {clinic.email_recordatorios}</span>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="page-header mt-8">

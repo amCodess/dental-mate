@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 
 // Esquema para administradores
@@ -28,6 +29,7 @@ const AdminsPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearchTerm = useDebouncedValue(searchTerm);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
 
@@ -36,12 +38,13 @@ const AdminsPage = () => {
         defaultValues: { mode: 'create', id_role: 2 } // 2=admin por defecto (ajustar según DB)
     });
 
-    const fetchAdmins = async () => {
+    const fetchAdmins = async (term) => {
         try {
+            setLoading(true);
             // Filtramos por roles 'admin' y 'superadmin'
             const response = await api.get('/users', {
                 params: {
-                    search: searchTerm,
+                    search: term,
                     role_in: 'admin,superadmin'
                 }
             });
@@ -65,9 +68,12 @@ const AdminsPage = () => {
     };
 
     useEffect(() => {
-        fetchAdmins();
+        fetchAdmins(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    useEffect(() => {
         fetchRoles();
-    }, [searchTerm]);
+    }, []);
 
     const handleOpenCreate = () => {
         setEditingUser(null);

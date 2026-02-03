@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import api from '../services/api';
 import { Button, Input, Card, Modal, Badge, ConfirmDialog } from '../components/ui';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import './PatientsPage.css';
 
 const patientSchema = yup.object().shape({
@@ -26,6 +27,7 @@ const PatientsPage = () => {
     const [editingPatient, setEditingPatient] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, patientId: null, patientName: '' });
+    const debouncedSearchTerm = useDebouncedValue(searchTerm);
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(patientSchema),
@@ -34,9 +36,10 @@ const PatientsPage = () => {
         }
     });
 
-    const fetchPatients = async () => {
+    const fetchPatients = async (term) => {
         try {
-            const response = await api.get('/patients', { params: { search: searchTerm } });
+            setLoading(true);
+            const response = await api.get('/patients', { params: { search: term } });
             setPatients(response.data.data);
         } catch (error) {
             console.error('Error fetching patients:', error);
@@ -46,8 +49,8 @@ const PatientsPage = () => {
     };
 
     useEffect(() => {
-        fetchPatients();
-    }, [searchTerm]);
+        fetchPatients(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const handleOpenCreate = () => {
         setEditingPatient(null);

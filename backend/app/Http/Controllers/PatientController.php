@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\Clinic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -36,6 +37,7 @@ class PatientController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'id_empresa' => 'nullable|integer', // Puede ser null si se asigna después o default
+            'id_clinica' => 'nullable|integer|exists:Clinicas,id_clinica',
             'nombre' => 'required|string|max:100',
             'apellido' => 'required|string|max:100', // Campos requeridos
             'id_usuario' => 'nullable|integer|exists:Usuarios,id_usuario', // Id usuario nullable
@@ -51,6 +53,13 @@ class PatientController extends Controller
         $data = $request->all();
         if (!isset($data['id_empresa'])) {
             $data['id_empresa'] = 1; // Default
+        }
+
+        if (!isset($data['id_clinica']) && isset($data['id_empresa'])) {
+            $clinic = Clinic::where('id_empresa', $data['id_empresa'])->first();
+            if ($clinic) {
+                $data['id_clinica'] = $clinic->id_clinica;
+            }
         }
 
         // Asegurarse de que no incluya campos no fillable si los hubiere

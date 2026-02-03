@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 
 // Esquema de validación
@@ -28,6 +29,7 @@ const UsersPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearchTerm = useDebouncedValue(searchTerm);
 
     // Estado para diálogo de confirmación
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -38,9 +40,10 @@ const UsersPage = () => {
         defaultValues: { mode: 'create', id_role: 2 }
     });
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (term) => {
         try {
-            const response = await api.get('/users', { params: { search: searchTerm } });
+            setLoading(true);
+            const response = await api.get('/users', { params: { search: term } });
             setUsers(response.data.data);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -59,9 +62,12 @@ const UsersPage = () => {
     };
 
     useEffect(() => {
-        fetchUsers();
+        fetchUsers(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    useEffect(() => {
         fetchRoles();
-    }, [searchTerm]);
+    }, []);
 
     const handleOpenCreate = () => {
         setEditingUser(null);

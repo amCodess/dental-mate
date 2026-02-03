@@ -61,7 +61,8 @@ class UserController extends Controller
             'apellido' => 'required|string|max:100',
             'email' => 'required|email|unique:Usuarios,email',
             'password' => 'required|string|min:6',
-            'id_role' => 'required|exists:Roles,id_role'
+            'id_role' => 'required|exists:Roles,id_role',
+            'clinic_id' => 'nullable|exists:Clinicas,id_clinica'
         ]);
 
         if ($validator->fails()) {
@@ -80,25 +81,21 @@ class UserController extends Controller
             $user->estado = 'activo';
             $user->save();
 
-            // Si se requiere asociar a empresa/clinica por defecto
-            if ($request->has('clinic_id')) {
-                $user->clinics()->attach($request->clinic_id, ['rol' => 'empleado', 'id_empresa' => 1]); // TODO: id_empresa needs to be fetched or passed. 
-                // However, pivot table requires id_empresa? Let's check schema/model.
-                // In User.php: `withPivot('rol', 'id_empresa')`.
-                // Actually, finding the company from the clinic is better.
-            }
-            // Better implementation below:
             if ($request->has('clinic_id')) {
                 $clinic = \App\Models\Clinic::find($request->clinic_id);
                 if ($clinic) {
                     // Associate to clinic AND company
-                    $user->clinics()->attach($clinic->id_clinica, [
-                        'rol' => 'empleado', // Default role in pivot
-                        'id_empresa' => $clinic->id_empresa
+                    $user->clinics()->syncWithoutDetaching([
+                        $clinic->id_clinica => [
+                            'rol' => 'empleado',
+                            'id_empresa' => $clinic->id_empresa
+                        ]
                     ]);
                     // Also associate to company directly if needed? 
                     // Usually `Usuarios_Empresas` is also used.
-                    $user->companies()->attach($clinic->id_empresa, ['rol' => 'empleado']);
+                    $user->companies()->syncWithoutDetaching([
+                        $clinic->id_empresa => ['rol' => 'empleado']
+                    ]);
                 }
             }
 

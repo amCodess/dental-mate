@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal, ConfirmDialog, Badge } from '../components/ui';
+import './CompanyClinicDetails.css';
 
 // Esquema para clínicas (copiado/adaptado de ClinicsPage)
 const clinicSchema = yup.object().shape({
@@ -101,17 +102,16 @@ const CompanyDetailsPage = () => {
                     <ArrowLeft size={18} className="mr-2" /> Volver a Empresas
                 </Button>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                            <Building className="text-primary" size={28} />
-                            {company.nombre}
-                        </h2>
-                        <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1"><FileText size={14} /> NIF: {company.nif}</span>
-                            <span className="flex items-center gap-1"><Mail size={14} /> {company.email}</span>
-                            <span className="flex items-center gap-1"><Phone size={14} /> {company.telefono}</span>
-                        </div>
+                <div className="details-header">
+                    <div className="details-heading">
+                        <Building className="text-primary" size={28} />
+                        <span>{company.nombre}</span>
+                    </div>
+                    <p className="details-subtitle">Información general de la empresa</p>
+                    <div className="details-metadata">
+                        <span className="details-chip"><FileText size={14} /> NIF: {company.nif}</span>
+                        <span className="details-chip"><Mail size={14} /> {company.email}</span>
+                        <span className="details-chip"><Phone size={14} /> {company.telefono}</span>
                     </div>
                 </div>
             </div>
