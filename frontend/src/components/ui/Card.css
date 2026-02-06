@@ -1,0 +1,100 @@
+.card {
+  background-color: white;
+  border-radius: var(--radius-xl);
+  /* Increased radius for modern look */
+  overflow: hidden;
+  transition: all var(--transition-base);
+  font-family: var(--font-primary);
+}
+
+/* Variants */
+.card-default {
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  /* Subtle border */
+}
+
+.card-elevated {
+  background-color: white;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  /* Crisp edge */
+  border: none;
+}
+
+.card-outlined {
+  background-color: transparent;
+  border: 1px solid var(--color-gray-300);
+  box-shadow: none;
+}
+
+.card-flat {
+  background-color: var(--color-gray-50);
+  border: none;
+  box-shadow: none;
+}
+
+/* Padding */
+.card-padding-none .card-content {
+  padding: 0;
+}
+
+.card-padding-sm .card-content {
+  padding: var(--space-3);
+}
+
+.card-padding-md .card-content {
+  padding: var(--space-5);
+}
+
+.card-padding-lg .card-content {
+  padding: var(--space-8);
+}
+
+/* Clickable */
+.card-clickable {
+  cursor: pointer;
+}
+
+.card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Parts */
+.card-header {
+  padding: var(--space-5) var(--space-5) var(--space-2) var(--space-5);
+}
+
+.card-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+}
+
+.card-footer {
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--color-gray-50);
+  border-top: 1px solid var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* Responsive adjustment */
+@media (max-width: 640px) {
+  .card-padding-lg .card-content {
+    padding: var(--space-5);
+  }
+}

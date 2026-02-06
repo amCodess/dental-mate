@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+
+class User extends Authenticatable implements JWTSubject
+{
+    use HasFactory, Notifiable;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'users';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'nombre',
+        'apellido',
+        'email',
+        'password',
+        'estado',
+        'id_role',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'deleted',
+        'deleted_at',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'estado' => 'string',
+        'deleted' => 'boolean'
+    ];
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [
+            'role' => $this->id_role,
+            'email' => $this->email
+        ];
+    }
+
+    /**
+     * Get the name for frontend compatibility.
+     *
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return "{$this->nombre} {$this->apellido}";
+    }
+
+    /**
+     * Relation with Role
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'id_role', 'id');
+    }
+
+    /**
+     * Relación con Clínicas (Pivot)
+     */
+    public function clinics()
+    {
+        return $this->belongsToMany(Clinic::class, 'clinica_user', 'id_usuario', 'id_clinica')
+            ->withPivot('rol', 'id_empresa')
+            ->withTimestamps();
+        // Note: Check if pivotal columns id_usuario/id_clinica are correct in migration.
+        // Migration used: standard conventions likely? 
+        // Migration: $table->foreignId('id_usuario')...
+    }
+
+    /**
+     * Relación con Empresas (Pivot)
+     */
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'empresa_user', 'id_usuario', 'id_empresa')
+            ->withPivot('rol')
+            ->withTimestamps();
+    }
+}

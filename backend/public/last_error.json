@@ -1,0 +1,6 @@
+{
+    "error": "REGISTRATION_FAILED",
+    "message": "Carbon\\Carbon::rawAddUnit(): Argument #3 ($value) must be of type int|float, string given, called in \/var\/www\/html\/vendor\/nesbot\/carbon\/src\/Carbon\/Traits\/Units.php on line 356",
+    "file": "\/var\/www\/html\/vendor\/nesbot\/carbon\/src\/Carbon\/Traits\/Units.php",
+    "line": 458
+}
