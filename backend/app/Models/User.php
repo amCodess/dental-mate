@@ -19,6 +19,8 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $table = 'Usuarios';
     protected $primaryKey = 'id_usuario';
+    const CREATED_AT = 'fecha_creacion';
+    const UPDATED_AT = 'updated_at';
 
     /**
      * The attributes that are mass assignable.
