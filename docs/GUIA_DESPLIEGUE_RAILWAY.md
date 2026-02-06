@@ -67,3 +67,20 @@ Una vez la base de datos está lista:
 ## Notas Adicionales
 - **No ejecutes `php artisan migrate`** en producción si usas este método, ya que podría intentar crear tablas que ya existen o crear tablas duplicadas (`users` vs `Usuarios`).
 - Para futuros cambios, crea migraciones de Laravel que alteren las tablas existentes (`Usuarios`, etc.) o actualiza manualmente si prefieres el enfoque SQL puro.
+
+## 6. Despliegue Local (Entorno de Desarrollo)
+Si quieres tener tu entorno local (PC) idéntico a producción:
+
+1.  **Asegúrate de tener PostgreSQL instalado** (lo que hicimos con el script de automatización).
+2.  Crea una base de datos local vacía (ej: `dentalmate_local`).
+3.  Usa el comando `psql` para cargar el mismo script maestro:
+    ```powershell
+    $env:Path += ";C:\Program Files\PostgreSQL\18\bin" # Solo si no está en el PATH
+    cmd /c "psql -U postgres -d dentalmate_local < backend\database\init_railway.sql"
+    ```
+4.  Luego, inyecta los datos por defecto (fix):
+    ```powershell
+    cmd /c "psql -U postgres -d dentalmate_local < backend\database\fix_data_insertion.sql"
+    ```
+
+De esta forma, tu local y tu Railway tendrán la **misma estructura y datos**.
