@@ -13,7 +13,10 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
 
 ### 1.1 Prerrequisitos
 1.  **Docker Desktop** instalado y ejecutándose.
-2.  Puertos **8000** (Backend), **5173** (Frontend) y **5432** (Base de datos) libres.
+2.  **NO es necesario** tener PostgreSQL, PHP o Node instalados en tu sistema (Docker se encarga de esto).
+3.  Puertos **8000** (Backend), **5173** (Frontend) y **5432** (Base de datos) libres en tu máquina.
+
+> **Nota sobre PostgreSQL:** Docker descargará automáticamente una imagen de PostgreSQL 16 y la ejecutará en un contenedor aislado. No necesitas instalar el servidor PostgreSQL manualmente en Windows.
 
 ### 1.2 Inicialización del entorno
 1.  Abre una terminal en la raíz del proyecto.
