@@ -11,7 +11,7 @@ if (Test-Path $pgPath) {
 }
 
 # 2. Verificar archivo SQL
-$sqlFile = "backend\database\fix_data_insertion.sql"
+$sqlFile = "backend\database\init_database.sql"
 if (-not (Test-Path $sqlFile)) {
     Write-Error "❌ No se encuentra el archivo $sqlFile. Asegúrate de estar en la raíz del proyecto."
     exit 1
