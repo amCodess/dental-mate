@@ -14,11 +14,11 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Verificar si ya existe el superadmin
-        $existingUser = DB::table('users')->where('email', 'admin@dentalmate.com')->exists();
+        $existingUser = DB::table('Usuarios')->where('email', 'admin@dentalmate.com')->exists();
 
         if ($existingUser) {
             $this->command->info('El usuario superadmin ya existe. Actualizando contraseña...');
-            DB::table('users')->where('email', 'admin@dentalmate.com')->update([
+            DB::table('Usuarios')->where('email', 'admin@dentalmate.com')->update([
                 'password' => Hash::make('Admin123!'),
                 'updated_at' => now(),
             ]);
@@ -26,10 +26,10 @@ class UserSeeder extends Seeder
         }
 
         // Crear empresa demo si no existe
-        $empresa = DB::table('empresas')->where('nombre', 'DentalMate HQ')->first();
+        $empresa = DB::table('Empresas')->where('nombre', 'DentalMate HQ')->first();
 
         if (!$empresa) {
-            $empresaId = DB::table('empresas')->insertGetId([
+            $empresaId = DB::table('Empresas')->insertGetId([
                 'nombre' => 'DentalMate HQ',
                 'nif' => 'A12345678',
                 'email' => 'info@dentalmate.com',
@@ -39,14 +39,14 @@ class UserSeeder extends Seeder
                 'deleted' => false
             ]);
         } else {
-            $empresaId = $empresa->id;
+            $empresaId = $empresa->id_empresa;
         }
 
         // Crear clínica demo si no existe
-        $clinica = DB::table('clinicas')->where('nombre', 'Clínica Central')->where('id_empresa', $empresaId)->first();
+        $clinica = DB::table('Clinicas')->where('nombre', 'Clínica Central')->where('id_empresa', $empresaId)->first();
 
         if (!$clinica) {
-            $clinicaId = DB::table('clinicas')->insertGetId([
+            $clinicaId = DB::table('Clinicas')->insertGetId([
                 'id_empresa' => $empresaId,
                 'nombre' => 'Clínica Central',
                 'telefono' => '+34 900 123 456',
@@ -57,18 +57,18 @@ class UserSeeder extends Seeder
                 'deleted' => false
             ]);
         } else {
-            $clinicaId = $clinica->id;
+            $clinicaId = $clinica->id_clinica;
         }
 
         // Obtener el id del rol superadmin
-        $role = DB::table('roles')->where('nombre_role', 'superadmin')->first();
+        $role = DB::table('Roles')->where('nombre_role', 'superadmin')->first();
 
         if (!$role) {
             $this->command->error('El rol superadmin no existe. Ejecuta RoleSeeder primero.');
             return;
         }
 
-        $roleId = $role->id; // En migration pusimos ->id(), no id_role (aunque en vieja era id_role, aqui estandarizamos a id)
+        $roleId = $role->id_role; // Fixed: Matches Roles table PK
         // WAIT: In recent migration 000000, I used $table->id(); for roles. So the column is 'id'.
         // In previous seeder it used id_role. I need to be careful.
         // My migration 000000: Schema::create('roles'... $table->id()...) -> creates 'id'.
@@ -77,48 +77,45 @@ class UserSeeder extends Seeder
         // Crear usuario superadmin
         $passwordHash = Hash::make('Admin123!');
 
-        $userId = DB::table('users')->insertGetId([
-            'name' => 'Super',
+        $userId = DB::table('Usuarios')->insertGetId([
+            'nombre' => 'Super',
             'apellido' => 'Admin',
             'email' => 'admin@dentalmate.com',
             'password' => $passwordHash,
             'estado' => 'activo',
             'id_role' => $roleId,
 
-            'created_at' => now(),
+            'fecha_creacion' => now(),
             'updated_at' => now(),
             'deleted' => false
         ]);
 
         // Asociar usuario a empresa con rol owner
-        DB::table('usuarios_empresas')->insert([
+        DB::table('Usuarios_Empresas')->insert([
             'id_usuario' => $userId,
             'id_empresa' => $empresaId,
             'rol' => 'owner',
             'fecha_creacion' => now(),
-            'created_at' => now(),
             'updated_at' => now()
         ]);
 
         // Asociar usuario a clínica con rol owner
-        DB::table('usuarios_clinicas')->insert([
+        DB::table('Usuarios_Clinicas')->insert([
             'id_empresa' => $empresaId,
             'id_usuario' => $userId,
             'id_clinica' => $clinicaId,
             'rol' => 'owner',
             'fecha_creacion' => now(),
-            'created_at' => now(),
             'updated_at' => now()
         ]);
 
         // Crear empleado asociado
-        DB::table('empleados')->insert([
+        DB::table('Empleados')->insert([
             'id_empresa' => $empresaId,
             'id_clinica' => $clinicaId,
             'id_usuario' => $userId,
             'especialidad' => 'Administración',
             'fecha_creacion' => now(),
-            'created_at' => now(),
             'updated_at' => now()
         ]);
 

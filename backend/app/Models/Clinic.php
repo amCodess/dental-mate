@@ -14,14 +14,14 @@ class Clinic extends Model
      *
      * @var string
      */
-    protected $table = 'clinicas';
+    protected $table = 'Clinicas';
 
     /**
      * Clave primaria asociada.
      *
      * @var string
      */
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id_clinica';
 
     /**
      * Nombre de la columna created_at.

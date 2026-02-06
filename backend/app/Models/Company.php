@@ -14,14 +14,14 @@ class Company extends Model
      *
      * @var string
      */
-    protected $table = 'empresas';
+    protected $table = 'Empresas';
 
     /**
      * Clave primaria asociada.
      *
      * @var string
      */
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id_empresa';
 
     /**
      * Nombre de la columna created_at.
