@@ -29,29 +29,18 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
     - **backend**: Laravel en http://localhost:8000.
     - **frontend**: React + Vite en http://localhost:5173.
 
-### 1.3 Configuración del backend
-1.  Instala dependencias:
+### 1.3 Configuración inicial
+1.  Espera unos segundos a que el contenedor de backend instale las dependencias automáticamente (monitoriza con `docker-compose logs -f backend`).
+2.  Configura entorno y clave (solo la primera vez):
     ```bash
-    docker-compose exec backend composer install
-    ```
-2.  Configura entorno y clave:
-    ```bash
-    docker-compose exec backend cp .env.example .env
     docker-compose exec backend php artisan key:generate
     ```
-3.  Verifica tu `.env` (credenciales Docker):
-    ```ini
-    DB_CONNECTION=pgsql
-    DB_HOST=db
-    DB_PORT=5432
-    DB_DATABASE=dental_mate
-    DB_USERNAME=dental_user
-    DB_PASSWORD=secret
+3.  Puebla la base de datos (usando el script maestro):
+    ```powershell
+    Get-Content backend/database/init_database.sql | docker-compose exec -T db psql -U dental_user -d dental_mate
     ```
-4.  Puebla la base de datos:
-    ```bash
-    docker-compose exec backend php artisan migrate:fresh --seed
-    ```
+    *Nota: Si estás en Mac/Linux usa `cat` en lugar de `Get-Content`.*
+
 
 ### 1.4 Configuración del frontend
 Si es necesario (por defecto automático):
