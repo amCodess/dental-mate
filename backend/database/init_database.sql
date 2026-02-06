@@ -821,8 +821,8 @@ DECLARE
     empresa_id int;
     clinica_id int;
     user_id int;
-    -- Password: 'password' (hash)
-    user_hashed_pass varchar := '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; 
+    -- Password: 'Admin123!' (hash)
+    user_hashed_pass varchar := '$2y$12$BJWgQbPtt7r1IArX8Mzi0eS5eAo2vvs02ewd22XaGeWFONhwAheva'; 
 BEGIN
     -- 4.1. Create Role 'superadmin' if not exists
     IF NOT EXISTS (SELECT 1 FROM "Roles" WHERE "nombre_role" = 'superadmin') THEN
