@@ -1,4 +1,4 @@
-# Guía de Despliegue en Railway (Backend y Base de Datos)
+# Guía de Despliegue en Railway (Producción)
 > [!IMPORTANT]
 > Sigue esta guía paso a paso para desplegar tu proyecto DentalMate en Railway asegurando que la base de datos se crea correctamente con el esquema definido.
 
@@ -35,52 +35,32 @@ Ve a la pestaña **Variables** de tu servicio de **backend** y añade:
 ## 3. Inicialización de la Base de Datos (Paso Crítico)
 Como hemos detectado que las migraciones estándar de Laravel no coinciden al 100% con tu esquema SQL complejo (`DentalMate.sql`), usaremos el script maestro que hemos generado.
 
-### Opción A: Usando Railway CLI (Recomendado)
-1. Instala Railway CLI: `npm i -g @railway/cli`
-2. Login: `railway login`
-3. Vincula tu proyecto: `railway link` (selecciona tu proyecto DentalMate).
-4. Ejecuta el script SQL directamente contra la base de datos de producción:
-   ```bash
-   railway connect < backend/database/init_railway.sql
-   ```
-   *Esto cargará todas las tablas, funciones, triggers y los datos por defecto (Super Admin).*
+### 3.1 Cargar Esquema y Datos Base (Automático)
+Usa el script de automatización `deploy_db_fix.ps1` que incluye tanto la conexión como la carga de datos de corrección, o hazlo manualmente:
 
-### Opción B: Usando Cliente Externo (TablePlus / PgAdmin / DBeaver)
-1. Ve a tu servicio PostgreSQL en Railway > pestaña **Connect**.
-2. Copia la **Postgres Connection URL**.
-3. Abre tu cliente SQL favorito y conéctate usando esa URL.
-4. Abre el archivo `backend/database/init_railway.sql` en el cliente.
-5. Ejecuta todo el script.
+**Opción Manual:**
+1. Instala Railway CLI y haz login/link.
+2. Cargar esquema base:
+   ```bash
+   cmd /c "railway connect < backend\database\init_railway.sql"
+   ```
+3. Cargar datos faltantes (Fix):
+   ```bash
+   cmd /c "railway connect < backend\database\fix_data_insertion.sql"
+   ```
 
 ## 4. Verificación
-Una vez ejecutado el script, tu base de datos tendrá:
+Una vez ejecutados los scripts, tu base de datos tendrá:
 - **Tablas**: `Usuarios`, `Empresas`, `Clinicas`, etc. (Nombres correctos en PascalCase).
 - **Usuario Admin**: `admin@dentalmate.com` (Password: `password` o el hash estándar insertado).
 - **Datos Demo**: Empresa "DentalMate HQ" y "Clínica Central".
 
 ## 5. Finalizar Despliegue del Backend
-Una vez la base de datos está lista:
+Una vez la base de datos está lista (ya sea con el script automático o manual):
 1. Ve a Railway > Servicio Backend > **Settings**.
 2. Haz clic en **Restart Service** o **Redeploy**.
 3. Revisa los **Deploy Logs**. Debería iniciar correctamente y conectar a la BD ya preparada.
 
-## Notas Adicionales
-- **No ejecutes `php artisan migrate`** en producción si usas este método, ya que podría intentar crear tablas que ya existen o crear tablas duplicadas (`users` vs `Usuarios`).
-- Para futuros cambios, crea migraciones de Laravel que alteren las tablas existentes (`Usuarios`, etc.) o actualiza manualmente si prefieres el enfoque SQL puro.
-
-## 6. Despliegue Local (Entorno de Desarrollo)
-Si quieres tener tu entorno local (PC) idéntico a producción:
-
-1.  **Asegúrate de tener PostgreSQL instalado** (lo que hicimos con el script de automatización).
-2.  Crea una base de datos local vacía (ej: `dentalmate_local`).
-3.  Usa el comando `psql` para cargar el mismo script maestro:
-    ```powershell
-    $env:Path += ";C:\Program Files\PostgreSQL\18\bin" # Solo si no está en el PATH
-    cmd /c "psql -U postgres -d dentalmate_local < backend\database\init_railway.sql"
-    ```
-4.  Luego, inyecta los datos por defecto (fix):
-    ```powershell
-    cmd /c "psql -U postgres -d dentalmate_local < backend\database\fix_data_insertion.sql"
-    ```
-
-De esta forma, tu local y tu Railway tendrán la **misma estructura y datos**.
+## Notas Importantes
+- **NO ejecutes `php artisan migrate`** en producción.
+- Para el entorno local, consulta la guía separada: `docs/GUIA_DESPLIEGUE_LOCAL.md`.
