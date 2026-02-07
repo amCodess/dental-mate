@@ -77,7 +77,8 @@ class AuthController extends Controller
                 'message' => 'User successfully registered',
                 'user' => [
                     'id' => $user->id_usuario,
-                    'name' => $user->name,
+                    'nombre' => $user->nombre,
+                    'apellido' => $user->apellido,
                     'email' => $user->email,
                     'role_id' => $user->id_role
                 ],
