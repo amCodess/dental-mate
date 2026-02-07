@@ -18,7 +18,19 @@ class NotificationController extends Controller
         // $user = auth()->user();
         // $notifications = Notification::where('id_usuario', $user->id)->get();
         // For now just return all for MVP
-        $notifications = Notification::paginate(10);
+        $notifications = Notification::query()
+            ->select([
+                'id_notificacion',
+                'id_empresa',
+                'id_usuario',
+                'id_paciente',
+                'titulo',
+                'mensaje',
+                'leida',
+                'fecha_envio'
+            ])
+            ->orderBy('fecha_envio', 'desc')
+            ->simplePaginate(10);
         return response()->json($notifications);
     }
 

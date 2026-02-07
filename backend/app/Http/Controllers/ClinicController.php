@@ -14,7 +14,19 @@ class ClinicController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Clinic::with('company');
+        $query = Clinic::query()
+            ->select([
+                'id_clinica',
+                'id_empresa',
+                'nombre',
+                'telefono',
+                'email_recordatorios',
+                'telefono_recordatorios',
+                'nombre_remitente',
+                'direccion',
+                'fecha_creacion'
+            ])
+            ->with(['company:id_empresa,nombre']);
         
         if ($request->has('company_id')) {
             $query->where('id_empresa', $request->get('company_id'));
@@ -62,7 +74,20 @@ class ClinicController extends Controller
      */
     public function show(string $id)
     {
-        $clinic = Clinic::with('company')->find($id);
+        $clinic = Clinic::query()
+            ->select([
+                'id_clinica',
+                'id_empresa',
+                'nombre',
+                'telefono',
+                'email_recordatorios',
+                'telefono_recordatorios',
+                'nombre_remitente',
+                'direccion',
+                'fecha_creacion'
+            ])
+            ->with(['company:id_empresa,nombre'])
+            ->find($id);
 
         if (!$clinic) {
             return response()->json(['message' => 'Clínica no encontrada'], 404);

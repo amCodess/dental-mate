@@ -18,7 +18,17 @@ class UserController extends Controller
         // Obtener usuarios con su rol y empresa
         // Como User tiene belongsTo role, podemos usar with('role')
 
-        $query = User::with('role')->where('deleted', false);
+        $query = User::query()
+            ->select([
+                'id_usuario',
+                'nombre',
+                'apellido',
+                'email',
+                'id_role',
+                'estado'
+            ])
+            ->with('role')
+            ->where('deleted', false);
 
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -46,7 +56,7 @@ class UserController extends Controller
         }
 
         // Paginación
-        $users = $query->orderBy('id_usuario', 'desc')->paginate(10);
+        $users = $query->orderBy('id_usuario', 'desc')->simplePaginate(10);
 
         return response()->json($users);
     }

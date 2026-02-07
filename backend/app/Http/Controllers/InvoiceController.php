@@ -14,7 +14,20 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::with('patient')->paginate(10);
+        $invoices = Invoice::query()
+            ->select([
+                'id_factura',
+                'id_empresa',
+                'id_paciente',
+                'fecha_emision',
+                'importe_total',
+                'tipo_pago',
+                'pago_status',
+                'fecha_creacion'
+            ])
+            ->with(['patient:id_paciente,nombre,apellido'])
+            ->orderBy('fecha_emision', 'desc')
+            ->simplePaginate(10);
         return response()->json($invoices);
     }
 
@@ -44,7 +57,7 @@ class InvoiceController extends Controller
      */
     public function show($id)
     {
-        $invoice = Invoice::with('patient')->find($id);
+        $invoice = Invoice::with(['patient:id_paciente,nombre,apellido'])->find($id);
         if (!$invoice) return response()->json(['message' => 'Not found'], 404);
         return response()->json($invoice);
     }

@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/var/www/html
+      - ./backend:/var/www/html:cached
     environment:
       - DB_CONNECTION=pgsql
       - DB_HOST=db
@@ -26,10 +26,10 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app:cached
       - /app/node_modules
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8000/api/v1
     depends_on:
       - backend
 
@@ -44,11 +44,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Mount initialization script if needed. 
-      # Since we have backend/database/init_database.sql, we can mount it to run on first setup.
-      # However, users usually run migrations manually or via script. 
-      # Let's map it but let user invoke it if needed or let it auto-run if empty.
-      #- ./backend/database/init_database.sql:/docker-entrypoint-initdb.d/init.sql
+      # Auto-initialize schema + seed data on first database boot (empty volume)
+      - ./backend/database/init_database.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
   adminer:
     image: adminer

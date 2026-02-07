@@ -14,7 +14,7 @@ class PatientController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Patient::query();
+        $query = Patient::query()->where('deleted', false);
 
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
@@ -26,7 +26,22 @@ class PatientController extends Controller
             });
         }
 
-        $patients = $query->orderBy('fecha_creacion', 'desc')->paginate(10);
+        $patients = $query
+            ->select([
+                'id_paciente',
+                'id_empresa',
+                'id_clinica',
+                'nombre',
+                'apellido',
+                'email',
+                'telefono',
+                'fecha_nacimiento',
+                'direccion',
+                'historial_medico',
+                'fecha_creacion'
+            ])
+            ->orderBy('fecha_creacion', 'desc')
+            ->simplePaginate(10);
         return response()->json($patients);
     }
 

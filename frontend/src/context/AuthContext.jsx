@@ -36,6 +36,11 @@ export const AuthProvider = ({ children }) => {
         // My AuthController implementation of login DOES NOT return user, only token struct.
         // So I should fetch /auth/me after login.
 
+        if (userData) {
+            setUser(userData);
+            return;
+        }
+
         const userResp = await api.post('/auth/me');
         setUser(userResp.data);
     };
@@ -52,6 +57,11 @@ export const AuthProvider = ({ children }) => {
         const tokenData = response.data.token || response.data;
         const access_token = tokenData.access_token || response.data.access_token;
         localStorage.setItem('token', access_token);
+        if (response.data.user) {
+            setUser(response.data.user);
+            return;
+        }
+
         const userResp = await api.post('/auth/me');
         setUser(userResp.data);
     };

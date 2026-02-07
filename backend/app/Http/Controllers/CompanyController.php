@@ -14,7 +14,19 @@ class CompanyController extends Controller
     public function index()
     {
         // Solo para debug o admin panel
-        return response()->json(Company::all());
+        $companies = Company::query()
+            ->select([
+                'id_empresa',
+                'nombre',
+                'nif',
+                'email',
+                'telefono',
+                'fecha_creacion'
+            ])
+            ->orderBy('fecha_creacion', 'desc')
+            ->get();
+
+        return response()->json($companies);
     }
 
     /**

@@ -1,4 +1,4 @@
-# Guía de despliegue e inicialización local
+﻿# Guía de despliegue e inicialización local
 
 Esta guía detalla cómo desplegar e inicializar el proyecto DentalMate en un entorno local, utilizando Docker (recomendado) o una configuración manual.
 
@@ -22,7 +22,7 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
 1.  Abre una terminal en la raíz del proyecto.
 2.  Ejecuta:
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
     Esto iniciará:
     - **db**: PostgreSQL 16.
@@ -30,23 +30,33 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
     - **frontend**: React + Vite en http://localhost:5173.
 
 ### 1.3 Configuración inicial
-1.  Espera unos segundos a que el contenedor de backend instale las dependencias automáticamente (monitoriza con `docker-compose logs -f backend`).
+1.  Espera unos segundos a que el contenedor de backend instale las dependencias automáticamente (monitoriza con `docker compose logs -f backend`).
 2.  Configura entorno y clave (solo la primera vez):
     ```bash
-    docker-compose exec backend php artisan key:generate
+    docker compose exec backend php artisan key:generate
     ```
-3.  Cargar la base de datos (usando el script maestro):
-    ```powershell
-    Get-Content backend/database/init_database.sql | docker-compose exec -T db psql -U dental_user -d dental_mate
+3.  La base de datos se inicializa automáticamente en el primer arranque del contenedor `db` (se ejecuta `backend/database/init_database.sql` cuando el volumen está vacío).
+4.  Las migraciones de Laravel se ejecutan automáticamente al arrancar el contenedor `backend` (incluye índices de rendimiento).
+    - Si necesitas forzarlas manualmente:
+    ```bash
+    docker compose exec backend php artisan migrate --force
     ```
-    *Nota: Si estás en Mac/Linux usa `cat` en lugar de `Get-Content`.*
+5.  Credenciales de acceso por defecto (seed inicial):
+    - Usuario: `admin@dentalmate.com`
+    - Contraseña: `Admin123!`
 
-
+> Si necesitas re-inicializar desde cero (por ejemplo, al mover el proyecto a otro ordenador), borra el volumen de PostgreSQL y vuelve a levantar todo:
+> ```bash
+> docker compose down -v
+> docker compose up -d --build
+> ```
 ### 1.4 Configuración del frontend
 Si es necesario (por defecto automático):
 ```bash
-docker-compose exec frontend npm install
+docker compose exec frontend npm install
 ```
+
+> Nota: En Docker local, `VITE_API_URL` debe apuntar a `http://localhost:8000/api/v1` (el navegador accede al backend por el puerto publicado).
 
 ### 1.5 Acceso Visual a la Base de Datos (Adminer)
 El proyecto incluye **Adminer** para gestionar visualmente la base de datos sin comandos.
@@ -102,7 +112,17 @@ npm run dev
 **Error: "bind: address already in use"**
 Detén servicios locales (XAMPP, Postgres) que usen los puertos 8000, 5173 o 5432.
 
+**Login devuelve "Unauthorized"**
+1.  Asegura que la base de datos se inicializó correctamente en el primer arranque.
+2.  Fuerza un reset de la base de datos:
+    ```bash
+    docker compose down -v
+    docker compose up -d --build
+    docker compose exec backend php artisan migrate --force
+    ```
+3.  Verifica que el frontend use `VITE_API_URL=http://localhost:8000/api/v1` (si usas Docker local).
 **Error de permisos en `storage/`**
 ```bash
-docker-compose exec backend chown -R www-data:www-data /var/www/html/storage
+docker compose exec backend chown -R www-data:www-data /var/www/html/storage
 ```
+
