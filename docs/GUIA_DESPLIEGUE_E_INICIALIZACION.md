@@ -35,7 +35,7 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
     ```bash
     docker-compose exec backend php artisan key:generate
     ```
-3.  Puebla la base de datos (usando el script maestro):
+3.  Cargar la base de datos (usando el script maestro):
     ```powershell
     Get-Content backend/database/init_database.sql | docker-compose exec -T db psql -U dental_user -d dental_mate
     ```

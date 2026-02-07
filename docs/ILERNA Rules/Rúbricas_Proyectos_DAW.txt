@@ -1,0 +1,517 @@
+ITEM
+
+ORIGINALIDAD
+
+DIFÍCIL
+
+No Evalúa
+
+Poco
+
+Regular
+
+Bien
+
+Muy bien
+
+Excelente
+
+El alumno realiza una
+El alumno plantea ideas originales
+actuación de carácter
+El alumno realiza una
+El alumno plantea ciertas
+El alumno solo aporta
+suficientemente fundamentadas y
+imitativo fuerte. La
+actuación de carácter imitativo ideas originales, aunque el
+síntesis de
+argumentadas desde la diferencia,
+propuesta aporta
+fuerte. La propuesta aporta
+peso del referente es
+informaciones
+mejora o avance con respecto al
+soluciones poco
+alguna soluciones innovadora. evidente. El trabajo presenta
+No cumple el criterio diversas. Realiza una
+entorno de referencia inmediato.
+innovadoras al referente.
+Lo que supone una baja o
+todavía algunas
+actuación imitativa. No
+El trabajo representa una
+Lo que supone una baja o
+escasa incidencia en el
+aportaciones débiles al
+hace ninguna
+aportación importante al campo de
+escasa incidencia en el campo de conocimiento al que campo de conocimiento al
+aportación novedosa.
+conocimiento al que pertenece el
+campo de conocimiento al
+pertenece el ciclo.
+que pertenece el ciclo.
+ciclo.
+que pertenece el ciclo.
+La complejidad del
+La complejidad del
+proyecto no se adapta
+proyecto se adapta al
+al nivel de estudios
+nivel de estudios
+cursados junto con las
+No cumple el criterio
+cursados junto con las
+herramientas
+herramientas utilizadas.
+utilizadas. Abuso de
+Abuso de plugins para el
+plugins para el
+desarrollo.
+desarrollo.
+
+La complejidad del proyecto
+La complejidad del proyecto
+se adapta al nivel de
+se adapta al nivel de estudios
+estudios cursados junto con
+cursados junto con las
+las herramientas utilizadas.
+herramientas utilizadas. Uso
+Uso apropiado de plugins
+plugins para el desarrollo.
+para el desarrollo.
+
+La complejidad del proyecto se
+adapta al nivel de estudios
+cursados junto con las
+herramientas utilizadas. No se
+hace uso de plugins para el
+desarrollo.
+
+ESTRUCTURA
+
+No cumple el criterio
+
+Se cumplen todos los
+puntos anteriores
+menos 4
+
+Se cumplen todos los puntos
+anteriores menos 2
+
+Se cumplen todos los
+puntos anteriores menos 1
+
+Código bien estructurado (ModeloVista-Controlador), el código está
+organizado en clases y en
+diferentes archivos y el código es
+de calidad. Código perfectamente
+comentado.
+
+OBJETIVOS
+
+No cumple el criterio
+
+Varios objetivos son
+Los objetivos son
+Varios objetivos son
+imprecisos o no
+confusos y/o no
+imprecisos o no adecuados al
+adecuados al tema y/o no
+adecuados al tema y/o
+tema. Se ha justificado el
+se ha justificado el
+sin interés para el
+cumplimiento de algún
+cumplimiento de algún
+ciclo.
+objetivo planteado.
+objetivo planteado.
+
+Aunque los objetivos son
+claros y realistas resultan
+de escaso interés en el
+ciclo. Se han cumplido
+todos los objetivos
+planteados.
+
+Los objetivos son claros, realistas,
+adecuados al tema y de interés
+relevante en el ciclo. Se han
+cumplido todos los objetivos
+planteados.
+
+No cumple el criterio
+
+Presentación limpia, organizada y
+Presentación limpia,
+Presentación limpia,
+con buena ortografía. Utiliza letra
+organizada y con buena
+organizada y con buena
+Arial 11, interlineado 1,5 y justifica
+ortografía. Utiliza letra Arial
+ortografía. Utiliza letra Arial 11
+el texto. Incluye encabezado con el
+Presentación limpia,
+11, interlineado 1,5 y
+Presentación
+y justifica el texto. Las páginas
+logo de Ilerna Online, el título del
+organizada y con buena
+justifica el texto. Las
+organizada. Letra Arial
+están correctamente
+trabajo y el nombre del autor. Las
+ortografía. Utiliza letra
+páginas y el índice están
+11
+numeradas. Utiliza imágenes
+páginas y el índice están
+Arial 11 y justifica el texto.
+corretamente numerados.
+con tamaño adecuado.
+correctamente numerados. Utiliza
+Utiliza imágenes con
+Respeta el formato de la
+imágenes con tamaño adecuado y
+tamaño adecuado. Respeta
+portada.
+referenciadas al pie. Respeta el
+el formato de la portada.
+formato de la portada.
+
+EXTENSIÓN
+
+No cumple el criterio
+
+El documento presenta una
+El documento presenta una
+extensión entre 30 y 60
+extensión entre 30 y 60 páginas
+El documento
+El documento presenta
+El documento presenta una
+páginas sin contar los
+sin contar los anexos y siendo la
+presenta una
+una extensión entre 30 y
+extensión entre 30 y 60
+anexos y siendo la página 1
+página 1 el índice. La
+extensión menor a 30 60 páginas sin contar los páginas sin contar los anexos el índice. La introducción y
+introducción, las conclusiones y la
+páginas
+anexos.
+y siendo la página 1 el índice. las conclusiones tienen una
+bibliografía tienen una extención
+extensión de 1 a 2 páginas
+de 1 a 2 páginas cada apartado.
+cada apartado.
+
+ESTRUCTURA DEL TRABAJO
+
+No cumple el criterio
+
+El documento
+presenta todas las
+El documento incluye
+partes indicadas en el todos los apartados pero
+guión pero en distinto
+faltan varios de los
+orden o falta tres o
+subapartados.
+más apartados
+
+No cumple el criterio
+
+La base teórica hace
+referencia a la mayoría de
+El trabajo no está
+La base teórica hace
+los módulos del ciclo
+fundamentado en el
+El desarrollo del trabajo referencia a la mayoría de los formativo. El desarrollo del
+contenido de los
+tiene rigurosidad científica módulos del ciclo formativo. El trabajo tiene rigurosidad
+diversos módulos que y el alumno es capaz de
+desarrollo del trabajo tiene
+científica y el alumno es
+forman el ciclo
+redactar el contenido con
+rigurosidad científica y el
+capaz de redactar el
+formativo. El
+sus propias palabras. El alumno es capaz de redactar contenido con sus propias
+documento NO refleja
+documento refleja el
+el contenido con sus propias
+palabras. Aporta
+el aprendizaje del
+aprendizaje del alumno a palabras. El documento refleja vocabulario técnico en sus
+alumno a lo largo de lo largo de todo el ciclo. el aprendizaje del alumno a lo
+explicaciones. El
+todo el ciclo.
+largo de todo el ciclo.
+documento refleja el
+aprendizaje del alumno a lo
+largo de todo el ciclo.
+
+No cumple el criterio
+
+Solo maneja
+La bibliografía es de interés
+información
+La bibliografía es muy
+para el trabajo, pero
+procedente de internet
+La bibliografía es la esencial e
+básica. No usa un
+incompleta. El trabajo
+que no es fiable ni
+importante. Usa las referencias
+sistema de citación y no
+presenta algunos fallos en
+apropiada. No usa un
+La bibliografía es muy básica.
+bibliográficas de forma correcta y
+siempre se integra
+el sistema de citación o en
+sistema de citación y
+en el momento apropiado durante
+adecuadamente a lo largo
+la integración de las
+no la integra
+el trabajo escrito.
+del trabajo.
+referencias bibliográficas en
+adecuadamente a lo
+el trabajo escrito
+largo del trabajo.
+
+No cumple el criterio
+
+Fase análisis: Los
+Fase análisis: Los esquemas
+esquemas propuestos son
+propuestos son óptimos y recogen
+Fase análisis: Los esquemas
+apropiados. Están
+todos los casos posibles. Están
+propuestos son mejorables. correctamente identificados.
+correctamente identificados. Fase
+No se han identificado. Fase Fase de diseño: Se incluyen
+de diseño: Se incluyen los
+de diseño: Falta algún o
+los diagramas necesarios
+diagramas necesarios para el
+algunos diagramas. No hay para el proyecto. Los casos
+proyecto. Los casos de uso son
+casos de uso. Diagrama de de uso son representativos.
+representativos. Diagrama de
+Gantt: La gráfica no es legible.
+Diagrama de Gantt: La
+Gantt: La gráfica es totalmente
+Se representan los valores
+gráfica es totalmente
+legible. Se representan los valores
+estimados.
+legible. Se representan los
+estimados y los valores reales. El
+valores estimados. El plazo
+plazo planteado es factible
+planteado es factible
+
+PRESENTACIÓN
+
+CONTENIDO
+
+FUENTES
+
+ANÁLISIS
+
+EXPLICACIÓN VÍDEO
+
+DEMOSTRACIÓN
+
+CALIDAD VIDEO
+
+CALIDAD POWERPOINT
+
+Falta alguno de los
+diagramas. No se
+añade explicación.
+
+Se cumplen todos los
+puntos anteriores menos
+3
+
+Falta alguno de los
+diagramas. Se ha
+explicado brevemente.
+
+El documento incluye todos
+los apartados pero falta uno
+de los subapartados.
+
+TRABAJO PRÁCTICO
+
+20%
+
+TRABAJO ESCRITO
+
+30%
+
+El documento incluye todos El documento presenta todos los
+los apartados citados en el
+apartados indicados en la
+punto anterior pero no sigue
+normativa siguiendo el orden
+el orden establecido.
+establecido
+
+La base teórica hace referencia a
+la mayoría de los módulos del
+cliclo formativo. El desarrollo del
+trabajo tiene rigurosidad científica.
+Aporta vocabulario técnico en sus
+explicaciones. El documento
+refleja el aprendizaje del alumno a
+lo largo de todo el curso. Utiliza el
+pensamiento reflexivo para
+explicar las conclusiones del
+trabajo.
+
+El alumno se presenta, introduce
+El alumno se expresa de
+El alumno realiza las
+el tema de su proyecto y concluye
+forma clara durante las
+explicaciones sin apoyo de
+la defensa. Se expresa de forma
+explicaciones sin apoyo de
+La exposición oral no
+La exposición oral
+apuntes. Refleja los
+clara y muestra seguridad durante
+apuntes. Refleja los
+concuerda con el
+concuerda con el
+conocimientos adquiridos
+las explicaciones sin apoyo de
+No cumple el criterio
+conocimientos adquiridos
+contenido que aparece contenido que aparece en durante el ciclo. La exposición
+apuntes. Refleja los
+durante el ciclo. la
+en las diapositivas
+las diapositivas
+oral concuerda con el
+conocimientos adquiridos durante
+exposicion oral concuerda
+contenido que aparece en las
+el curso. La exposición oral
+con el contenido que
+diapositivas.
+concuerda con el contenido que
+aparece en las diapositivas.
+aparece en las diapositivas.
+
+Realiza una demostración
+Realiza una demostración en
+en vivo del proyecto
+vivo del proyecto, pero no en
+mostrando algunas
+su totalidad. Se muestra
+funciones. Se muestra
+correctamente.
+correctamente.
+
+Realiza una demostración Realiza una demostración en vivo
+en vivo del proyecto, pero del proyecto. Muestra en totalidad
+no en su totalidad.
+sus funcionalidades. Demuestra
+Demuestra tener un gran
+tener un gran conocimiento del
+conocimiento del proyecto. proyecto. El aplicativo se muestra
+Se muestra correctamente.
+de forma óptima.
+
+No cumple el criterio.
+
+Muestra capturas de
+pantalla
+
+No cumple el criterio
+
+El video es inferior a
+Duración ligeramente
+Duración entre 15 - 25
+10 minutos o superior superior o inferior a 15 - Duración ligeramente superior
+minutos. El alumno aparece Duración entre 15 - 25 minutos. El
+a 30 minutos.
+25 minutos. El alumno
+o inferior a 15 - 25 minutos.
+en todo momento en el
+alumno aparece en todo momento
+Solamente aparece el aparece en todo momento El alumno aparece en todo
+vídeo. El PowerPoint / Prezi en el vídeo. El PowerPoint / Prezi
+alumno en el video. en el vídeo. El PowerPoint momento. El PowerPoint /
+se visualiza en todo
+se visualiza en todo momento. El
+Solamente aparece la /Prezi se visualiza en todo
+Prezi se visualiza en todo
+momento. El vídeo tiene una vídeo tiene una calidad óptima de
+presentación en el
+momento. las
+momento. Las explicaciones
+buena calidad de imagen y
+imagen y audio.
+video. El video no se explicaciones no se oyen
+se oyen correctamente.
+audio.
+oye o no se ve
+correctamente.
+
+Sigue el orden estructural de Sigue el orden estructural
+Sigue el orden estructural de los
+Sigue el orden estructural
+los apartados citados en la de los apartados citados en apartados citados en la normativa.
+de la mayoría de los
+NO sigue el orden
+normativa. Extensión
+la normativa. Entre 20 y 25 Entre 20 y 25 diapositivas. Utiliza
+apartados citados en la
+estructural de los
+ligeramente superior o inferior diapositivas. Utiliza una letra una letra de tamaño entre 24 y 28
+normativa. Utiliza una
+No cumple el criterio apartados. Utiliza letra
+a 20 y 25 diapositivas. Utiliza
+de tamaño entre 24 y 28
+puntos y un fondo que permita la
+letra de tamaño entre 24 y
+inferior a 24 o superior
+una letra de tamaño entre 24 y
+puntos y un fondo que
+fácil visualización del texto.
+28 puntos que permita la
+a 28
+28 puntos que permita la fácil permita la fácil visualización
+Ortografía correcta. Utiliza
+fácil visualización del
+visualización del texto.
+del texto. Ortografía
+imágenes y tablas que apoyen la
+texto.
+Ortografía correcta.
+correcta.
+defensa.
+
+DEFENSA Y SOPORTE
+50%
+AUDIOVISUAL
+
+

@@ -1,0 +1,647 @@
+Proyecto de Desarrollo de
+Aplicaciones Web
+CFGS Desarrollo de Aplicaciones Web
+
+Tabla de contenido
+
+01.
+
+Evaluación del módulo
+
+02.
+
+Calendario
+
+03. Descripción del proyecto
+
+04.
+
+05.
+
+06. Defensa del proyecto
+
+07.
+
+Estructura del trabajo
+escrito
+Entrega
+
+08.
+
+Herramientas de
+desarrollo
+
+Dudas y preguntas
+
+01.
+Evaluación del módulo
+Proyecto de desarrollo de aplicaciones web
+
+Evaluación final del módulo
+
+50%
+Código + Memoria
+(20%)
+(30%)
+
+50%
+Presentación
+
+02.
+Calendario
+Proyecto de desarrollo de aplicaciones web
+
+Fases de entregas
+
+1
+
+Entrega obligatoria
+Propuesta de tema
+
+2
+
+Entrega Voluntaria
+de Feedback
+
+3
+
+Entrega
+Final del Proyecto
+
+OBLIGATORIA PARA PODER PRESENTAR EL PROYECTO
+
+Fases de entregas
+
+1
+
+Entrega
+Propuesta de tema
+
+PRERREQUISITOS:
+• Material didáctico
+• Recursos
+• Guía didáctica
+• Aspectos y fechas importantes
+
+●
+●
+●
+●
+●
+●
+●
+●
+
+Título del Proyecto
+Resumen del Proyecto
+Tecnologías y herramientas que se
+utilizarán
+Correlación de las tecnologías y
+herramientas con el ciclo
+Objetivos
+Previsión de tablas para la Base de
+Datos
+Justiﬁcación de la elección de la
+temática
+Aceptación
+de
+términos
+y
+condiciones del proyecto.
+
+TAREA:
+
+• Cumplimentar todos los campos de la tarea habilitad
+en el campus siguiendo indicaciones y normativa.
+• Se evalúa como APTO( 1 ) o NO APTO ( 0 )
+• Si APTO, comienza a desarrollar el proyecto
+• Si NO APTO, neceSario presentar nuevo tema o
+realizar modiﬁcaciones.
+
+Fases de entregas
+
+2
+
+Entrega
+Voluntaria de
+Feedback
+
+PRERREQUISITOS:
+• Propuesta de tema APTA
+
+TAREA:
+• Entrega opcional recomendable para obtener
+revisión del profesor
+• Entregar PDF de la memoria escrita para revisar
+Diagramas de análisis y Estructura del
+proyecto
+• No entregar código implementado.
+
+Fases de entregas
+
+3
+
+Entrega
+Final del Proyecto
+
+PRERREQUISITOS:
+• Propuesta de tema APTA
+
+TAREA:
+• Entregar en la tarea habilitada en el campus el
+PDF de la memoria escrita.
+• Contenido del directorio compartido en Drive:
+Manual en PDF + WORD, PPT soporte, vídeo
+defensa, código de la APP.
+
+03.
+Descripción del proyecto
+Proyecto de desarrollo de aplicaciones web
+
+Descripción
+Idea original que reúna y demuestre todos
+los conocimientos adquiridos durante el
+Ciclo.
+
+✔ Frontend
+✔ Backend
+
++
+
+Tipos
+
+04.
+Herramientas de desarrollo
+M13. Proyecto de desarrollo de aplicaciones web
+
+Herramientas de desarrollo
+
+•
+
+El autor del código desarrollado en
+la aplicación debes ser tú, se
+penalizará el abuso de código
+autogenerado, pudiendo ser motivo
+de suspenso.
+
+Herramientas de desarrollo
+•
+
+Cada herramienta puede facilitar el trabajo pero no
+lo hace por vosotros, y siempre se debe explicar
+extensa y detalladamente en qué consiste y
+justiﬁcar de forma precisa su uso.
+
+•
+
+Si por el contrario, es un atajo para ahorrar trabajo
+(por tedioso que sea), se corre el riesgo de que
+inﬂuya negativamente en la caliﬁcación del
+proyecto, o incluso suspendiendo en casos graves.
+
+•
+
+NO ESTÁN PERMITIDAS BASES DE DATOS NO
+RELACIONALES. Por lo tanto, las propuestas con
+MongoDB Firebase, etc. serán rechazadas
+directamente. Las propuestas, además de contar
+con una base de datos relacional, deben indicar una
+previsión de tablas de la futura base de datos, no
+pudiendo ser una cantidad inferior a 3 (en la
+normativa se indica).
+
+05.
+Estructura del trabajo escrito
+Proyecto de desarrollo de aplicaciones web
+
+Normativa
+•
+•
+•
+
+Arial 11
+Interlineado 1,5
+Texto justiﬁcado
+
+•
+
+Plantilla proporcionada (obligatorio).
+
+•
+•
+•
+
+Extensión mínima 30 páginas. (sin contar anexos, portada, ni índice)
+Extensión máxima 60 páginas (sin contar anexos , portada, ni índice)
+Ninguna página puede estar ocupada en más de 1/3 por imágenes.
+
+•
+
+El plagio igual o superior al 30% es motivo directo de suspenso (Se
+deben citar correctamente las fuentes consultadas en la
+bibliografía. Si se suspende por este motivo, se deberá cambiar el
+tema de proyecto (es decir entregar otra propuesta de tema, otra
+memoria y otra aplicación diferente)
+
+Trabajo Escrito
+Portada
+•
+Índice
+•
+Introducción
+- Motivación / Abstract / Objetivos
+•
+
+Estado del Arte
+
+•
+•
+•
+
+Metodología utilizada
+Tecnologías y herramientas utilizadas
+Planiﬁcación, Diagnóstico y Contexto Laboral
+
+•
+
+Análisis del proyecto
+
+•
+
+Diseño del proyecto
+
+•
+•
+•
+•
+
+Despliegue y pruebas
+Conclusiones
+Vías Futuras
+Bibliografía/Webgrafía
+
+•
+
+Anexos
+
+•
+
+Manual de usuario
+
+Introducción de la
+normativa
+de Proyecto DAW
+
+Incluye
+descripción sobre
+qué incluir en cada
+apartado del índice
+
+Introducción
+(3-4 páginas)
+
+Introducción
+Adelanto sobre lo que se va a
+poder ver a lo largo del proyecto (justiﬁcar la
+razón de elección de la actividad, apartados
+generales, etc. (3-4 páginas)
+
+Abstract
+
+Abstract
+Breve redacción en Inglés donde
+que se recogen las ideas principales del proyecto
+así como su ﬁnalidad y conclusión principal ( 200
+palabras aproximadamente )
+Un resumen no es lo mismo que una introducción.
+
+Motivación
+
+Motivación
+Qué te ha llevado a querer
+desarrollar este proyecto: cómo te afecta
+personal o profesionalmente, si consideras
+que va a ser un recurso útil en tu futuro en el
+de un grupo de población, si buscas mejorar
+la vida o el trabajo de las personas….
+
+Estado del Arte
+(4-5 páginas) OBLIGATORIO
+Estado del arte
+se reﬁere al análisis de las
+investigaciones, desarrollos y soluciones más
+recientes y relevantes relacionadas con un
+tema especíﬁco. Para un alumno de
+informática, es como un "mapa actualizado" de
+lo que ya se ha hecho y lo que aún queda por
+explorar en un área de estudio. Al conocer el
+Estado del Arte, el estudiante puede
+identiﬁcar
+brechas,
+oportunidades
+y
+tendencias en la tecnología o investigación
+https://normasapa.in/estado-del-arte/
+
+Objetivos
+Objetivos
+Cuáles son los objetivos de la
+aplicación que os planteáis con el proyecto:
+•
+
+Generales: Funcionalidades o aspectos
+genéricos del proyecto.
+
+•
+
+Especíﬁco: Desgranando los objetivos
+generales en pequeños hitos que vais a
+tratar conseguir(funcionalidades).
+
+No son requisitos, son objetivos.
+
+Metodología
+(2-4 páginas)
+
+Metodología
+Cuál va ser el ciclo de vida
+de vuestro proyecto y por cuantas fases vais a
+pasar. No se trata de poner la teoría, sino
+como has aplicado la metodología elegida a
+tu proyecto.
+
+Tecnologías y herramientas
+(2-3 páginas)
+
+Tecnologías y herramientas
+Qué es lo
+que estás usando, dónde y para qué te va a
+servir. Tienen que ser tecnología que se haya
+trabajado con ellas en el ciclo de DAM.
+Mínimos: IDE, Lenguajes, BBDD; Interfaz
+gráﬁca, …
+Recuerda: solo tecnologías vistas en el Ciclo.
+No se permiten frameworks para uso
+generalizado.
+
+Planificación, Diagnóstico y Contexto Laboral
+(3-4 páginas)
+
+Planiﬁcación
+Cómo vas a distribuir tu
+tiempo en cada una de las fases del proyecto.
+Diagrama de Gantt con pesos y tiempos.
+Hacer comparativa entre tiempo estimado y
+tiempo real
+
+Análisis
+
+(8-16 páginas)
+Análisis
+Necesidades y ﬁnalidad del
+proyecto.
+• Requisitos funcionales
+• Requisitos no funcionales
+• Diagrama Entidad-Relación
+• Diagrama de Casos de Uso
+• Diagrama de clases
+Seguir representaciones gráﬁcas adecuadas
+en los distintos diagramas
+Se revisará en la entrega de feedback
+(Opcional)
+
+Diseño
+
+(6-14 páginas)
+Diseño
+Previo a la implementación, con
+mockups, prototipos, etc. relacionándolo con
+las decisiones de análisis de la parte anterior.
+No incluir código; en caso de incluir algún
+fragmento, tiene que ser por razón justiﬁcada,
+porque sea innovador, especial,…
+
+Se revisará en la entrega de feedback
+(Opcional)
+
+Despliegue y pruebas
+(4-10 páginas)
+
+Pruebas
+Pruebas funcionales en caja
+negra basándose en los casos de uso.
+Nº Prueba:
+• Objetivo
+• Requisitos a probar
+• Pruebas realizadas
+
+Conclusiones
+(1-2 páginas)
+
+Conclusiones
+Con el proyecto terminado,
+revisar su proceso y determinar cuáles son tus
+conclusiones. Relaciónalas con tus objetivos y
+el proceso seguido, y explica cuáles han sido
+tus conocimientos adquiridos durante su
+elaboración.
+
+Vías futuras
+(1-2 páginas)
+
+Vías futuras
+Una vez terminado el
+proyecto, indica cuáles serían los siguientes
+pasos: qué cambiarías, qué tecnologías
+incluirías y por qué, qué necesidades nuevas
+puede tener en un futuro próximo, etc.
+
+Bibliografía – Webgrafía
+(1-2 páginas)
+
+Bibliografía
+Indicad las fuentes en las que
+habéis buscado información para elaborar
+este proyecto.
+
+Utilizar las normas APA: normas-apa.org
+
+Anexos
+
+(no hay limitación páginas)
+
+Anexos
+Contendrán el glosario, el Manual
+de usuario (no técnico) y toda aquella
+información que, por extensión o baja
+relevancia, no es conveniente incluir en el
+texto principal y pueden no ser necesarios
+para la comprensión del proyecto.
+
+Anexos – Manual de usuario
+Manual de usuario del proyecto:
+1.
+
+2.
+3.
+4.
+5.
+6.
+
+Introducción: Pequeña descripción de la aplicación
+(para qué es, funcionalidades de cada rol en la
+aplicación…..
+Propósito general de la aplicación: Que soluciona tu
+aplicación.
+Guía de Instalación: Paso a paso de como instalar la
+aplicación y cómo ejecutarla
+Guía de Uso: por de cada rol junto con capturas de
+pantalla
+Mensajes de error: Pantallazos y descripción de los
+posibles errores de la aplicación.
+Preguntas o dudas más frecuentes: Apartado de
+preguntas y respuestas, similar a las FAQ
+
+(*) El manual de usuario debe contener información acerca de todas las operaciones básicas que la aplicación ofrece, así como capturas de pantallas útiles
+para el seguimiento de la explicación.
+
+Anexos - Glosario
+
+Glosario
+Términos y siglas utilizadas en la
+elaboración de la memoria y que son
+necesarias para su comprensión.
+
+06.
+Defensa del proyecto
+Proyecto de desarrollo de aplicaciones web
+
+Vídeo defensa
+
+•
+
+Duración: entre 15 - 25 minutos
+
+•
+
+Soporte audiovisual diapositivas (PPT)
+
+•
+
+Formato MP4 o AVI
+
+•
+
+El alumno siempre estará presente
+(visible) durante la reproducción del
+vídeo, junto al soporte audiovisual.
+
+•
+
+En el vídeo se debe realizar además
+una demostración en vivo y en directo
+de la ejecución de la aplicación
+desarrollada, mostrando su
+funcionalidad.
+
+Presentación
+
+•
+
+Seguir el orden estructural de apartados del trabajo
+escrito (excepto glosario, bibliografía y anexos)
+
+•
+
+Utilizar tamaño de letra entre 24 y 28
+
+•
+
+Ortografía correcta y claridad en el texto
+
+•
+
+Diseño que permita la fácil visualización del texto
+
+07.
+Entrega
+Proyecto de desarrollo de aplicaciones web
+
+Entrega final
+Pasos que debes seguir en la entrega ﬁnal del proyecto:
+•
+
+Se abrirá una PAC con la fecha determinada (no se podrá presentar trabajos después de esta fecha).
+
+•
+
+Tenéis que adjuntar el proyecto en documento PDF.
+
+•
+
+Si no tenéis cuenta de Gmail, debéis haceros una.
+
+•
+
+Subir trabajo al Google Drive y enviar el enlace compartido en el título de la tarea:
+1.
+2.
+3.
+4.
+5.
+6.
+
+Documento memoria pdf
+Documento memoria Word
+Presentación proyecto PowerPoint
+Vídeo presentación MP4
+Código proyecto + base de datos Zip +
+Manual de Despliegue => cómo lo podemos probar los profesores
+
+Enlace compartido
+Importante: Conﬁgura el acceso público al
+contenido del Drive para poder entrar en vuestro
+enlace y poder así evaluar vuestro trabajo
+
+IMPORTANTE:
+• Para realizar una correcta entrega, primero se ha
+de adjuntar la memoria del proyecto, y después
+modiﬁcar el título.
+• El título debe ser el enlace a la carpeta de Drive
+que contiene los ﬁcheros de proyecto
+• En el orden inverso, el título se sustituiría por el
+nombre del ﬁchero adjunto, por lo que recuerda
+pegar el enlace a la carpeta de Drive en el título
+DESPUÉS de cargar la memoria.
+
+Carpeta de Google Drive
+
+5 ﬁcheros: Es todo lo que debe ﬁgurar
+en esta carpeta, sin subcarpetas.
+Aunque no ﬁgura en la normativa el
+nombre de los archivos, se aconseja
+algo parecido a este ejemplo.
+
+Propietario:
+Recomendamos
+encarecidamente que el
+autor y dueño de la carpeta
+sea el/la estudiante
+
+Fecha: Si algún ﬁchero tiene
+fecha de modiﬁcación
+posterior a la fecha límite de
+entrega, el proyecto NO será
+válido. Supone un SUSPENSO.
+
+08.
+Dudas y preguntas
+Proyecto de desarrollo de aplicaciones web
+
+Planteamiento de las dudas
+1
+2
+
+¡A por ello!
+
+

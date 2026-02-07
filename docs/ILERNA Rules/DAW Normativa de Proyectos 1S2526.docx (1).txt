@@ -1,0 +1,515 @@
+NORMATIVA Y GUIÓN DE PROYECTO
+CFGS Desarrollo de Aplicaciones Web
+
+Módulo 13: PROYECTO DE
+DESARROLLO DE APLICACIONES WEB
+
+1
+
+ÍNDICE
+Contenido
+
+1. INTRODUCCIÓN​
+
+3​
+
+2. NORMAS Y CRITERIOS MÍNIMOS VÍDEO / PRESENTACIÓN​
+
+9​
+
+a. Criterios mínimos para la presentación de diapositivas (Realización obligatoria)​
+
+9​
+
+b. Criterios mínimos para el VÍDEO (Realización obligatoria)​
+
+9​
+
+3. PASOS A SEGUIR DURANTE EL MÓDULO​
+
+10​
+
+4. CRITERIOS DE EVALUACIÓN​
+
+12​
+
+a. Realización de la parte práctica (30%)​
+
+12​
+
+b. Realización o ejecución de la parte escrita (30%)​
+
+12​
+
+c. Realización o ejecución del Vídeo (40%)​
+
+13​
+
+5. CALENDARIO DE ENTREGA​
+
+14
+
+​
+Página 2 de 16
+
+1.​INTRODUCCIÓN
+Las presentes normas forman parte del contenido contractual y su aceptación es
+indispensable para que el/la alumno/a pueda cursar la formación correspondiente y obtener
+la titulación que proceda. Además, la realización del proyecto final de Desarrollo de
+Aplicaciones Web debe realizarse atendiendo a las siguientes indicaciones, siendo causa de
+suspenso el incumplimiento de las mismas:
+1.​
+
+El proyecto debe contener base teórica de todos los módulos del ciclo formativo que
+resulten relevantes para el trabajo.
+
+2.​
+
+La aplicación objeto de este proyecto NO debe haber sido publicada previamente en ningún
+portal o plataforma, ni debe haber formado parte de los ejemplos, ejercicios o actividades
+desarrolladas durante el ciclo.
+
+3.​
+
+A la hora de realizar el trabajo deberán seguirse las siguientes indicaciones: El trabajo deberá
+ser original y de elaboración propia. El alumno se compromete a que el proyecto que realice
+sea original y de elaboración propia, no habiendo intervenido en la redacción ninguna otra
+persona ni herramienta alguna de inteligencia artificial generativa. De detectarse el
+incumplimiento de alguna de estas obligaciones de originalidad y de elaboración propia el
+proyecto será calificado como SUSPENSO, debiendo el alumno/alumna cambiar de tema y
+realizar un nuevo proyecto desde el inicio.
+○​ Citas: sólo podrán utilizarse fragmentos o contenidos de terceros como modo de
+ilustrar los contenidos propios del trabajo, esto es, a modo de cita. En todo caso, las
+citas deberán aparecer entrecomilladas, con indicación del autor y fuente y su
+extensión no podrá suponer un porcentaje del 30% o superior a la del trabajo. En el
+caso de que dicho porcentaje se supere, las consecuencias serán las mismas que las
+indicadas en el apartado siguiente referido al plagio.
+○​ Plagio: Salvo lo establecido para las citas, no se aceptarán en el trabajo copias
+literales de páginas o aplicaciones de Internet ni de cualesquiera otras fuentes.
+ILERNA cuenta con un sistema de detección de plagio al que todos los trabajos
+deberán someterse. En caso de que, una vez aplicado el filtro antiplagio, el
+porcentaje de plagio detectado en el trabajo sea de un 30% o superior, ello será
+​
+Página 3 de 16
+
+motivo automático de suspenso. De este modo, si el suspenso es debido a plagio se
+deberá cambiar de tema, realizando uno nuevo proyecto desde el inicio.
+
+4.​ Si previamente hemos cursado otro ciclo, debemos tener en cuenta que cada uno
+tiene un currículum diferente, por tanto, se tienen que realizar proyectos
+totalmente diferentes. La detección de similitudes en proyectos entregados
+anteriormente, aunque sea por el mismo alumno, puede ser motivo de suspenso.
+○​ En el caso de haber realizado un proyecto en DAM anteriormente se deberá
+entregar un nuevo proyecto empezado de cero para evitar que se produzca
+plagio.​
+
+5.​ El trabajo debe realizarse con letra Arial tamaño 11. El tipo de letra será el mismo
+para todo el cuerpo del trabajo (los títulos podrán mostrarse con un tamaño
+superior), interlineado 1,5 y texto justificado y debe entregarse en Word y en PDF
+(el formato Word únicamente no es válido). Se proporcionará una plantilla que se
+ajuste al formato indicado.
+
+6.​ Estructura básica del trabajo, presentando los siguientes apartados:
+●​ Portada: En ella deben aparecer:
+○​ Título del proyecto.
+○​ Nombre y apellidos del autor.
+○​ Nombre y apellidos del profesor que tutoriza el trabajo.
+○​ Semestre y curso en que se entrega: 1S2324.
+○​ Logo de IlernaOnline.
+○​ Dirección de la carpeta donde se aloja el vídeo (Google Drive)​
+
+●​ Índice (1 página): Deberá recoger de forma ordenada y numerada cada uno de
+los apartados que componen el trabajo y especificar la página en la que se
+encuentra cada uno de ellos. No se puede modificar el índice de la plantilla.
+
+​
+Página 4 de 16
+
+​
+
+●​ Introducción (3-4 páginas): Justificación del tema seleccionado (actividad que
+desarrollará la empresa) y breve resumen del contenido del trabajo.
+○​ Motivación: Tendremos que definir los antecedentes que han surgido
+para que el alumno se decida a realizar este proyecto.
+○​ Abstract: Breve resumen del trabajo escrito en inglés. (Extensión
+recomendada: media página)
+○​ Objetivos propuestos (generales y específicos): Resumen de los
+objetivos que deseéis alcanzar en vuestro proyecto, los cuales tendréis
+que implementar. Los objetivos específicos son las funcionalidades de
+tu aplicación, cosas concretas; ni aprendizajes, ni cosas abstractas.​
+
+●​ Estado del Arte (4-5 páginas): revisión exhaustiva y crítica de los avances más
+recientes o herramientas presentes del tema propuesto. Permite identificar
+vacíos, tendencias y líderes, siendo esencial para investigadores que desean
+iniciar nuevos proyectos, garantizando que estos se basen en los conocimientos
+más actuales y avanzados. La no inclusión será motivo de SUSPENSO directo.​
+
+●​ Metodología (2-4 páginas): En este apartado, definiremos la metodología utilizada,
+el ciclo de vida del proyecto y las fases en las que los hemos diseñado aplicado a
+nuestro proyecto.
+
+●​ Tecnologías y herramientas utilizadas en el proyecto (2-3 páginas): En este
+apartado, detallaremos a fondo las tecnologías y herramientas utilizadas en el
+proyecto, así como las causas que han llevado al alumno a tal decisión. Como
+tecnologías y herramientas utilizadas entendemos como: los lenguajes de
+programación, editores de código, SGBD, etc.
+
+○​ En esta tabla se muestran las tecnologías vistas en el ciclo DAW de ILERNA y,
+por lo tanto, se considerarán válidas
+​
+Página 5 de 16
+
+Lenguajes de Programación
+
+AJAX
+C#
+CSS
+HTML
+Java
+JavaScript
+JSON
+JSP
+PHP
+Python
+SQL
+
+Acceso a Datos /
+Bases de Datos
+
+IDEs y Herramientas Desarrollo
+
+.Net
+Angular
+ASP.Net
+Bootstrap
+CharJS
+Django
+Eloquent
+Entity
+Express.js
+Hibernate
+JPA
+JQuery
+Laravel
+Nest.js
+Next.js
+React
+Sass
+Squelize
+Spring
+Spring MCV
+Springboot
+Symfony
+Tailwind
+Three.js
+TypeORM
+Typescript
+
+Docker
+Eclipse
+HeidiSQL
+IntelliJ
+LAMP
+MariaDB
+Modelio
+MySQL Workbench
+NetBeans
+Node.js
+Notepad++
+Rpm
+PGAdmin
+phpMyAdmin
+PostgreSQL
+Postman
+Pycharm
+SQL Developer
+SQL Server
+SQLIte
+Sublime Text
+Visual Studio
+Vue
+XAMPP
+WAMP
+
+Hay tecnologías parecidas o muy similares a las que se exponen aquí, y se
+pueden utilizar siempre y cuando se explique su uso en memoria y en el vídeo
+defensa. Si se quisiera utilizar alguna tecnología que no aparezca en este
+listado, se deberá justificar correctamente en la propuesta y la
+documentación del proyecto el por qué se usa esa tecnología en vez de las
+vistas en clase.
+
+• Si no se realiza la justificación en la propuesta se calificará la como NO
+APTA. No incluir la justificación correspondiente en la documentación del
+proyecto puede ser motivo de SUSPENSO del mismo.
+
+• Al usar tecnologías no vistas en clase los tutores de los proyectos no podrán
+resolver dudas sobre contenido no impartido ni determinar su validez hasta
+​
+Página 6 de 16
+
+que no se analice el código en el momento de la corrección. Para asegurar la
+validez de una tecnología, lo más aconsejable es ceñirse a las que se han visto
+durante el ciclo.
+
+• El uso de Frameworks y APIs de terceros se debe justificar en la propuesta y
+documentar en el proyecto. No incluirlo será motivo de propuesta NO APTA y
+puede ser motivo de SUSPENSO en el proyecto.
+
+• La base de datos debe ser RELACIONAL y contener un mínimo de tres
+tablas.
+
+●​ Planificación, Diagnóstico y Contexto Laboral (3-4 páginas): Para la planificación del
+proyecto, vemos conveniente la implementación de un diagrama de Gantt, y así ver
+la secuenciación que ha seguido el alumno para el desarrollo de este. Tiene que
+verse reflejado tanto la estimación como el tiempo real empleado en el desarrollo
+del proyecto. A su vez se debe realizar un análisis DAFO para entender las fortalezas y
+debilidades que muestra la idea propuesta.​
+
+●​ Análisis (8-16 páginas): Este es el proceso más importante del proyecto, donde se
+detectan las necesidades y la finalidad de este. Se deben realizar los requisitos
+funcionales y no funcionales, los diagramas de Entidad-Relación, ( Es obligatorio el
+uso de 3 tablas relacionadas ) diagramas de Casos de Uso junto con cada una de sus
+especificaciones y el diagrama de clases.
+
+●​ Diseño (6-14 páginas): En este apartado, se debe realizar un diseño previo a la
+implementación del proyecto y realizar las modificaciones oportunas en caso de ser
+necesario. Para ello se puede ilustrar mediante Mockups, Wireframes o Prototipos. A
+continuación, se deberá explicar detalladamente la realización del proyecto,
+comentando las partes más importantes (clases, funciones, ficheros, etc.) y su
+funcionalidad. Es posible apoyarse mediante capturas de fragmentos de código.​
+
+​
+Página 7 de 16
+
+●​ Despliegue y pruebas (4-10 páginas): Junto a la entrega del proyecto, se deberá
+adjuntar también la aplicación web desarrollada para poder verificar que el proyecto
+compila y no contiene errores de ningún tipo. Según se va implementando el
+proyecto, es necesario realizar pruebas funcionales basadas en la caja negra, sobre
+los casos de uso.
+
+●​ Conclusiones (2-3 páginas): Detallar los objetivos que finalmente hemos alcanzado
+en el proyecto, que no siempre debe de coincidir con los objetivos propuestos.
+En este caso, explicar las causas por las que no se han logrado. Comentar la opinión
+sobre el trabajo que se ha realizado, tanto las dificultades surgidas en el desarrollo en
+general como la experiencia vivida tras la realización del proyecto.​
+
+●​ Vías futuras (2-3 páginas): En este punto se hará referencia a aquellos objetivos que
+se plantearon en la petición de tema y finalmente, no pudieron ser incluidos en el
+mismo, así como qué mejoras tendrían cabida en el proyecto para permitir su
+evolución en el tiempo.
+
+●​ Bibliografía – Webgrafía (1-2 páginas): Documentación y fuentes que han sido
+utilizadas durante la elaboración del proyecto. Se recomienda utilizar las normas del
+manual de publicación APA (American Psychological Association).
+○​ No incluir la Bibliografía/Webgrafía utilizada en el Proyecto Fin de Ciclo podrá
+ser motivo de SUSPENSO directo.
+
+●​ Anexos (no hay límite de páginas): Glosario (Terminología y siglas utilizadas en la
+elaboración de la memoria); tablas, fotografías, o documentos de otro tipo que hayan
+resultado demasiado extensos para ser incluidos en el cuerpo del trabajo. Los anexos
+deben ir numerados y titulados.
+○​ Dos anexos obligatorios: manual de instalación y manual de usuario.​
+
+​
+Página 8 de 16
+
+7.​ En la memoria escrita, no se pueden incluir definiciones teóricas, sólo información
+aplicada al proyecto; y correctamente referenciada. Tampoco se puede incluir
+código.​
+
+8.​ Incluir las imágenes justas y necesarias con tamaños adecuados. Ninguna página
+podrá presentar más de ⅓ de su superficie ocupada por imágenes. En caso de ser
+necesario, las imágenes o tablas pueden ser alojadas en la sección de Anexos. Toda
+imagen, tiene que estar referenciada en el pie de fotografía indicando qué es lo que
+se muestra en la imagen y la fuente de donde se ha obtenido.
+
+9.​ Correcta ortografía de todo lo que se presente por escrito. Un nivel excesivo de
+errores ortográficos podrá verse reflejado en la evaluación final e incluso ser motivo
+de SUSPENSO del proyecto.
+
+10.​ Extensión entre 30 y 60 páginas, sin tener en cuenta la portada, los Anexos de la
+memoria y tampoco las páginas que incumplan el punto 7. Una extensión superior
+afectará negativamente a la nota y una extensión inferior puede ser motivo de
+SUSPENSO por incumplimiento de los criterios mínimos.
+
+11.​ El documento deberá tener un encabezado en el que aparezca el título del proyecto
+junto con el nombre del autor y el logotipo de Ilerna Online (guiarse por la plantilla
+aportada).​
+
+12.​ Las páginas deben estar correctamente numeradas, siendo la página 1 el índice.​
+13.​ Los anexos y glosario no son obligatorios, se podrán introducir los anexos necesarios
+al final del trabajo, aunque no estarán incluidos en la extensión mínima de las 30
+páginas.
+
+​
+Página 9 de 16
+
+○​ Los únicos anexos obligatorios son el manual de instalación y el manual de
+usuario.​
+
+14.​ Todo el contenido del trabajo escrito estará incluido en un único documento. Se
+deberá entregar obligatoriamente en formato WORD y en formato PDF​
+
+15.​ La nota final del proyecto estará formada en un 50% por la nota del vídeo de
+presentación y defensa del proyecto, un 20% por la nota del código desarrollado para
+la aplicación y el 30% restante por la nota del trabajo final escrito.
+
+​
+Página 10 de 16
+
+2.​NORMAS Y CRITERIOS MÍNIMOS VÍDEO / PRESENTACIÓN
+En el vídeo de defensa es OBLIGATORIO que el alumno apoye su explicación con una
+presentación de diapositivas. En el vídeo se presentará su proyecto y por tanto se deberá
+exponer la defensa de la memoria del proyecto elaborado por el alumno, así como realizar
+una demostración en directo de la ejecución de la aplicación desarrollada, enseñando todas
+las funcionalidades descritas en dicha memoria. En caso de no incluir alguna de esas dos
+partes el proyecto se calificará como SUSPENSO.
+
+a.​ Criterios mínimos para la presentación de diapositivas (Realización obligatoria)
+1.​ Seguirá el orden de estructura que se refleja en este documento.
+2.​ El texto estará ordenado, con medida de letra entre 24 y 28.
+3.​ La correcta ortografía del texto de las diapositivas será evaluable.
+4.​ Utilizar un fondo que sea adecuado para visualizar con claridad el texto.
+5.​ Se recomienda realizar unas 20-25 diapositivas ya que solo se debe utilizar de
+soporte y debe ajustarse a la duración del vídeo.
+
+b.​ Criterios mínimos para el VÍDEO (Realización obligatoria)
+1.​ La duración de la exposición oral será de 15 a 25 minutos. En caso de ser
+superior o inferior a la duración establecida afectará negativamente a la nota.
+2.​ Es obligatorio que el vídeo no presente cortes ni ningún otro tipo de edición de
+cualquier índole, y que tanto el alumno como la presentación se visualicen
+correctamente en todo momento.
+3.​ El formato del archivo debe ser .mp4 para asegurar su correcta evaluación.
+4.​ La exposición oral debe ir en concordancia con el contenido que aparece en las
+diapositivas. La presentación NO es la memoria completa puesta en
+diapositivas, es decir, es el alumno quien debe explicarlo todo, y las diapositivas
+clarificar sus explicaciones.
+5.​ No se podrá recurrir a la lectura de apuntes durante la exposición.
+
+​
+Página 11 de 16
+
+3.​PASOS A SEGUIR DURANTE EL MÓDULO
+1. Del 29 de septiembre al 16 de octubre de 2025: Se abrirá una tarea en el campus. En ésta
+el alumno deberá subir la propuesta del tema de trabajo en las fechas indicadas. Esta
+entrega deberá recoger además de los datos del alumno, el título del proyecto, una
+justificación acerca de la elección temática elegida que incluya los objetivos que ha de
+cumplir dicho proyecto y las herramientas y tecnologías que va a emplear para su desarrollo
+y ejecución.
+Esta entrega es obligatoria para poder empezar a realizar el trabajo y requiere la validez del
+profesor (APTO) para poder iniciar el proyecto. En el caso de que la propuesta sea rechazada
+se deberá presentar otra. Una vez aceptado el tema por parte del tutor no será posible
+cambiar el tema del proyecto.
+
+2. Del 30 de octubre al 3 de noviembre de 2025: Se abrirá una tarea para hacer una entrega
+opcional de lo que el alumno lleve realizado del trabajo para obtener un “feedback” del
+profesor. Esta entrega no es obligatoria, sin embargo, es muy recomendable realizarla a fin
+de garantizar que se está siguiendo una buena dirección en la realización del trabajo. Se
+entregará la plantilla de memoria escrita, con las partes indicadas más abajo.
+IMPORTANTE: No se debe entregar la parte del código ya que este está en desarrollo y no
+es posible dar un feedback de forma correcta. Solamente es necesario entregar la memoria.
+​
+¿Qué puntos se van a revisar especialmente en la memoria en esta entrega opcional?
+●​ Diagramas de análisis:
+○​ Diagrama de casos de uso
+○​ Diagrama entidad relación
+○​ Diagrama de clase.
+●​ Estructura de la memoria del proyecto.
+
+​
+Página 12 de 16
+
+3. El alumno podrá realizar las consultas necesarias a lo largo de todo el semestre.​
+
+4. Del 4 al 9 de diciembre de 2025 a las 09:59 horas: se realizará la ENTREGA FINAL (hora
+peninsular) del proyecto.
+
+5. El trabajo escrito debe entregarse en formato pdf en la tarea habilitada en el campus para
+ello obligatoriamente. No entregar la memoria en el formato indicado y en la tarea
+habilitada puede ser motivo de incumplimiento de normativa, y por tanto, suspender el
+proyecto. El resto de los documentos deben alojarse en la carpeta de Google Drive indicada
+en la portada de la memoria y como comentario en la entrega dentro de la tarea habilitada.
+La entrega final debe constar de:
+●​ TRABAJO ESCRITO (formato .docx o similar y pdf)
+●​ EL VÍDEO DE DEFENSA (formato .mp4 o similar)
+●​ Presentación DIAPOSITIVAS (formato .pptx o similar)
+●​ CÓDIGO DE LA APLICACIÓN DESARROLLADA (directorio comprimido .zip)
+○​ LOS ARCHIVOS LA APLICACIÓN WEB
+
+6. Una vez realizada la entrega final NO es posible realizar modificaciones o alteraciones en
+los archivos por lo que se insta al alumno a repasar los ficheros a subir a fin de evitar
+confusiones o errores de última hora. En el caso de que en la fecha establecida falte alguno
+de los archivos solicitados el trabajo no será evaluado. Se tendrá en cuenta la hora de la
+última modificación que figura en Google Drive para atender a este requisito.
+
+​
+Página 13 de 16
+
+4.​CRITERIOS DE EVALUACIÓN
+El tribunal evaluará tanto el trabajo escrito como el vídeo de defensa mediante una rúbrica
+de evaluación, que se proporcionará a los alumnos.
+
+a.​ Realización de la parte práctica (20%)
+Se valorará:
+1.​ Cumplimiento de las normas y criterios mínimos. En el supuesto de que no se cumplan,
+afectará negativamente a la nota, incluso podría no ser aceptado.
+2.​ El nivel de desarrollo de la aplicación web debe contemplar los conocimientos
+adquiridos por el alumno/a lo largo de todo el ciclo.
+3.​ Se recomienda consultar la rúbrica disponible en el campus para conocer los aspectos
+más relevantes para tener en cuenta.
+4.​ Esta parte debe llegar a ser aprobada con una nota mínima de 5 para poder realizar la
+media con el vídeo.
+
+b.​Realización o ejecución de la parte escrita (30%)
+Se valorará:
+1.​ Cumplimiento de las normas y criterios mínimos. En el supuesto de que no se cumplan,
+afectará negativamente a la nota, incluso podría no ser aceptado.
+2.​ La base teórica, el rigor académico, la coherencia, la cohesión, etc.
+3.​ Se recomienda consultar la rúbrica disponible en el campus para conocer los aspectos
+más relevantes para tener en cuenta.
+4.​ Esta parte debe llegar a ser aprobada con una nota mínima de 5 para poder realizar la
+media con el vídeo.
+
+​
+Página 14 de 16
+
+c.​ Realización o ejecución del Vídeo (50%)
+Se valorará:
+1.​ Cumplimiento de las normas y criterios mínimos. En el supuesto de que no se cumplan,
+afectará negativamente a la nota, incluso podría no ser aceptado.
+2.​ La visualización, la fluidez verbal, posicionamiento del orador durante la exposición,
+grado de desarrollo informativo de la diapositiva, etc.
+3.​ Se recomienda consultar la rúbrica disponible en el campus para conocer los aspectos
+más relevantes para tener en cuenta.
+4.​ Esta parte debe llegar a ser aprobada con una nota mínima de 5 para poder realizar la
+media con el trabajo escrito.
+
+​
+Página 15 de 16
+
+5.​CALENDARIO DE ENTREGA
+1.​ La entrega final debe constar:
+
+✔​ TRABAJO ESCRITO
+✔​ VÍDEO DE DEFENSA
+✔​ CÓDIGO DE LA APLICACIÓN DESARROLLADA
+✔​ ARCHIVOS DE LA APLICACIÓN WEB
+
+✔​ PRESENTACIÓN EN POWER POINT DE LA DEFENSA.
+El trabajo escrito debe entregarse en formato Word y PDF y el vídeo en formato
+*.mp4 o *.avi. El código de la aplicación estará comprimido en formato ZIP y la
+presentación de diapositivas, en formato PowerPoint y PDF.
+
+2.​ La entrega del trabajo escrito y el vídeo de defensa se hará de forma conjunta
+siguiendo las indicaciones que se aportarán durante el curso. La fecha máxima para
+hacerlo será el 9 de diciembre de 2025 a las 09:59 hora peninsular.
+
+3.​ Una vez realizada la entrega final NO es posible realizar modificaciones o alteraciones
+en los archivos por lo que insta al alumno a repasar los ficheros que suban para
+evitar confusiones o errores de última hora. Se tendrá en cuenta la hora de la última
+modificación que figura en Google Drive para atender a este requisito.
+
+​
+Página 16 de 16
+
+

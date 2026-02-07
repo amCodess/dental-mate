@@ -1,0 +1,101 @@
+Título del Proyecto: DentalMate
+Resumen del Proyecto: Desarrollo de una aplicación web para la gestión integral de
+una clínica dental, basada en una arquitectura distribuida con microservicios. El
+sistema se comunicará mediante APIs REST.
+Tecnologías y Herramientas:
+● PHP y Laravel: PHP para la lógica del servidor y Laravel como framework para
+estructurar el backend, facilitar la creación de APIs REST, gestionar rutas,
+controladores y seguridad.
+● JavaScript, React y AJAX: JavaScript para interactividad, React para la interfaz
+de usuario, y AJAX para comunicación frontend-backend sin recargar la
+página.
+● CSS: Para diseño y adaptación a diferentes dispositivos.
+● PostgreSQL: Base de datos para almacenar datos de pacientes, citas,
+historial médico, facturas.
+● Docker: Para contenerización y facilitar el despliegue.
+● JWT: Para seguridad y control de acceso basado en roles (administrador,
+dentista, paciente).
+● APIs REST y Webhooks: Para comunicación entre partes de la aplicación y
+notificaciones automáticas.
+Correlación de Tecnologías con Módulos:
+● M01 Sistemas informáticos: Docker, JWT
+● M02 Bases de datos (A y B): PostgreSQL
+● M03 Programación (A y B): PHP, JavaScript, Laravel
+● M04 Lenguajes de marcas: HTML
+● M05 Entornos de desarrollo: Docker
+● M06 Desarrollo web en entorno cliente: JavaScript, CSS, React, Ajax
+● M07 Desarrollo web en entorno servidor: PHP, SQLite, Laravel ● M08
+Despliegue de aplicaciones web: Docker
+● M09 Diseño de interfaces web: CSS, JavaScript, React
+Objetivos:
+● Objetivos Generales:
+○ Desarrollar una aplicación web que permita gestionar de forma integral una
+clínica dental, organizando pacientes, citas, historial clínico, facturación y
+notificaciones de manera eficiente y segura.
+○ Crear un sistema modular basado en microservicios que facilite la escalabilidad,
+
+el mantenimiento y la integración de nuevos módulos en el futuro.
+
+● Objetivos Específicos:
+○ Implementar un sistema de autenticación con roles para controlar el acceso de
+administradores, dentistas, asistentes y pacientes.
+○ Desarrollar un módulo para gestionar toda la información de los pacientes,
+incluyendo datos personales, historial médico y relaciones con dentistas o
+clínicas.
+○ Crear un sistema de gestión de citas que permita programarlas, modificarlas y
+cancelarlas, además de gestionar la disponibilidad de dentistas y salas.
+○ Registrar y mantener el historial clínico de los pacientes, incluyendo
+tratamientos, notas y documentos asociados.
+○ Implementar un módulo de facturación y presupuestos que genere, registre y
+controle pagos, descuentos y estados de facturas.
+○ Desarrollar un sistema de notificaciones automáticas que informe a los usuarios
+sobre citas, pagos y otros eventos importantes.
+○ Crear herramientas de analítica y reportes que permitan obtener estadísticas
+sobre pacientes atendidos, ingresos y desempeño del personal de la clínica.
+
+Previsión de Tablas para la Base de Datos:
+● Habrá varias tablas para organizar los datos de forma clara y eficiente.
+● Las tablas principales serán:
+○ Tabla de pacientes: Aquí se almacenará toda la información de los pacientes,
+como sus datos personales, historial médico y relación con los dentistas o la
+clínica.
+○ Tabla de citas: En esta tabla se registrarán las citas programadas, incluyendo
+fecha, hora, dentista asignado y estado de la cita.
+○ Tabla de tratamientos o historial clínico: Esta tabla guardará los tratamientos
+realizados a cada paciente, notas médicas y documentos asociados, como
+radiografías o fotografías.
+○ Tabla de facturación: Contendrá los presupuestos, facturas, pagos y descuentos
+asociados a los tratamientos de cada paciente.
+○ Tabla de usuarios y roles: Aquí se gestionarán los distintos tipos de usuarios del
+sistema (administradores, dentistas, asistentes y pacientes) y sus permisos. ● Las
+
+relaciones entre tablas serán aproximadamente:
+○ Cada paciente puede tener varias citas.
+○ Cada cita está asociada a un dentista y a un paciente.
+○ Cada paciente puede tener varios tratamientos registrados en el historial clínico. ○
+Cada tratamiento puede generar una o varias facturas en la tabla de facturación. ○
+La tabla de usuarios y roles se relaciona con pacientes, dentistas y asistentes para
+controlar el acceso y los permisos dentro del sistema.
+
+Justificación de la Elección de la Temática:
+● Interés personal en realizar un ERP.
+● Selección del nicho de clínicas dentales por descarte.
+
+Aceptación de Términos y Condiciones: Aceptado.
+Objeto del Trabajo Fin de Ciclo: Creación de una aplicación
+web. Archivos a Incluir en la Carpeta de Google Drive:
+● Trabajo escrito (PDF y WORD)
+● Presentación
+● Video
+● Fichero comprimido con el código fuente de la aplicación web
+Características del Video de Defensa:
+● Duración: 15-20 minutos.
+● Grabación en una sola toma, con el rostro del alumno visible. ●
+Demostración de todas las funcionalidades de la aplicación web. ●
+Formato: .mp4
+Extensión de la Memoria:
+● Mínimo 30 páginas, máximo 60 páginas (sin incluir portada, índice, anexos y
+páginas no válidas).
+Porcentaje Máximo de Plagio Permitido: 30%.
+
+
