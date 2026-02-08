@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 import { useLocation } from 'react-router-dom';
@@ -15,7 +16,7 @@ const userSchema = yup.object().shape({
     nombre: yup.string().required('El nombre es requerido'),
     apellido: yup.string().required('El apellido es requerido'),
     email: yup.string().email('Email inválido').required('El email es requerido'),
-    password: yup.string().test('password-required', 'La contraseña es requerida (min 6 caracteres)', function (value) {
+    password: yup.string().test('password-required', 'La contraseña es requerida (mín 6 caracteres)', function (value) {
         if (this.parent.mode === 'create') {
             return !!value && value.length >= 6;
         }
@@ -44,7 +45,7 @@ const defaultMenuVisibility = {
 const menuOptions = [
     { key: 'menu_citas', label: 'Citas' },
     { key: 'menu_pacientes', label: 'Pacientes' },
-    { key: 'menu_facturacion', label: 'Facturacion' },
+    { key: 'menu_facturacion', label: 'Facturación' },
     { key: 'menu_productos', label: 'Productos' },
     { key: 'menu_proveedores', label: 'Proveedores' },
     { key: 'menu_tratamientos', label: 'Tratamientos' },
@@ -67,20 +68,26 @@ const UsersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebouncedValue(searchTerm);
 
-    // Estado para diálogo de confirmación
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [userToDelete, setUserToDelete] = useState(null);
-
-    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, setValue, formState: { errors }, watch } = useForm({
         resolver: yupResolver(userSchema),
         defaultValues: { mode: 'create', id_role: '', id_empresa: companyId, ...defaultMenuVisibility }
     });
 
+    const selectedRoleId = watch('id_role');
+    const selectedRole = roles.find(r => String(r.id_role) === String(selectedRoleId));
+    const isAdminRole = (selectedRole?._name === 'admin');
+
+    // Estado para diálogo de confirmación
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+
     const fetchUsers = async (term) => {
         try {
             setLoading(true);
-            const response = await api.get('/users', { params: { search: term, clinic_id: clinicId || undefined, company_id: companyId || undefined } });
-            const filtered = (response.data.data || []).filter(u => u.role?.nombre_role !== 'superadmin');
+            const response = await api.get('/users', { params: { search: term, clinic_id: clinicId || undefined, company_id: companyId || undefined, include_deleted: true } });
+            const filtered = (response.data.data || [])
+                .filter(u => u.role?.nombre_role !== 'superadmin')
+                .filter(u => !u.deleted_at);
             setUsers(filtered);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -111,7 +118,8 @@ const UsersPage = () => {
             setRoles(rolesToUse);
 
             if (!editingUser && rolesToUse.length > 0) {
-                setValue('id_role', rolesToUse[0].id_role);
+                const admin = rolesToUse.find(r => r._name === 'admin');
+                setValue('id_role', admin ? admin.id_role : rolesToUse[0].id_role);
             }
         } catch (error) {
             console.error('Error fetching roles:', error);
@@ -121,6 +129,11 @@ const UsersPage = () => {
     useEffect(() => {
         fetchUsers(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
+
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    useEffect(() => { setPage(1); }, [users]);
+    const paginatedUsers = users.slice((page - 1) * pageSize, page * pageSize);
 
     useEffect(() => {
         fetchRoles();
@@ -147,7 +160,8 @@ const UsersPage = () => {
 
     const handleOpenCreate = () => {
         setEditingUser(null);
-        const firstRoleId = roles[0]?.id_role || '';
+        const adminRole = roles.find(r => r._name === 'admin')?.id_role;
+        const firstRoleId = adminRole || roles[0]?.id_role || '';
         reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId, id_empresa: companyId, ...defaultMenuVisibility });
         setModalOpen(true);
     };
@@ -167,7 +181,7 @@ const UsersPage = () => {
         setModalOpen(true);
     };
 
-    // Preparar eliminación
+    // Preparar eliminaciÃ³n
     const confirmDelete = (user) => {
         setUserToDelete(user);
         setConfirmOpen(true);
@@ -196,10 +210,15 @@ const UsersPage = () => {
             const payload = { ...data };
             const fallbackRole = roles[0]?.id_role;
             payload.id_role = Number(payload.id_role || fallbackRole || 0);
+            const roleObj = roles.find(r => r.id_role === payload.id_role);
+            const isAdminSubmit = roleObj?._name === 'admin';
+            if (isAdminSubmit) {
+                Object.assign(payload, defaultMenuVisibility);
+            }
             if (!payload.password) delete payload.password;
             delete payload.mode;
             if (clinicId) {
-                payload.clinic_id = clinicId;
+                payload.id_clinica = clinicId;
             }
 
             if (editingUser) {
@@ -211,7 +230,35 @@ const UsersPage = () => {
             fetchUsers();
         } catch (error) {
             console.error('Error saving user:', error);
-            alert('Error al guardar usuario: ' + (error.response?.data?.message || 'Error desconocido'));
+            const serverMsg = error.response?.data?.message || error.response?.data?.error || '';
+            // Intento de reactivación si el correo ya existe eliminado
+            const messageText = (serverMsg || '').toLowerCase();
+            const duplicateEmail = messageText.includes('email') || messageText.includes('correo') || error.response?.status === 409;
+            if (!editingUser && duplicateEmail) {
+                try {
+                    const lookup = await api.get('/users', { params: { search: data.email, include_deleted: true, clinic_id: clinicId || undefined, company_id: companyId || undefined } });
+                    const match = (lookup.data.data || []).find(u => u.email === data.email && u.deleted_at);
+                    if (match) {
+                        const payload = {
+                            ...data,
+                            id_role: Number(data.id_role),
+                            id_clinica: clinicId || undefined,
+                            id_empresa: companyId,
+                            estado: 'activo',
+                            deleted_at: null,
+                            ...defaultMenuVisibility
+                        };
+                        if (!payload.password) delete payload.password;
+                        await api.put(`/users/${match.id_usuario}`, payload);
+                        setModalOpen(false);
+                        fetchUsers();
+                        return;
+                    }
+                } catch (reactivateError) {
+                    console.error('Error reactivando usuario eliminado:', reactivateError);
+                }
+            }
+            alert('Error al guardar usuario: ' + (serverMsg || 'Error desconocido'));
         }
     };
 
@@ -275,7 +322,7 @@ const UsersPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.length > 0 ? users.map((user) => (
+                                {users.length > 0 ? paginatedUsers.map((user) => (
                                     <tr key={user.id_usuario}>
                                         <td>
                                             <div className="user-cell">
@@ -318,6 +365,7 @@ const UsersPage = () => {
                                 )}
                             </tbody>
                         </table>
+                        <Pagination page={page} total={users.length} pageSize={pageSize} onPageChange={setPage} />
                     </div>
                 )}
             </Card>
@@ -355,7 +403,7 @@ const UsersPage = () => {
                     </div>
 
                     <Input
-                        label="Correo Electrónico"
+                        label="Correo electrónico"
                         type="email"
                         placeholder="juan@ejemplo.com"
                         icon={<Mail size={16} />}
@@ -368,8 +416,8 @@ const UsersPage = () => {
                         <label className="input-label">Rol de usuario</label>
                         <div className="select-wrapper">
                             <Shield size={16} className="select-icon" />
-                            <select className="select-field" {...register('id_role')}>
-                                <option value="">Selecciona un rol</option>
+                        <select className="select-field" {...register('id_role')}>
+                                <option value="" disabled>Selecciona un rol</option>
                                 {roles.map(role => (
                                     <option key={role.id_role} value={role.id_role}>
                                         {role.nombre_role || role.nombre || 'rol'}
@@ -383,13 +431,17 @@ const UsersPage = () => {
                     {clinicId && (
                         <div className="visibility-section">
                             <div className="visibility-header">
-                                <h4 className="visibility-title">Visibilidad del menu principal</h4>
-                                <p className="visibility-subtitle">Selecciona que modulos vera en el sidebar.</p>
+                                <h4 className="visibility-title">Visibilidad del menú principal</h4>
+                                <p className="visibility-subtitle">Selecciona qué módulos verá en el sidebar.</p>
                             </div>
                             <div className="visibility-grid">
                                 {menuOptions.map(option => (
                                     <label key={option.key} className="visibility-option">
-                                        <input type="checkbox" {...register(option.key)} />
+                                        <input
+                                            type="checkbox"
+                                            disabled={isAdminRole}
+                                            {...register(option.key)}
+                                        />
                                         <span>{option.label}</span>
                                     </label>
                                 ))}

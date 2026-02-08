@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -95,6 +95,7 @@ const LoginPage = () => {
                                 type="email"
                                 placeholder="nombre@clinica.com"
                                 icon={<Mail size={18} />}
+                                iconPosition="left"
                                 fullWidth
                                 error={errors.email?.message}
                                 {...register('email')}
@@ -102,34 +103,24 @@ const LoginPage = () => {
 
                             <div className="password-group">
                                 <Input
+                                    className="password-input"
                                     label="Contraseña"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     fullWidth
                                     error={errors.password?.message}
+                                    icon={<Lock size={18} />}
+                                    iconPosition="left"
                                     {...register('password')}
-                                    iconPosition="right"
-                                    icon={
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                color: '#6b7280',
-                                                padding: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                pointerEvents: 'auto'
-                                            }}
-                                        >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    }
                                 />
-                                <div className="forgot-password">
-                                    <a href="#">¿Olvidaste tu contraseña?</a>
+                                <div className="password-toggle">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="toggle-visibility"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
                                 </div>
                             </div>
 
@@ -145,9 +136,7 @@ const LoginPage = () => {
                             </Button>
                         </form>
 
-                        <div className="form-footer">
-                            <p>¿No tienes una cuenta? <span className="contact-support">Contacta a soporte</span></p>
-                        </div>
+                        {/* Registro y recuperación eliminados para cuentas cerradas */}
                     </div>
                 </div>
             </div>

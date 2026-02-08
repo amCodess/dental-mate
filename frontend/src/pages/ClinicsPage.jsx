@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { Plus, Search, Building, MapPin, Phone, Mail } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import './UsersPage.css';
 
 const clinicSchema = yup.object().shape({
@@ -20,6 +21,8 @@ const ClinicsPage = () => {
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
         resolver: yupResolver(clinicSchema)
@@ -64,6 +67,8 @@ const ClinicsPage = () => {
         clinic.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (clinic.company && clinic.company.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    useEffect(() => { setPage(1); }, [searchTerm, clinics]);
+    const paginatedClinics = filteredClinics.slice((page - 1) * pageSize, page * pageSize);
 
     return (
         <div className="clinics-page animate-fade-in">
@@ -107,7 +112,7 @@ const ClinicsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredClinics.length > 0 ? filteredClinics.map((clinic) => (
+                                {filteredClinics.length > 0 ? paginatedClinics.map((clinic) => (
                                     <tr key={clinic.id_clinica}>
                                         <td>
                                             <div className="flex items-center gap-3">
@@ -151,6 +156,7 @@ const ClinicsPage = () => {
                             </tbody>
                         </table>
                     </div>
+                        <Pagination page={page} total={filteredClinics.length} pageSize={pageSize} onPageChange={setPage} />
                 )}
             </Card>
 

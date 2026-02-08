@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
@@ -16,6 +15,7 @@ import SuppliersPage from './pages/SuppliersPage';
 import TreatmentsPage from './pages/TreatmentsPage';
 import UsersPage from './pages/UsersPage';
 import ClinicSelectorPage from './pages/ClinicSelectorPage';
+import AppointmentsHistoryPage from './pages/AppointmentsHistoryPage';
 import { getStoredSelection } from './utils/clinicSelection';
 
 const ProtectedRoute = ({ children, requireClinic = false }) => {
@@ -40,7 +40,6 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
                     <Route path="/select-clinic" element={
                         <ProtectedRoute>
                             <ClinicSelectorPage />
@@ -56,6 +55,7 @@ function App() {
                         <Route path="dashboard" element={<DashboardPage />} />
                         <Route path="patients" element={<PatientsPage />} />
                         <Route path="appointments" element={<AppointmentsPage />} />
+                        <Route path="appointments/history" element={<AppointmentsHistoryPage />} />
                         <Route path="billing" element={<BillingPage />} />
                         <Route path="users" element={<UsersPage />} />
                         <Route path="products" element={<ProductsPage />} />

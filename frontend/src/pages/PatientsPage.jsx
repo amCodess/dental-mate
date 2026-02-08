@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Search, Plus, Edit2, Trash2, Calendar, Phone, MapPin, User, FileText, ArrowLeft } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Calendar, Phone, MapPin, User, FileText, ArrowLeft, List, Grid } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import api from '../services/api';
 import { Button, Input, Card, Modal, Badge, ConfirmDialog } from '../components/ui';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './PatientsPage.css';
-import { useLocation } from 'react-router-dom';
+import './UsersPage.css';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getStoredSelection } from '../utils/clinicSelection';
 
 const patientSchema = yup.object().shape({
@@ -29,6 +30,7 @@ const PatientsPage = () => {
     const clinicIdParam = searchParams.get('clinicId') || storedSelection.clinicId;
     const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
     const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
+    const navigate = useNavigate();
 
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -36,6 +38,7 @@ const PatientsPage = () => {
     const [editingPatient, setEditingPatient] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, patientId: null, patientName: '' });
+    const [viewMode, setViewMode] = useState('cards'); // cards | list
     const debouncedSearchTerm = useDebouncedValue(searchTerm);
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
@@ -159,71 +162,144 @@ const PatientsPage = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                <div className="view-switch">
+                    <Button
+                        variant={viewMode === 'cards' ? 'primary' : 'outline'}
+                        size="sm"
+                        icon={<Grid size={14} />}
+                        onClick={() => setViewMode('cards')}
+                    >
+                        Vista tarjetas
+                    </Button>
+                    <Button
+                        variant={viewMode === 'list' ? 'primary' : 'outline'}
+                        size="sm"
+                        icon={<List size={14} />}
+                        onClick={() => setViewMode('list')}
+                    >
+                        Vista tabla
+                    </Button>
+                </div>
             </div>
 
-            <div className="patients-grid">
-                {loading ? (
-                    <div className="col-span-full text-center py-10 text-gray-500">Cargando pacientes...</div>
-                ) : patients.length > 0 ? (
-                    patients.map(patient => (
-                        <Card key={patient.id_paciente} className="patient-card" padding="md">
-                            <div className="patient-card-body">
-                                <div className="patient-card-header">
-                                    <div className="patient-avatar">
-                                        {patient.nombre ? patient.nombre.charAt(0) : 'P'}
+            {viewMode === 'cards' ? (
+                <div className="patients-grid">
+                    {loading ? (
+                        <div className="col-span-full text-center py-10 text-gray-500">Cargando pacientes...</div>
+                    ) : patients.length > 0 ? (
+                        patients.map(patient => (
+                            <Card key={patient.id_paciente} className="patient-card" padding="md">
+                                <div className="patient-card-body">
+                                    <div className="patient-card-header">
+                                        <div className="patient-avatar">
+                                            {patient.nombre ? patient.nombre.charAt(0) : 'P'}
+                                        </div>
+                                        <div className="patient-info">
+                                            <h3 className="patient-name">{patient.nombre} {patient.apellido}</h3>
+                                            <p className="patient-meta">
+                                                Exp: {patient.id_paciente.toString().padStart(6, '0')}
+                                            </p>
+                                        </div>
+                                        <div className="patient-actions">
+                                            <button className="icon-btn" onClick={() => handleOpenEdit(patient)}>
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button className="icon-btn text-error" onClick={() => handleDeleteClick(patient)}>
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="patient-info">
-                                        <h3 className="patient-name">{patient.nombre} {patient.apellido}</h3>
-                                        <p className="patient-meta">
-                                            Exp: {patient.id_paciente.toString().padStart(6, '0')}
-                                        </p>
-                                    </div>
-                                    <div className="patient-actions">
-                                        <button className="icon-btn" onClick={() => handleOpenEdit(patient)}>
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button className="icon-btn text-error" onClick={() => handleDeleteClick(patient)}>
-                                            <Trash2 size={16} />
-                                        </button>
+
+                                    <div className="patient-details">
+                                        {patient.telefono && (
+                                            <div className="detail-row">
+                                                <Phone size={14} className="detail-icon" />
+                                                <span>{patient.telefono}</span>
+                                            </div>
+                                        )}
+                                        {patient.fecha_nacimiento && (
+                                            <div className="detail-row">
+                                                <Calendar size={14} className="detail-icon" />
+                                                <span>{format(new Date(patient.fecha_nacimiento), 'dd MMM yyyy', { locale: es })}</span>
+                                            </div>
+                                        )}
+                                        {patient.direccion && (
+                                            <div className="detail-row">
+                                                <MapPin size={14} className="detail-icon" />
+                                                <span>{patient.direccion}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="patient-details">
-                                    {patient.telefono && (
-                                        <div className="detail-row">
-                                            <Phone size={14} className="detail-icon" />
-                                            <span>{patient.telefono}</span>
-                                        </div>
-                                    )}
-                                    {patient.fecha_nacimiento && (
-                                        <div className="detail-row">
-                                            <Calendar size={14} className="detail-icon" />
-                                            <span>{format(new Date(patient.fecha_nacimiento), 'dd MMM yyyy', { locale: es })}</span>
-                                        </div>
-                                    )}
-                                    {patient.direccion && (
-                                        <div className="detail-row">
-                                            <MapPin size={14} className="detail-icon" />
-                                            <span>{patient.direccion}</span>
-                                        </div>
-                                    )}
+                                <div className="patient-footer">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        fullWidth
+                                        icon={<FileText size={14} />}
+                                        onClick={() => navigate(`/appointments/history?patientId=${patient.id_paciente}&clinicId=${clinicId || ''}&companyId=${companyId}`)}
+                                    >
+                                        Ver historial de citas
+                                    </Button>
                                 </div>
-                            </div>
-
-                            <div className="patient-footer">
-                                <Button variant="outline" size="sm" fullWidth icon={<FileText size={14} />}>
-                                    Ver historial
-                                </Button>
-                            </div>
-                        </Card>
-                    ))
-                ) : (
-                    <div className="col-span-full text-center py-10">
-                        <div className="empty-state-icon"><User size={48} /></div>
-                        <p className="text-gray-500 mt-2">No se encontraron pacientes</p>
-                    </div>
-                )}
-            </div>
+                            </Card>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-10">
+                            <div className="empty-state-icon"><User size={48} /></div>
+                            <p className="text-gray-500 mt-2">No se encontraron pacientes</p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <Card className="users-table-card card-elevated">
+                    {loading ? (
+                        <div className="text-center py-10 text-gray-500">Cargando pacientes...</div>
+                    ) : patients.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500">No se encontraron pacientes</div>
+                    ) : (
+                        <div className="table-responsive">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Teléfono</th>
+                                        <th>Email</th>
+                                        <th>Dirección</th>
+                                        <th>Fecha nac.</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {patients.map(patient => (
+                                        <tr key={patient.id_paciente}>
+                                            <td className="font-mono">#{patient.id_paciente.toString().padStart(6, '0')}</td>
+                                            <td>{patient.nombre} {patient.apellido}</td>
+                                            <td>{patient.telefono || '—'}</td>
+                                            <td>{patient.email || '—'}</td>
+                                            <td>{patient.direccion || '—'}</td>
+                                            <td>{patient.fecha_nacimiento ? format(new Date(patient.fecha_nacimiento), 'dd/MM/yyyy') : '—'}</td>
+                                            <td className="table-actions">
+                                                <Button variant="ghost" size="sm" icon={<FileText size={14} />} onClick={() => navigate(`/appointments/history?patientId=${patient.id_paciente}&clinicId=${clinicId || ''}&companyId=${companyId}`)}>
+                                                    Historial
+                                                </Button>
+                                                <Button variant="ghost" size="sm" icon={<Edit2 size={14} />} onClick={() => handleOpenEdit(patient)}>
+                                                    Editar
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="text-error" icon={<Trash2 size={14} />} onClick={() => handleDeleteClick(patient)}>
+                                                    Eliminar
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </Card>
+            )}
 
             <Modal
                 isOpen={modalOpen}

@@ -28,37 +28,29 @@
 .input-field {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  /* Aumentado padding vertical */
   height: 52px;
-  /* Altura fija para consistencia */
   font-family: inherit;
   font-size: var(--text-base);
   color: var(--color-gray-900);
-
-  /* Estilo base "Soft" - Fondo gris muy sutil, sin borde duro */
-  background-color: var(--color-gray-50);
-  border: 1px solid transparent;
+  background-color: #f8fafc;
+  border: 1px solid var(--color-gray-300);
   border-radius: var(--radius-xl);
-  /* Bordes más redondeados para look moderno */
-
-  /* Sombra interna sutil para profundidad */
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
-
   transition: all var(--transition-base);
 }
 
 .input-field:hover:not(:disabled) {
-  background-color: var(--color-gray-100);
+  background-color: #eef2f7;
+  border-color: var(--color-gray-400);
 }
 
 .input-field:focus {
   outline: none;
   background-color: white;
-  border-color: var(--color-primary-200);
-  /* Glow suave en lugar de anillo duro */
+  border-color: var(--color-primary-300);
   box-shadow:
     0 0 0 4px var(--color-primary-50),
-    0 4px 12px rgba(10, 77, 104, 0.08);
+    0 6px 18px rgba(10, 77, 104, 0.08);
   transform: translateY(-1px);
 }
 
@@ -74,7 +66,7 @@
   border: 1px solid var(--color-gray-200);
 }
 
-/* Icon Support - Ajustado para la nueva altura */
+/* Icon Support */
 .input-has-icon-left .input-field {
   padding-left: var(--space-12);
 }
@@ -96,7 +88,12 @@
   transition: color var(--transition-base);
 }
 
-/* Cuando el input tiene foco, el icono se ilumina */
+.input-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .input-wrapper:focus-within .input-icon {
   color: var(--color-primary-500);
 }
@@ -111,13 +108,13 @@
 
 /* Error State */
 .input-error .input-field {
-  background-color: #FEF2F2;
+  background-color: #fef2f2;
   border-color: var(--color-error-light);
   color: var(--color-error-dark);
 }
 
 .input-error .input-field:focus {
-  box-shadow: 0 0 0 4px #FEE2E2;
+  box-shadow: 0 0 0 4px #fee2e2;
   border-color: var(--color-error);
 }
 
@@ -130,4 +127,45 @@
   color: var(--color-error);
   margin-top: var(--space-2);
   margin-left: var(--space-1);
+}
+
+/* Selects: alineados con la altura/estilo de los inputs */
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.select-field {
+  width: 100%;
+  min-height: 52px;
+  padding: var(--space-3) var(--space-4);
+  font-family: inherit;
+  font-size: var(--text-base);
+  color: var(--color-gray-900);
+  background-color: #f8fafc;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  appearance: none;
+  transition: all var(--transition-base);
+}
+
+.select-field:focus {
+  outline: none;
+  background-color: white;
+  border-color: var(--color-primary-300);
+  box-shadow:
+    0 0 0 4px var(--color-primary-50),
+    0 6px 18px rgba(10, 77, 104, 0.08);
+  transform: translateY(-1px);
+}
+
+.select-field:disabled {
+  background-color: var(--color-gray-100);
+  cursor: not-allowed;
+  color: var(--color-gray-500);
+  box-shadow: none;
+  border: 1px solid var(--color-gray-200);
 }

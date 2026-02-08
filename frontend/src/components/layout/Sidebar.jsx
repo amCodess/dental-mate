@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect } from 'react';
+﻿import { useState, useLayoutEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
@@ -35,7 +35,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
     { icon: <Home size={20} />, label: 'Dashboard', path: '/dashboard', keepSearch: true },
     { icon: <Calendar size={20} />, label: 'Citas', path: '/appointments', permission: 'menu_citas', keepSearch: true },
     { icon: <User size={20} />, label: 'Pacientes', path: '/patients', permission: 'menu_pacientes', keepSearch: true },
-    { icon: <CreditCard size={20} />, label: 'Facturacion', path: '/billing', permission: 'menu_facturacion', keepSearch: true },
+    { icon: <CreditCard size={20} />, label: 'Facturación', path: '/billing', permission: 'menu_facturacion', keepSearch: true },
     { icon: <Package size={20} />, label: 'Productos', path: '/products', permission: 'menu_productos', keepSearch: true },
     { icon: <Truck size={20} />, label: 'Proveedores', path: '/suppliers', permission: 'menu_proveedores', keepSearch: true },
     { icon: <Stethoscope size={20} />, label: 'Tratamientos', path: '/treatments', permission: 'menu_tratamientos', keepSearch: true },
@@ -43,8 +43,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   ];
 
   const bottomItems = [
-    { icon: <Building size={20} />, label: 'Cambiar clinica', path: '/select-clinic' },
-    { icon: <Settings size={20} />, label: 'Configuración', path: '/settings' },
+    { icon: <Building size={20} />, label: 'Cambiar Clínica', path: '/select-clinic' },
   ];
 
   const sidebarClass = `sidebar ${collapsed ? 'sidebar-collapsed' : ''} ${mobileOpen ? 'sidebar-mobile-open' : ''}`;
@@ -63,7 +62,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const resolveVisibility = () => {
     if (!user?.clinics || user.clinics.length === 0) return null;
     if (clinicId) {
-      return user.clinics.find(clinic => String(clinic.id_clinica) === String(clinicId))?.pivot || null;
+      return user.clinics.find(clinic => String(clinic.id_Clínica) === String(clinicId))?.pivot || null;
     }
     if (user.clinics.length === 1) {
       return user.clinics[0]?.pivot || null;
@@ -84,11 +83,16 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
     return null;
   };
 
+  const isSuperAdmin = user?.role?.nombre_role === 'superadmin';
+
   const canShowMenu = (key) => {
     if (!key) return true;
-    if (!visibility) return true;
+    if (isSuperAdmin) return true;
+    // Si no hay visibilidad definida, ocultar por defecto para empleados
+    if (!visibility) return false;
     const value = normalizeVisibility(visibility[key]);
-    if (value === null) return true;
+    // Si no viene marcado, tratamos como falso
+    if (value === null) return false;
     return value;
   };
 
@@ -136,7 +140,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           <div className="nav-group mt-auto">
              <span className="nav-group-title">{!collapsed && 'SISTEMA'}</span>
             <ul>
-              {/* Sección Administración (Solo SuperAdmin) */}
+              {/* SecciÃ³n AdministraciÃ³n (Solo SuperAdmin) */}
               {user?.role?.nombre_role === 'superadmin' && (
                 <>
                   <li>
@@ -186,24 +190,14 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
 
         {!collapsed && user && (
           <div className="sidebar-footer">
-            <div className="user-popover">
-              <button className="user-info" onClick={() => setShowContext(!showContext)}>
-                <div className="user-avatar">
-                  {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <div className="user-details">
-                  <p className="user-name">{user.nombre}</p>
-                  <p className="user-role">Empresa y clínica</p>
-                </div>
-              </button>
-              {showContext && (
-                <div className="session-context popover">
-                  <p className="session-context-label">Empresa</p>
-                  <p className="session-context-value">{storedSelection.companyName || 'Sin seleccion'}</p>
-                  <p className="session-context-label">Clinica</p>
-                  <p className="session-context-value">{storedSelection.clinicName || 'Sin seleccion'}</p>
-                </div>
-              )}
+            <div className="user-details-only">
+              <p className="user-name">{user.nombre}</p>
+              <p className="user-role">
+                {storedSelection.companyName || 'Sin empresa'} · {storedSelection.clinicName || 'Sin clínica'}
+              </p>
+              <p className="user-role">
+                {user.role?.nombre_role ? user.role.nombre_role : 'Rol no definido'}
+              </p>
             </div>
           </div>
         )}

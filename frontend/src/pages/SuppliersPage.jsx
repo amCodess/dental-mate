@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredSelection } from '../utils/clinicSelection';
 import { useForm } from 'react-hook-form';
@@ -7,6 +7,7 @@ import * as yup from 'yup';
 import { Plus, Search, Edit2, Trash2, Truck, Mail, Phone, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal, ConfirmDialog } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import './UsersPage.css';
 
 const schema = yup.object().shape({
@@ -29,6 +30,8 @@ const SuppliersPage = () => {
     const [editing, setEditing] = useState(null);
     const [search, setSearch] = useState('');
     const [confirm, setConfirm] = useState({ open: false, supplier: null });
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
@@ -114,6 +117,11 @@ const SuppliersPage = () => {
             (s.email || '').toLowerCase().includes(search.toLowerCase())
         );
     }, [suppliers, search]);
+    useEffect(() => { setPage(1); }, [search, suppliers]);
+    const paginated = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return filtered.slice(start, start + pageSize);
+    }, [filtered, page]);
 
     return (
             <div className="users-page animate-fade-in">
@@ -162,7 +170,7 @@ const SuppliersPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.length > 0 ? filtered.map(sup => (
+                                {filtered.length > 0 ? paginated.map(sup => (
                                     <tr key={sup.id_proveedor}>
                                         <td>
                                             <div className="user-cell">
@@ -195,6 +203,7 @@ const SuppliersPage = () => {
                                 )}
                             </tbody>
                         </table>
+                        <Pagination page={page} total={filtered.length} pageSize={pageSize} onPageChange={setPage} />
                     </div>
                 )}
             </Card>
@@ -236,3 +245,9 @@ const SuppliersPage = () => {
 };
 
 export default SuppliersPage;
+
+
+
+
+
+

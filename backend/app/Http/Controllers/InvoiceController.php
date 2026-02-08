@@ -14,20 +14,41 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::query()
+        $query = Invoice::query()
             ->select([
                 'id_factura',
                 'id_empresa',
+                'id_clinica',
                 'id_paciente',
+                'id_cita',
                 'fecha_emision',
                 'importe_total',
                 'tipo_pago',
                 'pago_status',
                 'fecha_creacion'
             ])
-            ->with(['patient:id_paciente,nombre,apellido'])
-            ->orderBy('fecha_emision', 'desc')
-            ->simplePaginate(10);
+            ->with(['patient:id_paciente,nombre,apellido,id_clinica']);
+
+        if (request()->has('company_id')) {
+            $query->where('id_empresa', request()->get('company_id'));
+        }
+
+        if (request()->has('clinic_id')) {
+            $clinic = request()->get('clinic_id');
+            // Incluimos facturas asociadas directamente a la clínica
+            // o facturas sin clínica explícita pero cuyo paciente pertenece a la clínica.
+            $query->where(function ($q) use ($clinic) {
+                $q->where('id_clinica', $clinic)
+                  ->orWhereHas('patient', function ($qp) use ($clinic) {
+                      $qp->where(function ($qq) use ($clinic) {
+                          $qq->where('id_clinica', $clinic)
+                             ->orWhere('clinic_id', $clinic);
+                      });
+                  });
+            });
+        }
+
+        $invoices = $query->orderBy('fecha_emision', 'desc')->get();
         return response()->json($invoices);
     }
 
@@ -36,6 +57,10 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->filled('fecha_emision')) {
+            $request->merge(['fecha_emision' => now()->toDateString()]);
+        }
+
         $validator = Validator::make($request->all(), [
             'id_empresa' => 'required|integer',
             'id_paciente' => 'required|integer',

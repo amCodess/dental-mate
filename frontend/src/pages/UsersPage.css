@@ -112,6 +112,13 @@
     background-color: var(--color-gray-50);
 }
 
+.vendible-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+}
+
 /* User Cell */
 .user-cell {
     display: flex;
@@ -183,6 +190,33 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-4);
+}
+.vendible-toggle {
+    display: inline-flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+.vendible-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-gray-700);
+    transition: all var(--transition-fast);
+}
+.vendible-option input[type="checkbox"] {
+    accent-color: var(--color-primary-500);
+}
+.vendible-option.active {
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-50);
+    color: var(--color-primary-700);
+    box-shadow: 0 8px 20px rgba(10, 77, 104, 0.12);
 }
 
 /* Select custom styles (should be components ideally) */

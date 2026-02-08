@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -16,61 +16,37 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        // Obtener usuarios con su rol y empresa
-        // Como User tiene belongsTo role, podemos usar with('role')
+        $query = User::with(['role', 'companies', 'clinics']);
 
-        $query = User::query()
-            ->select([
-                'Usuarios.id_usuario',
-                'Usuarios.nombre',
-                'Usuarios.apellido',
-                'Usuarios.email',
-                'Usuarios.id_role',
-                'Usuarios.estado'
-            ])
-            ->with('role')
-            ->where('Usuarios.deleted', false);
+        if ($request->has('include_deleted') && filter_var($request->include_deleted, FILTER_VALIDATE_BOOLEAN)) {
+            $query->withTrashed();
+        }
 
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where(function ($q) use ($search) {
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
                 $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('apellido', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('apellido', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        // Filtrar por roles específicos (comma separated)
-        if ($request->has('role_in')) {
-            $roles = explode(',', $request->get('role_in'));
-            $query->whereHas('role', function ($q) use ($roles) {
-                $q->whereIn('nombre_role', $roles);
+        // Filter by company or clinic if needed
+        if ($request->filled('company_id')) {
+            $companyId = $request->company_id;
+            $query->whereHas('companies', function($q) use ($companyId) {
+                $q->where('Usuarios_Empresas.id_empresa', $companyId);
             });
         }
 
-        // Filtrar por clínica
-        if ($request->has('clinic_id')) {
-            $clinicId = $request->get('clinic_id');
-            $query->join('Usuarios_Clinicas as uc', function ($join) use ($clinicId) {
-                $join->on('Usuarios.id_usuario', '=', 'uc.id_usuario')
-                    ->where('uc.id_clinica', '=', $clinicId);
+        if ($request->filled('clinic_id')) {
+            $clinicId = $request->clinic_id;
+            $query->whereHas('clinics', function($q) use ($clinicId) {
+                $q->where('Usuarios_Clinicas.id_clinica', $clinicId);
             });
-            if ($this->supportsMenuVisibility()) {
-                $query->addSelect([
-                    'uc.id_clinica as clinic_id',
-                    'uc.menu_citas as menu_citas',
-                    'uc.menu_pacientes as menu_pacientes',
-                    'uc.menu_facturacion as menu_facturacion',
-                    'uc.menu_productos as menu_productos',
-                    'uc.menu_proveedores as menu_proveedores',
-                    'uc.menu_tratamientos as menu_tratamientos',
-                    'uc.menu_usuarios as menu_usuarios'
-                ]);
-            }
         }
 
-        // Paginación
-        $users = $query->orderBy('Usuarios.id_usuario', 'desc')->simplePaginate(10);
+        $users = $query->orderBy('fecha_creacion', 'desc')->paginate(10);
 
         return response()->json($users);
     }
@@ -80,68 +56,70 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:100',
-            'apellido' => 'required|string|max:100',
-            'email' => 'required|email|unique:Usuarios,email',
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'email' => 'required|email|unique:Usuarios,email', // Table name is Usuarios
             'password' => 'required|string|min:6',
-            'id_role' => 'required|exists:Roles,id_role',
-            'clinic_id' => 'nullable|exists:Clinicas,id_clinica',
-            'menu_citas' => 'sometimes|boolean',
-            'menu_pacientes' => 'sometimes|boolean',
-            'menu_facturacion' => 'sometimes|boolean',
-            'menu_productos' => 'sometimes|boolean',
-            'menu_proveedores' => 'sometimes|boolean',
-            'menu_tratamientos' => 'sometimes|boolean',
-            'menu_usuarios' => 'sometimes|boolean'
+            // Use integer checks and verify existence manually to avoid Postgres case issues
+            'id_role' => 'required|integer',
+            'id_empresa' => 'required|integer',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+        // Manual existence checks to respect quoted table names in Postgres
+        $roleName = Role::where('id_role', $request->id_role)->value('nombre_role');
+        if (!$roleName) {
+            return response()->json(['error' => 'El rol seleccionado no existe'], 422);
+        }
+        $tenantRole = $this->mapTenantRole($roleName);
+
+        $empresaExists = DB::table('Empresas')->where('id_empresa', $request->id_empresa)->exists();
+        if (!$empresaExists) {
+            return response()->json(['error' => 'La empresa especificada no existe'], 422);
         }
 
         try {
             DB::beginTransaction();
 
-            $user = new User();
-            $user->nombre = $request->nombre;
-            $user->apellido = $request->apellido;
-            $user->email = $request->email;
-            $user->password = Hash::make($request->password);
-            $user->id_role = $request->id_role;
-            $user->estado = 'activo';
-            $user->save();
+            $user = User::create([
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'id_role' => $request->id_role,
+                'estado' => 'activo',
+            ]);
 
-            if ($request->has('clinic_id')) {
-                $clinic = \App\Models\Clinic::find($request->clinic_id);
-                if ($clinic) {
-                    $menuVisibility = $this->getMenuVisibility($request, true);
-                    // Associate to clinic AND company
-                    $user->clinics()->syncWithoutDetaching([
-                        $clinic->id_clinica => [
-                            'rol' => 'empleado',
-                            'id_empresa' => $clinic->id_empresa,
-                            ...$menuVisibility
-                        ]
-                    ]);
-                    // Also associate to company directly if needed? 
-                    // Usually `Usuarios_Empresas` is also used.
-                    $user->companies()->syncWithoutDetaching([
-                        $clinic->id_empresa => ['rol' => 'empleado']
-                    ]);
-                }
+            // Attach Company
+            if ($request->id_empresa) {
+                $user->companies()->attach($request->id_empresa, ['rol' => $tenantRole]);
+            }
+
+            // Attach Clinic if provided, with menu permissions
+            if ($request->id_clinica) {
+                $menuPermissions = [
+                    'rol' => $tenantRole,
+                    'id_empresa' => $request->id_empresa,
+                    'menu_citas' => $request->boolean('menu_citas', true),
+                    'menu_pacientes' => $request->boolean('menu_pacientes', true),
+                    'menu_facturacion' => $request->boolean('menu_facturacion', true),
+                    'menu_productos' => $request->boolean('menu_productos', true),
+                    'menu_proveedores' => $request->boolean('menu_proveedores', true),
+                    'menu_tratamientos' => $request->boolean('menu_tratamientos', true),
+                    'menu_usuarios' => $request->boolean('menu_usuarios', true),
+                ];
+                $user->clinics()->attach($request->id_clinica, $menuPermissions);
             }
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Usuario creado exitosamente',
-                'user' => $user->load('role')
-            ], 201);
+            $user->load(['role', 'companies', 'clinics']);
+
+            return response()->json($user, 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Error al crear usuario: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Error creating user: ' . $e->getMessage()], 500);
         }
     }
 
@@ -150,9 +128,12 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::with('role')->find($id);
-        if (!$user)
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        $user = User::with(['role', 'companies', 'clinics'])->withTrashed()->find($id);
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
         return response()->json($user);
     }
 
@@ -161,77 +142,93 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = User::find($id);
-        if (!$user)
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        $user = User::withTrashed()->find($id);
 
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'sometimes|string|max:100',
-            'apellido' => 'sometimes|string|max:100',
-            'email' => 'sometimes|email|unique:Usuarios,email,' . $id . ',id_usuario',
-            'password' => 'sometimes|nullable|string|min:6',
-            'id_role' => 'sometimes|exists:Roles,id_role',
-            'estado' => 'sometimes|in:activo,inactivo',
-            'clinic_id' => 'sometimes|exists:Clinicas,id_clinica',
-            'menu_citas' => 'sometimes|boolean',
-            'menu_pacientes' => 'sometimes|boolean',
-            'menu_facturacion' => 'sometimes|boolean',
-            'menu_productos' => 'sometimes|boolean',
-            'menu_proveedores' => 'sometimes|boolean',
-            'menu_tratamientos' => 'sometimes|boolean',
-            'menu_usuarios' => 'sometimes|boolean'
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('Usuarios')->ignore($user->id_usuario, 'id_usuario')],
+            // Validate basic type, then manually assert existence to avoid Postgres case sensitivity issues
+            'id_role' => 'required|integer',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+        $roleName = Role::where('id_role', $request->id_role)->value('nombre_role');
+        if (!$roleName) {
+            return response()->json(['error' => 'El rol seleccionado no existe'], 422);
+        }
+        $tenantRole = $this->mapTenantRole($roleName);
+
+        if ($request->filled('id_empresa')) {
+            $empresaExists = DB::table('Empresas')->where('id_empresa', $request->id_empresa)->exists();
+            if (!$empresaExists) {
+                return response()->json(['error' => 'La empresa especificada no existe'], 422);
+            }
         }
 
         try {
-            if ($request->has('nombre'))
-                $user->nombre = $request->nombre;
-            if ($request->has('apellido'))
-                $user->apellido = $request->apellido;
-            if ($request->has('email'))
-                $user->email = $request->email;
-            if ($request->has('id_role'))
-                $user->id_role = $request->id_role;
-            if ($request->has('estado'))
-                $user->estado = $request->estado;
+            DB::beginTransaction();
 
-            if ($request->has('password') && !empty($request->password)) {
-                $user->password = Hash::make($request->password);
+            $updateData = [
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'email' => $request->email,
+                'id_role' => $request->id_role,
+            ];
+
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+            
+            if ($request->has('estado')) {
+                $updateData['estado'] = $request->estado;
             }
 
-            $user->save();
+            // Restore if requested
+            if ($user->trashed() && $request->has('deleted_at') && is_null($request->deleted_at)) {
+                $user->restore();
+            }
 
-            if ($request->has('clinic_id')) {
-                $clinicId = $request->get('clinic_id');
-                $menuVisibility = $this->getMenuVisibility($request, false);
+            $user->update($updateData);
 
-                if (!empty($menuVisibility)) {
-                    $pivot = DB::table('Usuarios_Clinicas')
-                        ->where('id_usuario', $user->id_usuario)
-                        ->where('id_clinica', $clinicId)
-                        ->first();
+            if ($request->filled('id_clinica')) {
+                 $clinicId = $request->id_clinica;
+                 
+                 // Prepare menu permissions
+                 $menuPermissions = [
+                    'rol' => $tenantRole,
+                    'menu_citas' => $request->boolean('menu_citas', $user->clinics->find($clinicId)?->pivot->menu_citas ?? true),
+                    'menu_pacientes' => $request->boolean('menu_pacientes', $user->clinics->find($clinicId)?->pivot->menu_pacientes ?? true),
+                    'menu_facturacion' => $request->boolean('menu_facturacion', $user->clinics->find($clinicId)?->pivot->menu_facturacion ?? true),
+                    'menu_productos' => $request->boolean('menu_productos', $user->clinics->find($clinicId)?->pivot->menu_productos ?? true),
+                    'menu_proveedores' => $request->boolean('menu_proveedores', $user->clinics->find($clinicId)?->pivot->menu_proveedores ?? true),
+                    'menu_tratamientos' => $request->boolean('menu_tratamientos', $user->clinics->find($clinicId)?->pivot->menu_tratamientos ?? true),
+                    'menu_usuarios' => $request->boolean('menu_usuarios', $user->clinics->find($clinicId)?->pivot->menu_usuarios ?? true),
+                ];
 
-                    if (!$pivot) {
-                        return response()->json(['error' => 'Usuario no asociado a la clínica especificada'], 404);
-                    }
-
-                    DB::table('Usuarios_Clinicas')
-                        ->where('id_usuario', $user->id_usuario)
-                        ->where('id_clinica', $clinicId)
-                        ->update($menuVisibility);
+                // Check if user is attached to this clinic
+                $isAttached = $user->clinics()->where('Usuarios_Clinicas.id_clinica', $clinicId)->exists();
+                
+                if ($isAttached) {
+                     $user->clinics()->updateExistingPivot($clinicId, $menuPermissions);
+                } else {
+                     $menuPermissions['id_empresa'] = $request->id_empresa ?? $user->companies()->first()->id_empresa ?? 1;
+                     $user->clinics()->attach($clinicId, $menuPermissions);
                 }
             }
 
-            return response()->json([
-                'message' => 'Usuario actualizado exitosamente',
-                'user' => $user->load('role')
-            ]);
+            DB::commit();
+
+            $user->load(['role', 'companies', 'clinics']);
+
+            return response()->json($user);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar: ' . $e->getMessage()], 500);
+            DB::rollBack();
+            return response()->json(['error' => 'Error updating user: ' . $e->getMessage()], 500);
         }
     }
 
@@ -240,59 +237,25 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::find($id);
-        if (!$user)
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        $user = User::findOrFail($id);
+        $user->delete();
 
-        // Soft delete o hard delete? 
-        // El modelo tiene 'deleted' boolean column, no un trait SoftDeletes estándar con timestamp.
-        // Pero el User model en paso 177 tiene 'deleted' => 'boolean' en casts y hidden.
-
-        // Simplemente marcamos deleted = true
-        $user->deleted = true;
-        $user->deleted_at = now(); // Required by check constraint "usuarios_deleted_chk"
-        $user->save();
-        // User.php fillable no tenía 'deleted'. Revisaré update.
-
-        // Pero espera, User.php usa 'deleted' en hidden, no está en fillable.
-        // Voy a usar forceDelete() si el modelo no tiene SoftDeletes trait configurado, 
-        // O actualizar la propiedad directamente y save().
-        // Si 'deleted' no está en fillable, $user->deleted = true funciona igual por asignación directa de propiedad.
-
-        return response()->json(['message' => 'Usuario eliminado correctamente']);
+        return response()->json(['message' => 'User deleted successfully']);
     }
 
-    private function getMenuVisibility(Request $request, bool $useDefaults): array
+    /**
+     * Map application roles to the enum allowed in tenant pivot tables.
+     */
+    private function mapTenantRole(?string $roleName): string
     {
-        if (!$this->supportsMenuVisibility()) {
-            return [];
-        }
+        $normalized = strtolower(trim($roleName ?? ''));
 
-        $fields = [
-            'menu_citas',
-            'menu_pacientes',
-            'menu_facturacion',
-            'menu_productos',
-            'menu_proveedores',
-            'menu_tratamientos',
-            'menu_usuarios'
-        ];
-
-        $visibility = [];
-        foreach ($fields as $field) {
-            if ($request->has($field)) {
-                $visibility[$field] = $request->boolean($field);
-            } elseif ($useDefaults) {
-                $visibility[$field] = true;
-            }
-        }
-
-        return $visibility;
-    }
-
-    private function supportsMenuVisibility(): bool
-    {
-        return Schema::hasTable('Usuarios_Clinicas')
-            && Schema::hasColumn('Usuarios_Clinicas', 'menu_citas');
+        return match ($normalized) {
+            'superadmin' => 'owner',
+            'admin' => 'admin',
+            'empleado' => 'staff',
+            'usuario' => 'viewer',
+            default => 'staff',
+        };
     }
 }

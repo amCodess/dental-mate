@@ -12,7 +12,10 @@ Esta guía detalla cómo desplegar e inicializar el proyecto DentalMate en un en
 Esta es la forma más sencilla de levantar el entorno completo asegurando compatibilidad.
 
 ### 1.1 Prerrequisitos
-1.  **Docker Desktop** instalado y ejecutándose.
+1.  Entorno Docker funcionando:
+    - **Windows / macOS:** instala **Docker Desktop** (incluye Docker Engine y `docker compose` v2).  
+    - **Linux:** instala **Docker Engine** + el **plugin `docker compose`** (`docker compose version` debe funcionar).  
+    - **Solo instalar `docker-compose` sin Docker Engine NO sirve**: necesitas el engine en segundo plano para crear contenedores.
 2.  **NO es necesario** tener PostgreSQL, PHP o Node instalados en tu sistema (Docker se encarga de esto).
 3.  Puertos **8000** (Backend), **5173** (Frontend) y **5432** (Base de datos) libres en tu máquina.
 

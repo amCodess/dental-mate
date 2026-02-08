@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Mail, Phone, Users, User, Calendar, FileText, Package, Truck, Stethoscope, Layers, ChevronRight } from 'lucide-react';
 import api from '../services/api';
@@ -34,7 +34,7 @@ const ClinicDetailsPage = () => {
         fetchClinic();
     }, [id]);
 
-    const handleBack = () => navigate('/companies');
+    const handleBack = () => navigate(-1);
 
     const goTo = (path) => {
         const params = new URLSearchParams();
@@ -53,9 +53,9 @@ const ClinicDetailsPage = () => {
                 <div className="details-header">
                     <div className="details-heading">
                         <MapPin className="text-success" size={28} />
-                        <span>Clínica no encontrada</span>
+                        <span>clínica no encontrada</span>
                     </div>
-                    <p className="details-subtitle">No se encontró la clínica solicitada.</p>
+                    <p className="details-subtitle">No se encontrÃ³ la clínica solicitada.</p>
                     <div className="details-metadata">
                         <Button variant="ghost" onClick={handleBack}>Volver a empresas</Button>
                         <Button variant="primary" onClick={fetchClinic}>Reintentar</Button>

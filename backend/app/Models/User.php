@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -127,5 +128,46 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Company::class, 'Usuarios_Empresas', 'id_usuario', 'id_empresa')
             ->withPivot('rol');
+    }
+
+    /**
+     * Soft delete updating both deleted_at and deleted flag to satisfy DB constraint.
+     */
+    protected function runSoftDelete()
+    {
+        $time = $this->freshTimestamp();
+        $deletedAtColumn = $this->getDeletedAtColumn();
+
+        $this->{$deletedAtColumn} = $time;
+        $this->deleted = true;
+
+        $this->setKeysForSaveQuery($this->newModelQuery())
+            ->update([
+                $deletedAtColumn => $this->fromDateTime($time),
+                'deleted' => true,
+            ]);
+    }
+
+    /**
+     * Restore user and clear deleted flag.
+     */
+    public function restore()
+    {
+        if ($this->fireModelEvent('restoring') === false) {
+            return false;
+        }
+
+        $this->{$this->getDeletedAtColumn()} = null;
+        $this->deleted = false;
+
+        $this->setKeysForSaveQuery($this->newModelQuery())
+            ->update([
+                $this->getDeletedAtColumn() => null,
+                'deleted' => false,
+            ]);
+
+        $this->fireModelEvent('restored', false);
+
+        return true;
     }
 }

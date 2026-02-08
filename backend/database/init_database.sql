@@ -351,6 +351,7 @@ CREATE TABLE IF NOT EXISTS "Citas" (
   "hora" time NOT NULL,
   "estado" "Citas_estado_enum" NOT NULL DEFAULT 'Pendiente',
   "notas" text,
+  "motivo" text,
   "duracion_minutos" int NOT NULL DEFAULT 30,
   "tipo" "Cita_tipo_enum" NOT NULL DEFAULT 'Normal',
   "prioridad" "Cita_prioridad_enum" NOT NULL DEFAULT 'Media',
@@ -452,11 +453,13 @@ CREATE TABLE IF NOT EXISTS "Tratamientos" (
   "descripcion" text,
   "unidades" numeric(10,2),
   "precio" numeric(10,2),
+  "duracion_minima" int,
   "fecha_creacion" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "tratamientos_nombre_chk" CHECK (length(trim("nombre_tratamiento")) > 0),
   CONSTRAINT "tratamientos_unidades_chk" CHECK ("unidades" IS NULL OR "unidades" >= 0),
   CONSTRAINT "tratamientos_precio_chk" CHECK ("precio" IS NULL OR "precio" >= 0),
+  CONSTRAINT "tratamientos_duracion_chk" CHECK ("duracion_minima" IS NULL OR "duracion_minima" > 0),
   CONSTRAINT "ux_tratamientos_tenant" UNIQUE ("id_empresa","id_tratamiento")
 );
 
@@ -1376,15 +1379,29 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Limpieza Premium HQ' AND "id_empresa" = empresa_hq) THEN
-        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
-        VALUES (empresa_hq, 'Limpieza Premium HQ', 'Limpieza y profilaxis completa', 1, 80.00)
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_hq, 'Limpieza Premium HQ', 'Limpieza y profilaxis completa', 1, 80.00, 45)
         RETURNING "id_tratamiento" INTO trat_id;
     ELSE
         SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Limpieza Premium HQ' AND "id_empresa" = empresa_hq;
+        UPDATE "Tratamientos" SET "duracion_minima" = COALESCE("duracion_minima",45) WHERE "id_tratamiento" = trat_id;
     END IF;
     IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
         INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
         VALUES (empresa_hq, prod_id, trat_id)
+        ON CONFLICT DO NOTHING;
+    END IF;
+    -- Producto adicional para limpieza
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Pulidor dental HQ' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_hq, 'Pulidor dental HQ', 20.00, 8.00, false, 120, 20)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Pulidor dental HQ' AND "id_empresa" = empresa_hq;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento","unidades")
+        VALUES (empresa_hq, prod_id, trat_id, 1)
         ON CONFLICT DO NOTHING;
     END IF;
 
@@ -1420,16 +1437,136 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Blanqueamiento LED' AND "id_empresa" = empresa_sonrisa) THEN
-        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
-        VALUES (empresa_sonrisa, 'Blanqueamiento LED', 'Sesion de blanqueamiento intensivo', 1, 190.00)
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_sonrisa, 'Blanqueamiento LED', 'Sesion de blanqueamiento intensivo', 1, 190.00, 60)
         RETURNING "id_tratamiento" INTO trat_id;
     ELSE
         SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Blanqueamiento LED' AND "id_empresa" = empresa_sonrisa;
+        UPDATE "Tratamientos" SET "duracion_minima" = COALESCE("duracion_minima",60) WHERE "id_tratamiento" = trat_id;
     END IF;
     IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
         INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
         VALUES (empresa_sonrisa, prod_id, trat_id)
         ON CONFLICT DO NOTHING;
+    END IF;
+    -- Producto auxiliar para blanqueamiento
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Gel blanqueador avanzado' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_sonrisa, 'Gel blanqueador avanzado', 45.00, 15.00, false, 60, 10)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Gel blanqueador avanzado' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento","unidades")
+        VALUES (empresa_sonrisa, prod_id, trat_id, 1)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    -- Asegurar que todos los tratamientos tengan duración mínima
+    UPDATE "Tratamientos"
+    SET "duracion_minima" = COALESCE("duracion_minima", 45)
+    WHERE "duracion_minima" IS NULL;
+
+    -- Tratamientos con duración mínima y combos de productos
+    -- HQ: Ortodoncia invisible (90 min) con múltiples productos
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_hq, 'Ortodoncia invisible', 'Plan de alineadores con revisiones', 1, 3000.00, 90)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_hq;
+        UPDATE "Tratamientos" SET "duracion_minima" = 90 WHERE "id_tratamiento" = trat_id AND ("duracion_minima" IS NULL OR "duracion_minima" < 90);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Kit de alineadores' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_hq, 'Kit de alineadores', 800.00, 300.00, true, 25, 5)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Kit de alineadores' AND "id_empresa" = empresa_hq;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_hq, prod_id, trat_id) ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Attachments estéticos' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_hq, 'Attachments estéticos', 120.00, 40.00, false, 200, 30)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Attachments estéticos' AND "id_empresa" = empresa_hq;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_hq, prod_id, trat_id) ON CONFLICT DO NOTHING;
+    END IF;
+
+    -- Sonrisa: Implante unitario (75 min) con kit quirúrgico
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_sonrisa, 'Implante unitario', 'Colocación de implante con corona provisional', 1, 1200.00, 75)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_sonrisa;
+        UPDATE "Tratamientos" SET "duracion_minima" = 75 WHERE "id_tratamiento" = trat_id AND ("duracion_minima" IS NULL OR "duracion_minima" < 75);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Kit quirúrgico implante' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_sonrisa, 'Kit quirúrgico implante', 350.00, 140.00, false, 40, 10)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Kit quirúrgico implante' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_sonrisa, prod_id, trat_id) ON CONFLICT DO NOTHING;
+    END IF;
+    -- Segundo producto para implante
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Pilar de titanio' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_sonrisa, 'Pilar de titanio', 180.00, 70.00, false, 80, 15)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Pilar de titanio' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento","unidades")
+        VALUES (empresa_sonrisa, prod_id, trat_id, 1) ON CONFLICT DO NOTHING;
+    END IF;
+
+    -- Proveedores adicionales
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'Ortho Supplies Europe' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_hq, 'Ortho Supplies Europe', 'Beatriz Proveedora', 'ventas@orthosupplies.eu', '+34 910 223 445', 'Av. Industria 12, Madrid');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'BioImplant Iberia' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_sonrisa, 'BioImplant Iberia', 'Carlos Implantes', 'contacto@bioimplant.es', '+34 932 445 667', 'C/ Marina 55, Barcelona');
+    END IF;
+
+    -- Pacientes adicionales
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'laura.fernandez@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa","id_clinica","nombre","apellido","email","fecha_nacimiento","telefono","direccion")
+        VALUES (empresa_hq, clinica_hq_central, 'Laura', 'Fernández', 'laura.fernandez@pacientes.com', '1990-04-12', '+34 699 112 233', 'Gran Vía 10, Madrid');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'martin.garcia@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa","id_clinica","nombre","apellido","email","fecha_nacimiento","telefono","direccion")
+        VALUES (empresa_hq, clinica_hq_norte, 'Martín', 'García', 'martin.garcia@pacientes.com', '1985-08-22', '+34 678 554 221', 'Av. Olímpica 3, Alcobendas');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'ines.lopez@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa","id_clinica","nombre","apellido","email","fecha_nacimiento","telefono","direccion")
+        VALUES (empresa_sonrisa, clinica_sonrisa_mad, 'Inés', 'López', 'ines.lopez@pacientes.com', '1994-02-17', '+34 622 334 556', 'C/ Serrano 45, Madrid');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'pablo.ruiz@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa","id_clinica","nombre","apellido","email","fecha_nacimiento","telefono","direccion")
+        VALUES (empresa_sonrisa, clinica_sonrisa_bcn, 'Pablo', 'Ruiz', 'pablo.ruiz@pacientes.com', '1989-03-29', '+34 633 778 990', 'C/ Balmes 200, Barcelona');
     END IF;
 
     IF emp_sonrisa_owner IS NOT NULL AND pac_sonrisa_mad IS NOT NULL THEN
@@ -1474,16 +1611,29 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_mundo) THEN
-        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
-        VALUES (empresa_mundo, 'Implante unitario', 'Colocacion de implante unitario', 1, 1200.00)
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_mundo, 'Implante unitario', 'Colocacion de implante unitario', 1, 1200.00, 75)
         RETURNING "id_tratamiento" INTO trat_id;
     ELSE
         SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_mundo;
+        UPDATE "Tratamientos" SET "duracion_minima" = COALESCE("duracion_minima",75) WHERE "id_tratamiento" = trat_id;
     END IF;
     IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
         INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
         VALUES (empresa_mundo, prod_id, trat_id)
         ON CONFLICT DO NOTHING;
+    END IF;
+    -- Segundo producto asociado para implante Mundo
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Pilar MD' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_mundo, 'Pilar MD', 150.00, 55.00, false, 30, 5)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Pilar MD' AND "id_empresa" = empresa_mundo;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento","unidades")
+        VALUES (empresa_mundo, prod_id, trat_id, 1) ON CONFLICT DO NOTHING;
     END IF;
 
     IF emp_mundo_owner IS NOT NULL AND pac_mundo_val IS NOT NULL THEN
@@ -1528,16 +1678,29 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_bright) THEN
-        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
-        VALUES (empresa_bright, 'Ortodoncia invisible', 'Alineadores transparentes', 1, 3000.00)
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio","duracion_minima")
+        VALUES (empresa_bright, 'Ortodoncia invisible', 'Alineadores transparentes', 1, 3000.00, 80)
         RETURNING "id_tratamiento" INTO trat_id;
     ELSE
         SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_bright;
+        UPDATE "Tratamientos" SET "duracion_minima" = COALESCE("duracion_minima",80) WHERE "id_tratamiento" = trat_id;
     END IF;
     IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
         INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
         VALUES (empresa_bright, prod_id, trat_id)
         ON CONFLICT DO NOTHING;
+    END IF;
+    -- Segundo producto para ortodoncia Bright
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Kit revisiones BS' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_bright, 'Kit revisiones BS', 180.00, 60.00, false, 20, 5)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Kit revisiones BS' AND "id_empresa" = empresa_bright;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento","unidades")
+        VALUES (empresa_bright, prod_id, trat_id, 1) ON CONFLICT DO NOTHING;
     END IF;
 
     -- fallback: si no tenemos empleado owner para bright, toma cualquiera de la empresa

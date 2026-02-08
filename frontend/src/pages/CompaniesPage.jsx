@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Building, Phone, Mail, FileText, ChevronRight } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import './UsersPage.css';
 import './CompaniesPage.css';
 
@@ -22,6 +23,8 @@ const CompaniesPage = () => {
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
         resolver: yupResolver(companySchema)
@@ -66,6 +69,8 @@ const CompaniesPage = () => {
         company.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.nif?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    useEffect(() => { setPage(1); }, [searchTerm, companies]);
+    const paginatedCompanies = filteredCompanies.slice((page - 1) * pageSize, page * pageSize);
 
     return (
         <div className="companies-page animate-fade-in">
@@ -111,7 +116,7 @@ const CompaniesPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredCompanies.length > 0 ? filteredCompanies.map((company) => (
+                                {filteredCompanies.length > 0 ? paginatedCompanies.map((company) => (
                                     <tr
                                         key={company.id_empresa}
                                         onClick={() => handleRowClick(company.id_empresa)}
@@ -172,6 +177,7 @@ const CompaniesPage = () => {
                                 )}
                             </tbody>
                         </table>
+                        <Pagination page={page} total={filteredCompanies.length} pageSize={pageSize} onPageChange={setPage} />
                     </div>
                 )}
             </Card>

@@ -1,199 +1,189 @@
-import { useState, useEffect } from 'react';
-import { Users, Calendar, DollarSign, CheckCircle, ArrowUp, ArrowRight, Clock } from 'lucide-react';
+﻿import { useEffect, useMemo, useState } from 'react';
+import { Users, Calendar, DollarSign, CheckCircle, ArrowRight, Clock, MapPin } from 'lucide-react';
 import { Card, Button, Badge } from '../components/ui';
 import api from '../services/api';
+import { getStoredSelection } from '../utils/clinicSelection';
+import { format, parseISO, addDays, isWithinInterval, addMinutes } from 'date-fns';
 import './DashboardPage.css';
 
-const StatCard = ({ title, value, trend, icon: Icon, color, trendValue }) => (
-    <Card className="stat-card" padding="lg">
-        <div className="stat-header">
-            <div className={`stat-icon-wrapper color-${color}`}>
-                <Icon size={24} />
-            </div>
-            {trend && (
-                <div className="stat-trend positive">
-                    <ArrowUp size={14} />
-                    {trendValue}
-                </div>
-            )}
-        </div>
-        <div className="stat-content">
-            <p className="stat-value">{value}</p>
-            <p className="stat-title">{title}</p>
-        </div>
-    </Card>
+const StatCard = ({ title, value, icon: Icon, color }) => (
+  <Card className="stat-card" padding="lg">
+    <div className="stat-header">
+      <div className={`stat-icon-wrapper color-${color}`}>
+        <Icon size={24} />
+      </div>
+    </div>
+    <div className="stat-content">
+      <p className="stat-value">{value}</p>
+      <p className="stat-title">{title}</p>
+    </div>
+  </Card>
 );
 
 const AppointmentItem = ({ patient, time, type, status }) => (
-    <div className="appointment-item">
-        <div className="app-time-wrapper">
-            <span className="app-time">{time}</span>
-        </div>
-        <div className="app-details">
-            <p className="app-patient">{patient}</p>
-            <p className="app-type">{type}</p>
-        </div>
-        <div className="app-status">
-            <Badge variant={status === 'confirmed' ? 'success' : 'warning'} dot>
-                {status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
-            </Badge>
-        </div>
+  <div className="appointment-item">
+    <div className="app-time-wrapper">
+      <span className="app-time">{time}</span>
     </div>
+    <div className="app-details">
+      <p className="app-patient">{patient}</p>
+      <p className="app-type">{type}</p>
+    </div>
+    <div className="app-status">
+      <Badge variant={status === 'Completada' ? 'success' : status === 'Cancelada' ? 'error' : 'warning'} dot>
+        {status || 'Pendiente'}
+      </Badge>
+    </div>
+  </div>
 );
 
 const DashboardPage = () => {
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        patients: 0,
-        appointmentsToday: 0,
-        revenue: 0,
-        pending: 0
-    });
+  const storedSelection = getStoredSelection();
+  const clinicId = storedSelection.clinicId ? Number(storedSelection.clinicId) : null;
+  const clinicName = storedSelection.clinicName || 'Clínica no seleccionada';
+  const companyId = Number(storedSelection.companyId || 1);
 
-    // Simulation of data fetching
-    useEffect(() => {
-        const loadData = async () => {
-            // In a real scenario, we would fetch from APIs
-            // await Promise.all([api.get('/stats'), ...])
+  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
-            // Simulating loading
-            setTimeout(() => {
-                setStats({
-                    patients: 1248,
-                    appointmentsToday: 8,
-                    revenue: '12.4k',
-                    pending: 3
-                });
-                setLoading(false);
-            }, 800);
-        };
+  const toArray = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.data?.data)) return payload.data.data;
+    return [];
+  };
 
-        loadData();
-    }, []);
+  const filterAppointments = (list) => list.filter(apt => {
+    const companyOk = !companyId || Number(apt.id_empresa) === Number(companyId);
+    const clinicMatch = apt.id_clinica ?? apt.patient?.id_clinica ?? apt.patient?.clinic_id;
+    const clinicOk = !clinicId || Number(clinicMatch) === Number(clinicId);
+    const notDeleted = !apt.deleted_at;
+    return companyOk && clinicOk && notDeleted;
+  });
 
-    return (
-        <div className="dashboard-page animate-fade-in">
-            <div className="dashboard-header">
-                <div>
-                    <h2 className="page-heading">Panel principal</h2>
-                    <p className="page-subheading">Resumen de actividad de hoy, 14 Octubre</p>
-                </div>
-                <div className="header-actions">
-                    <Button variant="outline" icon={<Clock size={16} />}>
-                        Historial
-                    </Button>
-                    <Button variant="primary" icon={<Calendar size={16} />}>
-                        Nueva cita
-                    </Button>
-                </div>
-            </div>
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [patRes, aptRes, invRes] = await Promise.all([
+          api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } }),
+          api.get('/appointments', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } }),
+          api.get('/invoices', { params: { company_id: companyId || undefined } }).catch(() => ({ data: [] }))
+        ]);
+        setPatients(toArray(patRes));
+        setAppointments(filterAppointments(toArray(aptRes)));
+        setInvoices(filterInvoices(toArray(invRes)));
+      } catch (error) {
+        console.error('Error cargando dashboard:', error);
+        setPatients([]);
+        setAppointments([]);
+        setInvoices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [clinicId, companyId]);
 
-            <div className="stats-grid">
-                <StatCard
-                    title="Total pacientes"
-                    value={stats.patients}
-                    icon={Users}
-                    color="blue"
-                    trend
-                    trendValue="+12%"
-                />
-                <StatCard
-                    title="Citas hoy"
-                    value={stats.appointmentsToday}
-                    icon={Calendar}
-                    color="purple"
-                    trend
-                    trendValue="+2"
-                />
-                <StatCard
-                    title="Ingresos mes"
-                    value={`$${stats.revenue}`}
-                    icon={DollarSign}
-                    color="green"
-                    trend
-                    trendValue="+8.4%"
-                />
-                <StatCard
-                    title="Tareas pendientes"
-                    value={stats.pending}
-                    icon={CheckCircle}
-                    color="orange"
-                />
-            </div>
+  const normalizeEstado = (estado, pagoStatus) => {
+    if (pagoStatus === 'Pagado') return 'Completada';
+    return estado === 'Completada' ? 'Completada' : 'Pendiente';
+  };
 
-            <div className="dashboard-content-grid">
-                <div className="dashboard-main-col">
-                    <Card
-                        title="Próximas citas"
-                        subtitle="Agenda para el día de hoy"
-                        className="h-full"
-                        footer={
-                            <Button variant="ghost" size="sm" icon={<ArrowRight size={16} />}>
-                                Ver agenda completa
-                            </Button>
-                        }
-                    >
-                        <div className="appointments-list">
-                            <AppointmentItem
-                                time="09:00 AM"
-                                patient="María García"
-                                type="Limpieza General"
-                                status="confirmed"
-                            />
-                            <AppointmentItem
-                                time="10:30 AM"
-                                patient="Carlos Rodríguez"
-                                type="Ortodoncia Revisión"
-                                status="pending"
-                            />
-                            <AppointmentItem
-                                time="11:45 AM"
-                                patient="Ana Martínez"
-                                type="Extracción"
-                                status="confirmed"
-                            />
-                            <AppointmentItem
-                                time="03:15 PM"
-                                patient="Luis Sánchez"
-                                type="Blanqueamiento"
-                                status="confirmed"
-                            />
-                        </div>
-                    </Card>
-                </div>
+  const filterInvoices = (list) => list.filter(inv => {
+    const companyOk = !companyId || Number(inv.id_empresa) === Number(companyId);
+    const clinicMatch = inv.id_clinica ?? inv.patient?.id_clinica ?? inv.patient?.clinic_id;
+    const clinicOk = !clinicId || Number(clinicMatch) === Number(clinicId);
+    return companyOk && clinicOk;
+  });
 
-                <div className="dashboard-side-col">
-                    <Card title="Acciones rápidas" className="mb-6">
-                        <div className="quick-actions-grid">
-                            <button className="quick-action-btn">
-                                <div className="qa-icon"><Users size={20} /></div>
-                                <span>Registrar paciente</span>
-                            </button>
-                            <button className="quick-action-btn">
-                                <div className="qa-icon"><DollarSign size={20} /></div>
-                                <span>Generar factura</span>
-                            </button>
-                        </div>
-                    </Card>
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    const inSevenDays = addDays(now, 7);
+    return appointments
+      .filter(a => {
+        const d = parseISO(a.fecha || '');
+        return isWithinInterval(d, { start: now, end: inSevenDays });
+      })
+      .map(a => ({ ...a, estado: normalizeEstado(a.estado, a.pago_status) }))
+      .filter(a => a.estado === 'Pendiente')
+      .sort((a, b) => {
+        const dA = parseISO(`${a.fecha}T${a.hora || '00:00'}`);
+        const dB = parseISO(`${b.fecha}T${b.hora || '00:00'}`);
+        return dA - dB;
+      });
+  }, [appointments]);
 
-                    <Card title="Rendimiento semanal">
-                        <div className="chart-placeholder">
-                            <div className="bar" style={{ height: '40%' }}></div>
-                            <div className="bar" style={{ height: '60%' }}></div>
-                            <div className="bar" style={{ height: '35%' }}></div>
-                            <div className="bar active" style={{ height: '85%' }}></div>
-                            <div className="bar" style={{ height: '55%' }}></div>
-                            <div className="bar" style={{ height: '70%' }}></div>
-                            <div className="bar" style={{ height: '45%' }}></div>
-                        </div>
-                        <div className="chart-labels">
-                            <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
-                        </div>
-                    </Card>
-                </div>
-            </div>
+  const revenue = useMemo(() => invoices.reduce((acc, inv) => acc + Number(inv.importe_total || inv.total || 0), 0), [invoices]);
+  const pendingCount = useMemo(() => appointments.filter(a => normalizeEstado(a.estado, a.pago_status) === 'Pendiente').length, [appointments]);
+
+  return (
+    <div className="dashboard-page animate-fade-in">
+      <div className="dashboard-header">
+        <div>
+          <h2 className="page-heading">Panel principal</h2>
+          <p className="page-subheading">Datos reales de la clínica seleccionada</p>
+          <div className="clinic-chip">
+            <MapPin size={14} />
+            <span>{clinicName}</span>
+          </div>
         </div>
-    );
+        <div className="header-actions">
+          <Button variant="outline" icon={<Clock size={16} />} onClick={() => window.location.href = '/appointments/history'}>
+            Histórico citas
+          </Button>
+          <Button variant="primary" icon={<Calendar size={16} />} onClick={() => window.location.href = '/appointments'}>
+            Calendario
+          </Button>
+        </div>
+      </div>
+
+      <div className="stats-grid">
+        <StatCard title="Total pacientes" value={patients.length} icon={Users} color="blue" />
+        <StatCard title="Citas próximas (7 días)" value={upcomingAppointments.length} icon={Calendar} color="purple" />
+        <StatCard title="Ingresos (facturas)" value={`${revenue.toFixed(2)} €`} icon={DollarSign} color="green" />
+        <StatCard title="Citas pendientes" value={pendingCount} icon={CheckCircle} color="orange" />
+      </div>
+
+      <div className="dashboard-content-grid">
+        <div className="dashboard-main-col full-width">
+          <Card
+            title="Próximas citas (7 días)"
+            subtitle="Agenda filtrada por clínica actual"
+            className="h-full wide-card"
+            footer={
+              <Button variant="ghost" size="sm" icon={<ArrowRight size={16} />} onClick={() => window.location.href = '/appointments'}>
+                Ver agenda completa
+              </Button>
+            }
+          >
+            <div className="appointments-list">
+              {loading ? (
+                <p className="text-gray-500">Cargando...</p>
+              ) : upcomingAppointments.length === 0 ? (
+                <p className="text-gray-500">No hay citas próximas.</p>
+              ) : upcomingAppointments.map((apt, idx) => {
+                const start = parseISO(`${apt.fecha}T${apt.hora || '00:00'}`);
+                const end = addMinutes(start, Number(apt.duracion_minutos || 30));
+                const timeLabel = `${format(start, 'dd/MM')} · ${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`;
+                return (
+                  <AppointmentItem
+                    key={idx}
+                    time={timeLabel}
+                    patient={apt.patient?.nombre || 'Paciente'}
+                    type={apt.motivo || 'Sin motivo'}
+                    status={normalizeEstado(apt.estado, apt.pago_status)}
+                  />
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default DashboardPage;

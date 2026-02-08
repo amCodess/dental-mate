@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -14,11 +14,11 @@ import {
     FileText,
     ChevronRight,
     Edit2,
-    Trash2,
-    Users
+    Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal, ConfirmDialog } from '../components/ui';
+import { persistSelection } from '../utils/clinicSelection';
 import './CompanyClinicDetails.css';
 
 // Esquema para clínicas (copiado/adaptado de ClinicsPage)
@@ -71,7 +71,7 @@ const CompanyDetailsPage = () => {
                 navigate('/login');
                 return;
             }
-            setErrorMessage('No se pudo cargar la empresa. Inténtalo de nuevo.');
+            setErrorMessage('No se pudo cargar la empresa. IntÃ©ntalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -83,7 +83,7 @@ const CompanyDetailsPage = () => {
 
     const handleSaveClinic = async (data) => {
         try {
-            // Añadir id_empresa automáticamente
+            // AÃ±adir id_empresa automÃ¡ticamente
             const payload = { ...data, id_empresa: id };
             if (editingClinic) {
                 await api.put(`/clinics/${editingClinic.id_clinica}`, payload);
@@ -116,9 +116,7 @@ const CompanyDetailsPage = () => {
         setModalOpen(true);
     };
 
-    const handleClinicClick = (clinicId) => {
-        navigate(`/clinics/${clinicId}`);
-    };
+    // Navegación a detalle de clínica deshabilitada: solo edición/eliminación desde acciones.
 
     const handleDeleteClick = (clinic) => {
         setConfirmDialog({ isOpen: true, clinic });
@@ -148,7 +146,7 @@ const CompanyDetailsPage = () => {
                         <Building className="text-primary" size={28} />
                         <span>Empresa no encontrada</span>
                     </div>
-                    <p className="details-subtitle">{errorMessage || 'No se encontró la empresa solicitada.'}</p>
+                    <p className="details-subtitle">{errorMessage || 'No se encontrÃ³ la empresa solicitada.'}</p>
                     <div className="details-metadata">
                         <Button variant="ghost" onClick={() => navigate('/companies')}>Volver a empresas</Button>
                         <Button variant="primary" onClick={fetchData}>Reintentar</Button>
@@ -186,7 +184,7 @@ const CompanyDetailsPage = () => {
             <section className="detail-section">
                 <div className="page-header">
                     <div>
-                        <h3 className="section-title">Clínicas asociadas</h3>
+                        <h3 className="section-title">clínicas asociadas</h3>
                         <p className="section-subtitle">Gestiona las sucursales de esta empresa</p>
                     </div>
                     <Button onClick={handleOpenCreate} size="sm" icon={<Plus size={16} />}>
@@ -222,7 +220,6 @@ const CompanyDetailsPage = () => {
                                 {filteredClinics.length > 0 ? filteredClinics.map(clinic => (
                                     <tr
                                         key={clinic.id_clinica}
-                                        onClick={() => handleClinicClick(clinic.id_clinica)}
                                         className="clickable-row"
                                     >
                                         <td className="font-medium text-gray-900">{clinic.nombre}</td>
@@ -238,19 +235,6 @@ const CompanyDetailsPage = () => {
                                         </td>
                                         <td className="text-center">
                                             <div className="clinic-actions">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="clinic-action-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleClinicClick(clinic.id_clinica);
-                                                    }}
-                                                >
-                                                    <Users size={16} />
-                                                    Ver usuarios
-                                                    <ChevronRight size={16} />
-                                                </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -303,7 +287,7 @@ const CompanyDetailsPage = () => {
                 <form className="form-stack">
                     <Input label="Nombre de la clínica" placeholder="Ej. Centro Madrid" fullWidth error={errors.nombre?.message} {...register('nombre')} />
                     <Input label="Dirección" placeholder="C/ Ejemplo 123" fullWidth icon={<MapPin size={16} />} error={errors.direccion?.message} {...register('direccion')} />
-                    <Input label="Teléfono" placeholder="+34..." fullWidth icon={<Phone size={16} />} error={errors.telefono?.message} {...register('telefono')} />
+                    <Input label="TelÃ©fono" placeholder="+34..." fullWidth icon={<Phone size={16} />} error={errors.telefono?.message} {...register('telefono')} />
                     <Input label="Correo de recordatorios (opcional)" type="email" fullWidth icon={<Mail size={16} />} error={errors.email_recordatorios?.message} {...register('email_recordatorios')} />
                 </form>
             </Modal>
@@ -311,7 +295,7 @@ const CompanyDetailsPage = () => {
             <ConfirmDialog
                 isOpen={confirmDialog.isOpen}
                 title="Eliminar clínica"
-                message={`¿Seguro que deseas eliminar la clínica ${confirmDialog.clinic?.nombre}?`}
+                message={`Â¿Seguro que deseas eliminar la clínica ${confirmDialog.clinic?.nombre}?`}
                 onConfirm={handleDeleteClinic}
                 onCancel={() => setConfirmDialog({ isOpen: false, clinic: null })}
                 variant="danger"

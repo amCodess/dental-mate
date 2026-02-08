@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredSelection } from '../utils/clinicSelection';
 import { useForm } from 'react-hook-form';
-import { DollarSign, FileText, Download, Plus, Search, CreditCard, AlertCircle, ArrowLeft } from 'lucide-react';
+import { DollarSign, FileText, Plus, Search, CreditCard, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Card, Badge, Modal, Input, LoadingSpinner, EmptyState } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import './BillingPage.css';
 
 const BillingPage = () => {
@@ -29,11 +30,25 @@ const BillingPage = () => {
         }
     });
 
+    const toArray = (payload) => {
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload?.data)) return payload.data;
+        if (Array.isArray(payload?.data?.data)) return payload.data.data;
+        return [];
+    };
+
+        const filterInvoices = (list) => list.filter(inv => {
+        const companyOk = !companyId || Number(inv.id_empresa) === Number(companyId);
+        const clinicMatch = inv.id_clinica ?? inv.patient?.id_clinica ?? inv.patient?.clinic_id ?? clinicId;
+        const clinicOk = !clinicId || Number(clinicMatch) === Number(clinicId);
+        return companyOk && clinicOk;
+    });
+
     const fetchInvoices = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/invoices', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
-            setInvoices(response.data.data || response.data);
+            const response = await api.get('/invoices', { params: { company_id: companyId || undefined } });
+            setInvoices(filterInvoices(toArray(response)));
         } catch (error) {
             console.error('Error fetching invoices:', error);
         } finally {
@@ -44,7 +59,7 @@ const BillingPage = () => {
     const fetchPatients = async () => {
         try {
             const response = await api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
-            setPatients(response.data.data || []);
+            setPatients(toArray(response));
         } catch (error) {
             console.error('Error fetching patients:', error);
         }
@@ -53,18 +68,7 @@ const BillingPage = () => {
     useEffect(() => {
         fetchInvoices();
         fetchPatients();
-    }, []);
-
-    const handleDownloadPdf = async (id) => {
-        try {
-            // In a real scenario, this would trigger a browser download
-            // For now, we just call the API which returns a stream/blob
-            window.open(`${import.meta.env.VITE_API_URL}/invoices/${id}/pdf`, '_blank');
-        } catch (error) {
-            console.error('Error downloading PDF:', error);
-            alert('Error al descargar factura');
-        }
-    };
+    }, [clinicId, companyId]);
 
     const onSubmit = async (data) => {
         try {
@@ -96,7 +100,22 @@ const BillingPage = () => {
 
     // Calculate simple stats from loaded invoices (client-side for MVP)
     const totalRevenue = invoices.reduce((acc, curr) => acc + parseFloat(curr.importe_total), 0);
-    const pendingInvoices = invoices.filter(i => i.pago_status === 'Pendiente').length;
+
+    const filteredInvoices = invoices.filter(inv => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        const patient = inv.patient ? `${inv.patient.nombre} ${inv.patient.apellido}`.toLowerCase() : '';
+        return patient.includes(term) || inv.tipo_pago?.toLowerCase().includes(term) || inv.pago_status?.toLowerCase().includes(term);
+    });
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    useEffect(() => { setPage(1); }, [searchTerm, invoices]);
+    const sortedInvoices = [...filteredInvoices].sort((a, b) => {
+        const da = new Date(a.fecha_emision || a.fecha || 0);
+        const db = new Date(b.fecha_emision || b.fecha || 0);
+        return da - db; // menor a mayor
+    });
+    const paginatedInvoices = sortedInvoices.slice((page - 1) * pageSize, page * pageSize);
 
     return (
         <div className="billing-page animate-fade-in">
@@ -122,16 +141,9 @@ const BillingPage = () => {
                     </div>
                     <div>
                         <p className="stat-label">Ingresos totales</p>
-                        <p className="stat-value">€{totalRevenue.toLocaleString()}</p>
-                    </div>
-                </Card>
-                <Card padding="lg" className="stat-card-billing">
-                    <div className="stat-billing-icon bg-orange-100 text-orange-600">
-                        <AlertCircle size={24} />
-                    </div>
-                    <div>
-                        <p className="stat-label">Facturas pendientes</p>
-                        <p className="stat-value">{pendingInvoices}</p>
+                        <p className="stat-value">
+                            €{totalRevenue.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
                     </div>
                 </Card>
                 <Card padding="lg" className="stat-card-billing">
@@ -157,15 +169,15 @@ const BillingPage = () => {
                                 <tr>
                                     <th>ID</th>
                                     <th>Paciente</th>
-                                    <th>Fecha</th>
+                                    <th>Fecha emisión</th>
                                     <th>Método</th>
                                     <th>Importe</th>
                                     <th>Estado</th>
-                                    <th className="text-center" style={{ width: '1%', whiteSpace: 'nowrap' }}>Acciones</th>
+                                    <th>Cita asociada</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {invoices.map(invoice => (
+                                {paginatedInvoices.map(invoice => (
                                     <tr key={invoice.id_factura}>
                                         <td className="font-mono text-gray-500">#{invoice.id_factura.toString().padStart(6, '0')}</td>
                                         <td>
@@ -182,17 +194,15 @@ const BillingPage = () => {
                                         </td>
                                         <td className="font-bold text-gray-900">€{invoice.importe_total}</td>
                                         <td>{getStatusBadge(invoice.pago_status)}</td>
-                                        <td className="text-center">
-                                            <div className="actions-center">
-                                                <Button variant="ghost" size="sm" icon={<Download size={16} />} onClick={() => handleDownloadPdf(invoice.id_factura)}>
-                                                    PDF
-                                                </Button>
-                                            </div>
+                                        <td className="font-mono text-gray-600">
+                                            {invoice.id_cita ? `#${invoice.id_cita}` : '—'}
                                         </td>
+                                        
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination page={page} total={filteredInvoices.length} pageSize={pageSize} onPageChange={setPage} />
                     </div>
                 ) : (
                     <EmptyState
@@ -204,7 +214,6 @@ const BillingPage = () => {
                     />
                 )}
             </Card>
-
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
@@ -278,3 +287,12 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
+
+
+
+
+
+
+
+
+

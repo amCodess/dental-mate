@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -13,7 +14,26 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::with(['patient'])->get();
+        $includeDeleted = request()->boolean('include_deleted', false);
+
+        $query = Appointment::with(['patient', 'invoice']);
+
+        if ($includeDeleted) {
+            $query->withTrashed();
+        }
+
+        if (request()->has('company_id')) {
+            $query->where('id_empresa', request()->get('company_id'));
+        }
+
+        if (request()->has('clinic_id')) {
+            $query->where(function ($q) {
+                $clinic = request()->get('clinic_id');
+                $q->where('id_clinica', $clinic);
+            });
+        }
+
+        $appointments = $query->get();
         return response()->json($appointments);
     }
 
@@ -55,7 +75,8 @@ class AppointmentController extends Controller
             'id_empleado' => 'required|integer', // exists:Empleados,id_empleado
             'fecha' => 'required|date',
             'hora' => 'required',
-            'duracion_minutos' => 'integer|min:5'
+            'duracion_minutos' => 'integer|min:5',
+            'motivo' => 'nullable|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -90,7 +111,44 @@ class AppointmentController extends Controller
         if (!$appointment) {
             return response()->json(['message' => 'Appointment not found'], 404);
         }
+
+        $validator = Validator::make($request->all(), [
+            'motivo' => 'nullable|string|max:255'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         $appointment->update($request->all());
+
+        // Autogenerar factura al completar y marcar como pagado si aún no existe
+        $estado = $request->input('estado', $appointment->estado);
+        $pagoStatus = $request->input('pago_status', $appointment->pago_status ?? null);
+
+        if ($estado === 'Completada' && $pagoStatus === 'Pagado') {
+            $existingInvoice = Invoice::where('id_cita', $appointment->id_cita)->first();
+            if (!$existingInvoice) {
+                $importe = $request->input('precio');
+                $clinicForInvoice = $appointment->id_clinica
+                    ?? optional($appointment->patient)->id_clinica
+                    ?? optional($appointment->patient)->clinic_id
+                    ?? $request->input('id_clinica');
+                // fallback a importe 0 si no viene precio; no bloqueamos la creación
+                $invoice = Invoice::create([
+                    'id_empresa'   => $appointment->id_empresa,
+                    'id_clinica'   => $clinicForInvoice,
+                    'id_paciente'  => $appointment->id_paciente,
+                    'id_cita'      => $appointment->id_cita,
+                    'importe_total'=> $request->input('importe_total', $importe !== null ? floatval($importe) : 0),
+                    'tipo_pago'    => $request->input('tipo_pago', 'Efectivo'),
+                    'pago_status'  => 'Pagado',
+                    'fecha_emision'=> $appointment->fecha ?? now()->toDateString()
+                ]);
+                // Adjuntar factura al response
+                $appointment->setRelation('invoice', $invoice);
+            }
+        }
+
         return response()->json($appointment);
     }
 
@@ -103,7 +161,21 @@ class AppointmentController extends Controller
         if (!$appointment) {
             return response()->json(['message' => 'Appointment not found'], 404);
         }
-        $appointment->delete();
+
+        // No permitir eliminar citas completadas ni pagadas
+        if ($appointment->estado === 'Completada') {
+            return response()->json(['message' => 'No se puede eliminar una cita completada.'], 400);
+        }
+        $invoice = Invoice::where('id_cita', $appointment->id_cita)->first();
+        if ($invoice && $invoice->pago_status === 'Pagado') {
+            return response()->json(['message' => 'No se puede eliminar una cita pagada.'], 400);
+        }
+        // Soft delete respecting check constraint (deleted=true when deleted_at is set)
+        $appointment->forceFill([
+            'deleted' => true,
+            'deleted_at' => now()
+        ])->save();
+
         return response()->json(['message' => 'Appointment deleted']);
     }
 }

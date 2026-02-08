@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredSelection } from '../utils/clinicSelection';
 import { useForm } from 'react-hook-form';
@@ -7,6 +7,7 @@ import * as yup from 'yup';
 import { Plus, Search, Edit2, Trash2, Package, Shield, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Modal, ConfirmDialog } from '../components/ui';
+import Pagination from '../components/ui/Pagination';
 import './UsersPage.css';
 
 const schema = yup.object().shape({
@@ -33,7 +34,7 @@ const ProductsPage = () => {
     const [search, setSearch] = useState('');
     const [confirm, setConfirm] = useState({ open: false, product: null });
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
             nombre_producto: '',
@@ -44,6 +45,8 @@ const ProductsPage = () => {
             vendible: 'true'
         }
     });
+
+    const vendibleValue = watch('vendible');
 
     const fetchProducts = async () => {
         try {
@@ -132,6 +135,14 @@ const ProductsPage = () => {
         );
     }, [products, search]);
 
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    useEffect(() => { setPage(1); }, [search, products]);
+    const paginated = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return filtered.slice(start, start + pageSize);
+    }, [filtered, page]);
+
     return (
         <div className="users-page animate-fade-in">
             <div className="page-header">
@@ -181,7 +192,7 @@ const ProductsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.length > 0 ? filtered.map(prod => (
+                                {filtered.length > 0 ? paginated.map(prod => (
                                     <tr key={prod.id_producto}>
                                         <td>
                                             <div className="user-cell">
@@ -195,7 +206,10 @@ const ProductsPage = () => {
                                         <td className="text-gray-700">€{prod.coste ?? '-'}</td>
                                         <td className="text-gray-700">{prod.stock_actual}</td>
                                         <td>
-                                            <Shield size={14} className="text-gray-500" /> {prod.vendible ? 'Sí' : 'No'}
+                                            <div className="vendible-cell">
+                                                <Shield size={14} className="text-gray-500" />
+                                                <span>{prod.vendible ? 'Sí' : 'No'}</span>
+                                            </div>
                                         </td>
                                         <td className="text-center">
                                             <div className="flex items-center justify-center gap-2">
@@ -240,14 +254,29 @@ const ProductsPage = () => {
                     </div>
                     <div className="form-row">
                         <Input label="Stock actual" type="number" fullWidth error={errors.stock_actual?.message} {...register('stock_actual')} />
-                        <Input label="Stock mínimo" type="number" fullWidth error={errors.stock_minimo?.message} {...register('stock_minimo')} />
+                        <Input label="Stock mÃ­nimo" type="number" fullWidth error={errors.stock_minimo?.message} {...register('stock_minimo')} />
                     </div>
                     <div className="input-container full-width">
                         <label className="input-label">Vendible</label>
-                        <select className="select-field" {...register('vendible')}>
-                            <option value="true">Sí</option>
-                            <option value="false">No</option>
-                        </select>
+                        <div className="vendible-toggle">
+                            <label className={`vendible-option ${vendibleValue === 'true' ? 'active' : ''}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={vendibleValue === 'true'}
+                                    onChange={() => setValue('vendible', 'true')}
+                                />
+                                Sí
+                            </label>
+                            <label className={`vendible-option ${vendibleValue === 'false' ? 'active' : ''}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={vendibleValue === 'false'}
+                                    onChange={() => setValue('vendible', 'false')}
+                                />
+                                No
+                            </label>
+                        </div>
+                        {errors.vendible && <span className="input-error-message">{errors.vendible.message}</span>}
                     </div>
                 </form>
             </Modal>
@@ -257,7 +286,7 @@ const ProductsPage = () => {
                 onClose={() => setConfirm({ open: false, product: null })}
                 onConfirm={deleteProduct}
                 title="Eliminar producto"
-                message={`¿Quieres eliminar ${confirm.product?.nombre_producto}?`}
+                message={`Â¿Quieres eliminar ${confirm.product?.nombre_producto}?`}
                 variant="danger"
             />
         </div>
@@ -265,3 +294,4 @@ const ProductsPage = () => {
 };
 
 export default ProductsPage;
+

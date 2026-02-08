@@ -19,6 +19,7 @@ class Treatment extends Model
         'nombre_tratamiento',
         'descripcion',
         'unidades',
-        'precio'
+        'precio',
+        'duracion_minima'
     ];
 }

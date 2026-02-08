@@ -24,7 +24,8 @@ class TreatmentController extends Controller
         $validator = Validator::make($request->all(), [
             'id_empresa' => 'required|integer',
             'nombre_tratamiento' => 'required|string|max:150',
-            'precio' => 'numeric|min:0'
+            'precio' => 'numeric|min:0',
+            'duracion_minima' => 'nullable|integer|min:5'
         ]);
 
         if ($validator->fails()) {
@@ -54,6 +55,16 @@ class TreatmentController extends Controller
         $treatment = Treatment::find($id);
         if (!$treatment)
             return response()->json(['message' => 'Not found'], 404);
+
+        $validator = Validator::make($request->all(), [
+            'nombre_tratamiento' => 'sometimes|required|string|max:150',
+            'precio' => 'numeric|min:0',
+            'duracion_minima' => 'nullable|integer|min:5'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
 
         $treatment->update($request->all());
         return response()->json($treatment);
