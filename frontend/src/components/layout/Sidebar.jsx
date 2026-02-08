@@ -1,4 +1,4 @@
-﻿import { useState, useLayoutEffect } from 'react';
+﻿import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
@@ -24,7 +24,6 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showContext, setShowContext] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -33,17 +32,22 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
 
   const navItems = [
     { icon: <Home size={20} />, label: 'Dashboard', path: '/dashboard', keepSearch: true },
-    { icon: <Calendar size={20} />, label: 'Citas', path: '/appointments', permission: 'menu_citas', keepSearch: true },
-    { icon: <User size={20} />, label: 'Pacientes', path: '/patients', permission: 'menu_pacientes', keepSearch: true },
-    { icon: <CreditCard size={20} />, label: 'Facturación', path: '/billing', permission: 'menu_facturacion', keepSearch: true },
-    { icon: <Package size={20} />, label: 'Productos', path: '/products', permission: 'menu_productos', keepSearch: true },
-    { icon: <Truck size={20} />, label: 'Proveedores', path: '/suppliers', permission: 'menu_proveedores', keepSearch: true },
-    { icon: <Stethoscope size={20} />, label: 'Tratamientos', path: '/treatments', permission: 'menu_tratamientos', keepSearch: true },
-    { icon: <Users size={20} />, label: 'Usuarios', path: '/users', permission: 'menu_usuarios', keepSearch: true },
+    { icon: <Calendar size={20} />, label: 'Citas', path: '/appointments', keepSearch: true },
+    { icon: <User size={20} />, label: 'Pacientes', path: '/patients', keepSearch: true },
+    { icon: <CreditCard size={20} />, label: 'Facturación', path: '/billing', keepSearch: true },
+    { icon: <Package size={20} />, label: 'Productos', path: '/products', keepSearch: true },
+    { icon: <Truck size={20} />, label: 'Proveedores', path: '/suppliers', keepSearch: true },
+    { icon: <Stethoscope size={20} />, label: 'Tratamientos', path: '/treatments', keepSearch: true },
+    { icon: <Users size={20} />, label: 'Usuarios', path: '/users', keepSearch: true },
   ];
 
   const bottomItems = [
     { icon: <Building size={20} />, label: 'Cambiar Clínica', path: '/select-clinic' },
+  ];
+
+  const superAdminItems = [
+    { icon: <Building size={20} />, label: 'Empresas', path: '/companies' },
+    { icon: <Shield size={20} />, label: 'Administradores', path: '/admins' },
   ];
 
   const sidebarClass = `sidebar ${collapsed ? 'sidebar-collapsed' : ''} ${mobileOpen ? 'sidebar-mobile-open' : ''}`;
@@ -59,44 +63,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   }
   const navSearch = searchParams.toString() ? `?${searchParams.toString()}` : '';
 
-  const resolveVisibility = () => {
-    if (!user?.clinics || user.clinics.length === 0) return null;
-    if (clinicId) {
-      return user.clinics.find(clinic => String(clinic.id_Clínica) === String(clinicId))?.pivot || null;
-    }
-    if (user.clinics.length === 1) {
-      return user.clinics[0]?.pivot || null;
-    }
-    return null;
-  };
-
-  const visibility = resolveVisibility();
-  const normalizeVisibility = (value) => {
-    if (value === undefined || value === null) return null;
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'number') return value === 1;
-    if (typeof value === 'string') {
-      const normalized = value.toLowerCase();
-      if (['true', 't', '1', 'yes'].includes(normalized)) return true;
-      if (['false', 'f', '0', 'no'].includes(normalized)) return false;
-    }
-    return null;
-  };
-
-  const isSuperAdmin = user?.role?.nombre_role === 'superadmin';
-
-  const canShowMenu = (key) => {
-    if (!key) return true;
-    if (isSuperAdmin) return true;
-    // Si no hay visibilidad definida, ocultar por defecto para empleados
-    if (!visibility) return false;
-    const value = normalizeVisibility(visibility[key]);
-    // Si no viene marcado, tratamos como falso
-    if (value === null) return false;
-    return value;
-  };
-
-  const visibleNavItems = navItems.filter(item => canShowMenu(item.permission));
+  const visibleNavItems = navItems;
   const buildPath = (path, keepSearch) => (keepSearch && navSearch ? `${path}${navSearch}` : path);
 
   return (
@@ -140,32 +107,18 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           <div className="nav-group mt-auto">
              <span className="nav-group-title">{!collapsed && 'SISTEMA'}</span>
             <ul>
-              {/* SecciÃ³n AdministraciÃ³n (Solo SuperAdmin) */}
-              {user?.role?.nombre_role === 'superadmin' && (
-                <>
-                  <li>
-                    <NavLink 
-                      to="/companies" 
-                      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <span className="nav-icon"><Building size={20} /></span>
-                      {!collapsed && <span className="nav-label">Empresas</span>}
-                    </NavLink>
-                  </li>
-                   <li>
-                    <NavLink 
-                      to="/admins" 
-                      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <span className="nav-icon"><Shield size={20} /></span>
-                      {!collapsed && <span className="nav-label">Administradores</span>}
-                    </NavLink>
-                  </li>
-                </>
-              )}
-
+              {user?.is_superadmin && superAdminItems.map((item) => (
+                <li key={item.path}>
+                  <NavLink 
+                    to={item.path} 
+                    className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    {!collapsed && <span className="nav-label">{item.label}</span>}
+                  </NavLink>
+                </li>
+              ))}
               {bottomItems.map((item) => (
                 <li key={item.path}>
                   <NavLink 
@@ -195,9 +148,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
               <p className="user-role">
                 {storedSelection.companyName || 'Sin empresa'} · {storedSelection.clinicName || 'Sin clínica'}
               </p>
-              <p className="user-role">
-                {user.role?.nombre_role ? user.role.nombre_role : 'Rol no definido'}
-              </p>
+              <p className="user-role">{user?.is_superadmin ? 'superadmin' : 'usuario'}</p>
             </div>
           </div>
         )}

@@ -48,18 +48,13 @@ class AuthController extends Controller
             $apellido = '.'; // Apellido placeholder
         }
 
-        // Obtener rol por defecto (usuario)
-        $defaultRole = DB::table('Roles')->where('nombre_role', 'usuario')->first();
-        $roleId = $defaultRole ? $defaultRole->id_role : 1;
-
         try {
             // Insert user using raw SQL to avoid Eloquent issues
-            DB::statement("INSERT INTO \"Usuarios\" (nombre, apellido, email, password, id_role, estado, fecha_creacion, updated_at) VALUES (?, ?, ?, ?, ?, 'activo', NOW(), NOW())", [
+            DB::statement("INSERT INTO \"Usuarios\" (nombre, apellido, email, password, estado, fecha_creacion, updated_at) VALUES (?, ?, ?, ?, 'activo', NOW(), NOW())", [
                 $nombre,
                 $apellido,
                 $request->get('email'),
-                Hash::make($request->get('password')),
-                $roleId
+                Hash::make($request->get('password'))
             ]);
 
             // Get created user for token generation
@@ -81,7 +76,7 @@ class AuthController extends Controller
                     'nombre' => $user->nombre,
                     'apellido' => $user->apellido,
                     'email' => $user->email,
-                    'role_id' => $user->id_role
+                    'role_id' => null
                 ],
                 'access_token' => $token,
                 'token_type' => 'bearer',
@@ -119,11 +114,26 @@ class AuthController extends Controller
 
             $credentials = request(['email', 'password']);
 
-            if (!$token = auth('api')->attempt($credentials)) {
+            // Buscar usuario explícitamente para controlar estados y superadmin
+            $user = User::where('email', $credentials['email'] ?? null)->first();
+
+            if (!$user || !Hash::check($credentials['password'] ?? '', $user->password)) {
                 Log::warning('Login failed - invalid credentials');
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
+            // Si estuvo soft-deleted, impedir login
+            if (method_exists($user, 'trashed') && $user->trashed()) {
+                return response()->json(['error' => 'Cuenta desactivada'], 403);
+            }
+
+            // Forzar flag de superadmin si es el usuario principal por email
+            if ($user->email === 'admin@dentalmate.com' && !$user->is_superadmin) {
+                $user->is_superadmin = true;
+                $user->save();
+            }
+
+            $token = auth('api')->login($user);
             Log::info('Login success, returning token');
             return $this->respondWithToken($token);
         } catch (\Throwable $e) {
@@ -185,10 +195,7 @@ class AuthController extends Controller
             return null;
         }
 
-        $relations = ['role'];
-        if (Schema::hasTable('Usuarios_Clinicas') && Schema::hasColumn('Usuarios_Clinicas', 'menu_citas')) {
-            $relations[] = 'clinics:id_clinica';
-        }
+        $relations = ['clinics:id_clinica,id_empresa,nombre'];
 
         return $user->load($relations);
     }

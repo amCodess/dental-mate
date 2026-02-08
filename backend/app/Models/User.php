@@ -34,7 +34,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'estado',
-        'id_role',
+        'is_superadmin',
     ];
 
     /**
@@ -58,7 +58,8 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'estado' => 'string',
-        'deleted' => 'boolean'
+        'deleted' => 'boolean',
+        'is_superadmin' => 'boolean',
     ];
 
     /**
@@ -79,8 +80,8 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            'role' => $this->id_role,
-            'email' => $this->email
+            'email' => $this->email,
+            'is_superadmin' => (bool) $this->is_superadmin,
         ];
     }
 
@@ -95,30 +96,12 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
-     * Relation with Role
-     */
-    public function role()
-    {
-        return $this->belongsTo(Role::class, 'id_role', 'id_role');
-    }
-
-    /**
      * Relación con Clínicas (Pivot)
      */
     public function clinics()
     {
         return $this->belongsToMany(Clinic::class, 'Usuarios_Clinicas', 'id_usuario', 'id_clinica')
-            ->withPivot(
-                'rol',
-                'id_empresa',
-                'menu_citas',
-                'menu_pacientes',
-                'menu_facturacion',
-                'menu_productos',
-                'menu_proveedores',
-                'menu_tratamientos',
-                'menu_usuarios'
-            );
+            ->withPivot('id_empresa');
     }
 
     /**
@@ -126,8 +109,8 @@ class User extends Authenticatable implements JWTSubject
      */
     public function companies()
     {
-        return $this->belongsToMany(Company::class, 'Usuarios_Empresas', 'id_usuario', 'id_empresa')
-            ->withPivot('rol');
+        // Pivot sin columnas extra: evitamos withPivot() vacío que lanzaba ArgumentCountError
+        return $this->belongsToMany(Company::class, 'Usuarios_Empresas', 'id_usuario', 'id_empresa');
     }
 
     /**

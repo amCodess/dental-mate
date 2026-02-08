@@ -60,20 +60,6 @@ class UserSeeder extends Seeder
             $clinicaId = $clinica->id_clinica;
         }
 
-        // Obtener el id del rol superadmin
-        $role = DB::table('Roles')->where('nombre_role', 'superadmin')->first();
-
-        if (!$role) {
-            $this->command->error('El rol superadmin no existe. Ejecuta RoleSeeder primero.');
-            return;
-        }
-
-        $roleId = $role->id_role; // Fixed: Matches Roles table PK
-        // WAIT: In recent migration 000000, I used $table->id(); for roles. So the column is 'id'.
-        // In previous seeder it used id_role. I need to be careful.
-        // My migration 000000: Schema::create('roles'... $table->id()...) -> creates 'id'.
-        // So here usage of $role->id is correct.
-
         // Crear usuario superadmin
         $passwordHash = Hash::make('Admin123!');
 
@@ -83,28 +69,26 @@ class UserSeeder extends Seeder
             'email' => 'admin@dentalmate.com',
             'password' => $passwordHash,
             'estado' => 'activo',
-            'id_role' => $roleId,
+            'is_superadmin' => true,
 
             'fecha_creacion' => now(),
             'updated_at' => now(),
             'deleted' => false
         ]);
 
-        // Asociar usuario a empresa con rol owner
+        // Asociar usuario a empresa
         DB::table('Usuarios_Empresas')->insert([
             'id_usuario' => $userId,
             'id_empresa' => $empresaId,
-            'rol' => 'owner',
             'fecha_creacion' => now(),
             'updated_at' => now()
         ]);
 
-        // Asociar usuario a clínica con rol owner
+        // Asociar usuario a clínica
         DB::table('Usuarios_Clinicas')->insert([
             'id_empresa' => $empresaId,
             'id_usuario' => $userId,
             'id_clinica' => $clinicaId,
-            'rol' => 'owner',
             'fecha_creacion' => now(),
             'updated_at' => now()
         ]);

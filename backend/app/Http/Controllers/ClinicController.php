@@ -16,7 +16,28 @@ class ClinicController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = auth('api')->user();
-        $isSuperAdmin = $user && $user->role && $user->role->nombre_role === 'superadmin';
+        $isSuperAdmin = $user && ($user->is_superadmin === true || $user->email === 'admin@dentalmate.com');
+
+        // Superadmin ve todas las clínicas sin restricciones
+        if ($isSuperAdmin) {
+            $allClinics = Clinic::query()
+                ->select([
+                    'Clinicas.id_clinica',
+                    'Clinicas.id_empresa',
+                    'Clinicas.nombre',
+                    'Clinicas.telefono',
+                    'Clinicas.email_recordatorios',
+                    'Clinicas.telefono_recordatorios',
+                    'Clinicas.nombre_remitente',
+                    'Clinicas.direccion',
+                    'Clinicas.fecha_creacion'
+                ])
+                ->with(['company:id_empresa,nombre'])
+                ->where('Clinicas.deleted', false)
+                ->get();
+
+            return response()->json($allClinics);
+        }
 
         $query = Clinic::query()
             ->select([
@@ -38,9 +59,6 @@ class ClinicController extends Controller
                 $join->on('Clinicas.id_clinica', '=', 'uc.id_clinica')
                     ->where('uc.id_usuario', '=', $user->id_usuario);
             });
-            $query->addSelect([
-                'uc.rol as user_role'
-            ]);
         }
         
         if ($request->has('company_id')) {

@@ -15,13 +15,12 @@ class CheckSuperAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Verifica si existe usuario autenticado y si tiene rol
-        if (!$request->user() || !$request->user()->role) {
-            return response()->json(['message' => 'No autorizado. Rol no encontrado.'], 403);
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado.'], 401);
         }
 
-        // Verifica estrictamente el nombre del rol
-        if ($request->user()->role->nombre_role !== 'superadmin') {
+        if (!$user->is_superadmin) {
             return response()->json(['message' => 'Acceso denegado. Se requieren permisos de Super Admin.'], 403);
         }
 

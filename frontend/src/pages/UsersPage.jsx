@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
 import Pagination from '../components/ui/Pagination';
@@ -21,36 +21,8 @@ const userSchema = yup.object().shape({
             return !!value && value.length >= 6;
         }
         return !value || value.length >= 6;
-    }),
-    id_role: yup.number().required('El rol es requerido'),
-    menu_citas: yup.boolean(),
-    menu_pacientes: yup.boolean(),
-    menu_facturacion: yup.boolean(),
-    menu_productos: yup.boolean(),
-    menu_proveedores: yup.boolean(),
-    menu_tratamientos: yup.boolean(),
-    menu_usuarios: yup.boolean()
+    })
 });
-
-const defaultMenuVisibility = {
-    menu_citas: true,
-    menu_pacientes: true,
-    menu_facturacion: true,
-    menu_productos: true,
-    menu_proveedores: true,
-    menu_tratamientos: true,
-    menu_usuarios: true
-};
-
-const menuOptions = [
-    { key: 'menu_citas', label: 'Citas' },
-    { key: 'menu_pacientes', label: 'Pacientes' },
-    { key: 'menu_facturacion', label: 'Facturación' },
-    { key: 'menu_productos', label: 'Productos' },
-    { key: 'menu_proveedores', label: 'Proveedores' },
-    { key: 'menu_tratamientos', label: 'Tratamientos' },
-    { key: 'menu_usuarios', label: 'Usuarios' }
-];
 
 const UsersPage = () => {
     const location = useLocation();
@@ -61,21 +33,17 @@ const UsersPage = () => {
     const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [users, setUsers] = useState([]);
-    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
+    const [errorDialog, setErrorDialog] = useState({ open: false, title: '', message: '' });
     const [editingUser, setEditingUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebouncedValue(searchTerm);
 
-    const { register, handleSubmit, reset, setValue, formState: { errors }, watch } = useForm({
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
         resolver: yupResolver(userSchema),
-        defaultValues: { mode: 'create', id_role: '', id_empresa: companyId, ...defaultMenuVisibility }
+        defaultValues: { mode: 'create', id_empresa: companyId }
     });
-
-    const selectedRoleId = watch('id_role');
-    const selectedRole = roles.find(r => String(r.id_role) === String(selectedRoleId));
-    const isAdminRole = (selectedRole?._name === 'admin');
 
     // Estado para diálogo de confirmación
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -86,43 +54,13 @@ const UsersPage = () => {
             setLoading(true);
             const response = await api.get('/users', { params: { search: term, clinic_id: clinicId || undefined, company_id: companyId || undefined, include_deleted: true } });
             const filtered = (response.data.data || [])
-                .filter(u => u.role?.nombre_role !== 'superadmin')
+                .filter(u => !u.is_superadmin)
                 .filter(u => !u.deleted_at);
             setUsers(filtered);
         } catch (error) {
             console.error('Error fetching users:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchRoles = async () => {
-        try {
-            const response = await api.get('/roles');
-            const rawRoles = Array.isArray(response.data)
-                ? response.data
-                : (response.data?.data || []);
-
-            const normalizedRoles = rawRoles.map(role => {
-                const roleName = role.nombre_role || role.nombre || '';
-                return {
-                    ...role,
-                    nombre_role: role.nombre_role || role.nombre,
-                    _name: roleName.toLowerCase().trim()
-                };
-            });
-
-            const filteredRoles = normalizedRoles.filter(role => role._name && role._name !== 'superadmin');
-            const rolesToUse = filteredRoles.length > 0 ? filteredRoles : normalizedRoles;
-
-            setRoles(rolesToUse);
-
-            if (!editingUser && rolesToUse.length > 0) {
-                const admin = rolesToUse.find(r => r._name === 'admin');
-                setValue('id_role', admin ? admin.id_role : rolesToUse[0].id_role);
-            }
-        } catch (error) {
-            console.error('Error fetching roles:', error);
         }
     };
 
@@ -135,35 +73,14 @@ const UsersPage = () => {
     useEffect(() => { setPage(1); }, [users]);
     const paginatedUsers = users.slice((page - 1) * pageSize, page * pageSize);
 
-    useEffect(() => {
-        fetchRoles();
-    }, []);
-
-    const resolveMenuValue = (value, fallback) => {
-        if (value === undefined || value === null) return fallback;
-        if (typeof value === 'boolean') return value;
-        if (typeof value === 'number') return value === 1;
-        if (typeof value === 'string') {
-            const normalized = value.toLowerCase();
-            if (['true', 't', '1', 'yes'].includes(normalized)) return true;
-            if (['false', 'f', '0', 'no'].includes(normalized)) return false;
-        }
-        return fallback;
-    };
-
-    const buildMenuValues = (user) => {
-        return Object.keys(defaultMenuVisibility).reduce((acc, key) => {
-            acc[key] = resolveMenuValue(user?.[key], defaultMenuVisibility[key]);
-            return acc;
-        }, {});
-    };
-
     const handleOpenCreate = () => {
         setEditingUser(null);
-        const adminRole = roles.find(r => r._name === 'admin')?.id_role;
-        const firstRoleId = adminRole || roles[0]?.id_role || '';
-        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId, id_empresa: companyId, ...defaultMenuVisibility });
+        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_empresa: companyId });
         setModalOpen(true);
+    };
+
+    const showErrorDialog = (title, message) => {
+        setErrorDialog({ open: true, title, message });
     };
 
     const handleOpenEdit = (user) => {
@@ -173,10 +90,8 @@ const UsersPage = () => {
             nombre: user.nombre,
             apellido: user.apellido,
             email: user.email,
-            id_role: user.id_role,
             password: '',
-            id_empresa: companyId,
-            ...buildMenuValues(user)
+            id_empresa: companyId
         });
         setModalOpen(true);
     };
@@ -208,13 +123,6 @@ const UsersPage = () => {
     const onSubmit = async (data) => {
         try {
             const payload = { ...data };
-            const fallbackRole = roles[0]?.id_role;
-            payload.id_role = Number(payload.id_role || fallbackRole || 0);
-            const roleObj = roles.find(r => r.id_role === payload.id_role);
-            const isAdminSubmit = roleObj?._name === 'admin';
-            if (isAdminSubmit) {
-                Object.assign(payload, defaultMenuVisibility);
-            }
             if (!payload.password) delete payload.password;
             delete payload.mode;
             if (clinicId) {
@@ -235,18 +143,20 @@ const UsersPage = () => {
             const messageText = (serverMsg || '').toLowerCase();
             const duplicateEmail = messageText.includes('email') || messageText.includes('correo') || error.response?.status === 409;
             if (!editingUser && duplicateEmail) {
+                showErrorDialog(
+                    'Correo ya registrado',
+                    'Ya existe un usuario con este correo electrónico en la clínica o empresa seleccionada. Usa otro correo o reactiva al usuario existente.'
+                );
                 try {
                     const lookup = await api.get('/users', { params: { search: data.email, include_deleted: true, clinic_id: clinicId || undefined, company_id: companyId || undefined } });
                     const match = (lookup.data.data || []).find(u => u.email === data.email && u.deleted_at);
                     if (match) {
-                        const payload = {
+                            const payload = {
                             ...data,
-                            id_role: Number(data.id_role),
                             id_clinica: clinicId || undefined,
                             id_empresa: companyId,
                             estado: 'activo',
-                            deleted_at: null,
-                            ...defaultMenuVisibility
+                            deleted_at: null
                         };
                         if (!payload.password) delete payload.password;
                         await api.put(`/users/${match.id_usuario}`, payload);
@@ -258,19 +168,7 @@ const UsersPage = () => {
                     console.error('Error reactivando usuario eliminado:', reactivateError);
                 }
             }
-            alert('Error al guardar usuario: ' + (serverMsg || 'Error desconocido'));
-        }
-    };
-
-    const getRoleBadge = (user) => {
-        const roleFromList = roles.find(r => r.id_role === user.id_role);
-        const roleName = user?.role?.nombre_role || roleFromList?.nombre_role || 'desconocido';
-
-        switch (roleName) {
-            case 'superadmin': return <Badge variant="primary" dot>{roleName}</Badge>;
-            case 'admin': return <Badge variant="info" dot>{roleName}</Badge>;
-            case 'empleado': return <Badge variant="warning" dot>{roleName}</Badge>;
-            default: return <Badge variant="neutral">{roleName}</Badge>;
+            showErrorDialog('No se pudo guardar', serverMsg || 'Error desconocido al guardar el usuario.');
         }
     };
 
@@ -283,7 +181,7 @@ const UsersPage = () => {
                     </Button>
                     <div className="header-titles">
                         <h2 className="page-heading">Gestión de usuarios</h2>
-                        <p className="page-subheading">Administra los accesos y roles del sistema</p>
+                        <p className="page-subheading">Administra las cuentas de tu clínica</p>
                     </div>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
@@ -316,7 +214,6 @@ const UsersPage = () => {
                                 <tr>
                                     <th>Usuario</th>
                                     <th>Email</th>
-                                    <th>Rol</th>
                                     <th>Estado</th>
                                     <th className="text-center" style={{ width: '150px', minWidth: '150px' }}>Acciones</th>
                                 </tr>
@@ -336,7 +233,6 @@ const UsersPage = () => {
                                             </div>
                                         </td>
                                         <td className="text-gray-600">{user.email}</td>
-                                        <td>{getRoleBadge(user)}</td>
                                         <td>
                                             <Badge variant={user.estado === 'activo' ? 'success' : 'neutral'}>
                                                 {user.estado}
@@ -360,7 +256,7 @@ const UsersPage = () => {
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="5" className="empty-cell">No se encontraron usuarios</td>
+                                        <td colSpan="4" className="empty-cell">No se encontraron usuarios</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -412,43 +308,6 @@ const UsersPage = () => {
                         {...register('email')}
                     />
 
-                    <div className="input-container full-width">
-                        <label className="input-label">Rol de usuario</label>
-                        <div className="select-wrapper">
-                            <Shield size={16} className="select-icon" />
-                        <select className="select-field" {...register('id_role')}>
-                                <option value="" disabled>Selecciona un rol</option>
-                                {roles.map(role => (
-                                    <option key={role.id_role} value={role.id_role}>
-                                        {role.nombre_role || role.nombre || 'rol'}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
-                    </div>
-
-                    {clinicId && (
-                        <div className="visibility-section">
-                            <div className="visibility-header">
-                                <h4 className="visibility-title">Visibilidad del menú principal</h4>
-                                <p className="visibility-subtitle">Selecciona qué módulos verá en el sidebar.</p>
-                            </div>
-                            <div className="visibility-grid">
-                                {menuOptions.map(option => (
-                                    <label key={option.key} className="visibility-option">
-                                        <input
-                                            type="checkbox"
-                                            disabled={isAdminRole}
-                                            {...register(option.key)}
-                                        />
-                                        <span>{option.label}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     <Input
                         label={editingUser ? "Nueva contraseña (opcional)" : "Contraseña"}
                         type="password"
@@ -471,6 +330,22 @@ const UsersPage = () => {
                 confirmText="Eliminar"
                 variant="danger"
             />
+
+            <Modal
+                isOpen={errorDialog.open}
+                onClose={() => setErrorDialog({ open: false, title: '', message: '' })}
+                title={errorDialog.title || 'Aviso'}
+                footer={
+                    <Button variant="primary" onClick={() => setErrorDialog({ open: false, title: '', message: '' })}>
+                        Entendido
+                    </Button>
+                }
+                size="sm"
+            >
+                <p style={{ margin: 0, color: '#4B5563', lineHeight: 1.5 }}>
+                    {errorDialog.message}
+                </p>
+            </Modal>
         </div>
     );
 };

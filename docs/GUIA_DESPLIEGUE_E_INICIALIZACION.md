@@ -50,12 +50,8 @@ Usa estos pasos si quieres que TODO se inicialice desde `backend/database/init_d
 2.  **La clave se genera automaticamente** en cada arranque del backend.
     - Si quieres desactivar esto, pon `APP_AUTO_KEYGENERATE=false` en `docker-compose.yml`.
 3.  La base de datos se inicializa automáticamente en el primer arranque del contenedor `db` (se ejecuta `backend/database/init_database.sql` cuando el volumen esta vacio).
-4.  **No es necesario ejecutar migraciones** para un entorno limpio. Todo el schema (tablas, enums, indices, datos base) se crea desde `init_database.sql`.
-    - Por defecto el backend NO ejecuta migraciones automaticamente (APP_RUN_MIGRATIONS=false).
-    - Si en algun momento quieres ejecutar migraciones manualmente:
-    ```bash
-    docker compose exec backend php artisan migrate --force
-    ```
+4.  **No uses migraciones en este proyecto.** Todo el esquema (tablas, enums, índices, datos base) se crea desde `init_database.sql`, incluyendo la limpieza de columnas heredadas de roles y la bandera `is_superadmin`.
+    - El backend ya viene con `APP_RUN_MIGRATIONS=false` y no requiere cambios.
 5.  Credenciales de acceso por defecto (seed inicial):
     - Usuario: `admin@dentalmate.com`
     - Contraseña: `Admin123!`
@@ -84,17 +80,10 @@ El proyecto incluye **Adminer** para gestionar visualmente la base de datos sin 
     *   **Contraseña:** `secret`
     *   **Base de datos:** `dental_mate`
 
-Esto te permitirá ver tablas como `Usuarios`, `cache`, `Roles`, etc.
+Esto te permitirá ver tablas como `Usuarios`, `cache`, `Empresas`, `Clinicas`, etc. (la tabla `Roles` ya no se usa).
 
 ### 2. Comandos útiles (Docker)
-Para habilitar migraciones al arrancar el backend:
-```bash
-# 1) Edita docker-compose.yml
-APP_RUN_MIGRATIONS=true
-
-# 2) Reinicia el backend
-docker compose restart backend
-```
+No habilites migraciones: el esquema completo se aplica desde `backend/database/init_database.sql` cada vez que el volumen de la base se crea.
 
 Para desactivar la generacion automatica de `APP_KEY`:
 ```bash
@@ -128,7 +117,8 @@ cd backend
 composer install
 php artisan serve
 ```
-> Nota: no es necesario ejecutar `php artisan migrate` si cargaste `init_database.sql`.
+> Nota: no es necesario ejecutar `php artisan migrate` si cargaste `init_database.sql`.  
+> Si vienes de una versión anterior, vuelve a cargar `backend/database/init_database.sql` sobre una base vacía para limpiar columnas de roles y marcar el `is_superadmin`.
 
 ### 2.3 Frontend
 ```bash
@@ -171,4 +161,3 @@ Detén servicios locales (XAMPP, Postgres) que usen los puertos 8000, 5173 o 543
 ```bash
 docker compose exec backend chown -R www-data:www-data /var/www/html/storage
 ```
-

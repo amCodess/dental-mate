@@ -50,9 +50,6 @@ const LoginPage = () => {
                 {/* Left Side - Branding */}
                 <div className="login-brand-section">
                     <div className="brand-content">
-                        <div className="brand-logo-wrapper">
-                            <span className="brand-logo-text">DM</span>
-                        </div>
                         <h1 className="brand-title">DentalMate</h1>
                         <p className="brand-subtitle">
                             Gestión integral para clínicas dentales modernas.

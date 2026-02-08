@@ -8,7 +8,6 @@ import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 
-// Esquema para superadministradores
 const adminSchema = yup.object().shape({
     nombre: yup.string().required('El nombre es requerido'),
     apellido: yup.string().required('El apellido es requerido'),
@@ -19,12 +18,10 @@ const adminSchema = yup.object().shape({
         }
         return !value || value.length >= 6;
     }),
-    id_role: yup.number().required('El rol es requerido'),
 });
 
 const AdminsPage = () => {
     const [users, setUsers] = useState([]);
-    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -35,17 +32,16 @@ const AdminsPage = () => {
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(adminSchema),
-        defaultValues: { mode: 'create', id_role: '' }
+        defaultValues: { mode: 'create' }
     });
 
     const fetchAdmins = async (term) => {
         try {
             setLoading(true);
-            // Solo superadmins (rol de sistema)
             const response = await api.get('/users', {
                 params: {
                     search: term,
-                    role_in: 'superadmin'
+                    superadmin: true
                 }
             });
             setUsers(response.data.data || []);
@@ -56,45 +52,13 @@ const AdminsPage = () => {
         }
     };
 
-    const fetchRoles = async () => {
-        try {
-            const response = await api.get('/roles');
-            const rawRoles = Array.isArray(response.data)
-                ? response.data
-                : (response.data?.data || []);
-
-            const normalizedRoles = rawRoles.map(role => {
-                const roleName = role.nombre_role || role.nombre || '';
-                return {
-                    ...role,
-                    nombre_role: role.nombre_role || role.nombre,
-                    _name: roleName.toLowerCase().trim()
-                };
-            });
-
-            const superRoles = normalizedRoles.filter(role => ['superadmin'].includes(role._name));
-            setRoles(superRoles);
-
-            if (!editingUser && superRoles.length > 0) {
-                setValue('id_role', superRoles[0].id_role);
-            }
-        } catch (error) {
-            console.error('Error fetching roles:', error);
-        }
-    };
-
     useEffect(() => {
         fetchAdmins(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    useEffect(() => {
-        fetchRoles();
-    }, []);
-
     const handleOpenCreate = () => {
         setEditingUser(null);
-        const firstRoleId = roles[0]?.id_role || '';
-        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId });
+        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '' });
         setModalOpen(true);
     };
 
@@ -104,7 +68,6 @@ const AdminsPage = () => {
         setValue('nombre', user.nombre);
         setValue('apellido', user.apellido);
         setValue('email', user.email);
-        setValue('id_role', user.id_role);
         setValue('password', '');
         setModalOpen(true);
     };
@@ -131,12 +94,12 @@ const AdminsPage = () => {
     const onSubmit = async (data) => {
         try {
             if (editingUser) {
-                const payload = { ...data };
+                const payload = { ...data, is_superadmin: true };
                 if (!payload.password) delete payload.password;
                 delete payload.mode;
                 await api.put(`/users/${editingUser.id_usuario}`, payload);
             } else {
-                await api.post('/users', data);
+                await api.post('/users', { ...data, is_superadmin: true });
             }
             setModalOpen(false);
             fetchAdmins();
@@ -203,8 +166,8 @@ const AdminsPage = () => {
                                         </td>
                                         <td className="text-gray-600">{user.email}</td>
                                         <td>
-                                            <Badge variant="primary" dot>
-                                                {user.role?.nombre_role || 'superadmin'}
+                                            <Badge variant={user.is_superadmin ? 'primary' : 'neutral'} dot>
+                                                {user.is_superadmin ? 'superadmin' : 'usuario'}
                                             </Badge>
                                         </td>
                                         <td>
@@ -253,21 +216,6 @@ const AdminsPage = () => {
                         <Input label="Apellido" placeholder="Ej. Garcia" fullWidth error={errors.apellido?.message} {...register('apellido')} />
                     </div>
                     <Input label="Email" type="email" placeholder="superadmin@sistema.com" fullWidth error={errors.email?.message} {...register('email')} />
-
-                    <div className="input-container full-width">
-                        <label className="input-label">Rol de sistema (solo Super Admin)</label>
-                        <div className="select-wrapper">
-                            <Shield size={16} className="select-icon" />
-                            <select className="select-field" {...register('id_role')} disabled>
-                                {roles.map(role => (
-                                    <option key={role.id_role} value={role.id_role}>
-                                        {role.nombre_role}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
-                    </div>
 
                     <Input
                         label={editingUser ? 'Nueva contrasena (opcional)' : 'Contrasena'}

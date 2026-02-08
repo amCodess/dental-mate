@@ -12,6 +12,10 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('Roles')) {
+            $this->command?->warn('Roles table no longer exists, skipping RoleSeeder.');
+            return;
+        }
         $rolesBase = [
             ['nombre_role' => 'superadmin', 'descripcion' => 'Superadministrador del sistema con acceso total', 'tipo' => 'sistema'],
             ['nombre_role' => 'admin', 'descripcion' => 'Administrador del sistema', 'tipo' => 'empleado'],

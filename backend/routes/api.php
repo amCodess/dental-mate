@@ -27,7 +27,6 @@ Route::prefix('v1')->group(function () {
 
         // Resources
         Route::apiResource('users', \App\Http\Controllers\UserController::class);
-        Route::get('roles', [\App\Http\Controllers\RoleController::class, 'index']);
 
         Route::apiResource('patients', PatientController::class);
         Route::apiResource('appointments', AppointmentController::class);
