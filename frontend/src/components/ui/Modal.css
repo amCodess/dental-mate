@@ -12,7 +12,6 @@
     position: absolute;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.4);
-    /* backdrop-filter: blur(4px); DISABLE FOR PERFORMANCE */
     animation: fadeIn 0.15s ease-out;
 }
 
@@ -29,7 +28,6 @@
     font-family: var(--font-primary);
 }
 
-/* Sizes */
 .modal-sm {
     max-width: 400px;
 }

@@ -8,17 +8,13 @@ use Illuminate\Support\Facades\Validator;
 
 class TreatmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** Lista todos los tratamientos */
     public function index()
     {
         return response()->json(Treatment::all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Crea un tratamiento nuevo */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -36,9 +32,7 @@ class TreatmentController extends Controller
         return response()->json($treatment, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    /** Muestra un tratamiento por id */
     public function show($id)
     {
         $treatment = Treatment::find($id);
@@ -47,9 +41,7 @@ class TreatmentController extends Controller
         return response()->json($treatment);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    /** Actualiza un tratamiento */
     public function update(Request $request, $id)
     {
         $treatment = Treatment::find($id);
@@ -70,9 +62,7 @@ class TreatmentController extends Controller
         return response()->json($treatment);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /** Borra un tratamiento */
     public function destroy($id)
     {
         $treatment = Treatment::find($id);

@@ -12,12 +12,10 @@ use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
-    /**
-     * Create a new AuthController instance.
-     */
+ 
     public function __construct()
     {
-        // middleware for auth:api is handled in routes generally
+        
     }
 
     /**
@@ -49,7 +47,7 @@ class AuthController extends Controller
         }
 
         try {
-            // Insert user using raw SQL to avoid Eloquent issues
+            
             DB::statement("INSERT INTO \"Usuarios\" (nombre, apellido, email, password, estado, fecha_creacion, updated_at) VALUES (?, ?, ?, ?, 'activo', NOW(), NOW())", [
                 $nombre,
                 $apellido,
@@ -57,7 +55,7 @@ class AuthController extends Controller
                 Hash::make($request->get('password'))
             ]);
 
-            // Get created user for token generation
+            
             $user = User::where('email', $request->get('email'))->first();
 
             if (!$user) {
@@ -66,7 +64,7 @@ class AuthController extends Controller
 
             Log::info('User created successfully', ['id' => $user->id_usuario]);
 
-            // Generate JWT token for auto-login
+            // Generar token JWT
             $token = auth('api')->login($user);
 
             return response()->json([
@@ -76,7 +74,7 @@ class AuthController extends Controller
                     'nombre' => $user->nombre,
                     'apellido' => $user->apellido,
                     'email' => $user->email,
-                    'role_id' => null
+                    'is_superadmin' => (bool) $user->is_superadmin
                 ],
                 'access_token' => $token,
                 'token_type' => 'bearer',
@@ -101,9 +99,7 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Get a JWT via given credentials.
-     */
+
     public function login()
     {
         try {
@@ -149,18 +145,14 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Get the authenticated User.
-     */
+
     public function me()
     {
         $user = auth('api')->user();
         return response()->json($this->loadUserRelations($user));
     }
 
-    /**
-     * Log the user out (Invalidate the token).
-     */
+
     public function logout()
     {
         auth('api')->logout();
@@ -168,17 +160,13 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully logged out']);
     }
 
-    /**
-     * Refresh a token.
-     */
+
     public function refresh()
     {
         return $this->respondWithToken(auth('api')->refresh());
     }
 
-    /**
-     * Get the token array structure.
-     */
+
     protected function respondWithToken($token)
     {
         return response()->json([

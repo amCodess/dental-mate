@@ -13,18 +13,18 @@ class Patient extends Model
     protected $table = 'Pacientes';
     protected $primaryKey = 'id_paciente';
     
-    // Timestamp columns personalizados para coincidir con la BD
+    // Fechas con nombres de la BD
     const CREATED_AT = 'fecha_creacion';
     const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';  // Para SoftDeletes
+    const DELETED_AT = 'deleted_at';  // SoftDeletes
 
     protected $fillable = [
         'id_empresa',
         'id_clinica',
-        'id_usuario', // Opcional ahora
-        'nombre',     // Nuevo
-        'apellido',   // Nuevo
-        'email',      // Nuevo (fix error create)
+        'id_usuario', // se puede dejar vacío
+        'nombre',     // nombre del paciente
+        'apellido',   // apellido del paciente
+        'email',      // correo del paciente
         'fecha_nacimiento',
         'telefono',
         'direccion',
@@ -32,7 +32,7 @@ class Patient extends Model
         'deleted'
     ];
     
-    // Override delete para satisfacer constraint de BD (deleted=true AND deleted_at not null)
+    // Borrado suave: marca deleted y fecha
     public function delete()
     {
         $this->deleted = true;

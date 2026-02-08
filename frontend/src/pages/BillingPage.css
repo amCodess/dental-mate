@@ -107,15 +107,10 @@
     width: 100%;
 }
 
-/* Override table width to fix spacing */
+
 .billing-page .data-table {
     width: auto;
-    min-width: 100%; /* Keep 100% to fill card but handle columns better? No user wants LESS space. */
-    /* Actually, user wants LESS space. If min-width is 100%, it stretches. */
-    /* Let's try making it just width: 100% but CHANGE the column widths in JSX to be safer, 
-       OR make it width: auto to pack it.
-       The user said "move actions column more to left so it's not so separated".
-       This implies the table is too wide. */
+    min-width: 100%;
     width: auto !important; 
     margin-right: auto;
 }
@@ -123,5 +118,3 @@
     overflow-x: auto;
 }
 
-/* Ensure header background covers full width if table is small? 
-   Actually if table is small, the card background shows. That's fine. */

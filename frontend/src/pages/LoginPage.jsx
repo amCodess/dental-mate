@@ -72,7 +72,7 @@ const LoginPage = () => {
                     <div className="brand-pattern"></div>
                 </div>
 
-                {/* Right Side - Form */}
+                {}
                 <div className="login-form-section">
                     <div className="login-form-wrapper">
                         <div className="form-header">

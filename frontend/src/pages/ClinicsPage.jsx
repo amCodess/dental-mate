@@ -105,62 +105,64 @@ const ClinicsPage = () => {
                         <div className="spinner"></div> Cargando clínicas...
                     </div>
                 ) : (
-                    <div className="table-responsive">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Clínica</th>
-                                    <th>Empresa madre</th>
-                                    <th>Dirección</th>
-                                    <th>Contacto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredClinics.length > 0 ? paginatedClinics.map((clinic) => (
-                                    <tr key={clinic.id_clinica}>
-                                        <td>
-                                            <div className="flex items-center gap-3">
-                                                <div className="bg-success/10 p-2 rounded-full text-success">
-                                                    <Building size={16} />
-                                                </div>
-                                                <span className="font-medium text-gray-900">{clinic.nombre}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className="text-gray-700 font-medium">
-                                                {clinic.company?.nombre || 'Sin empresa'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <MapPin size={14} />
-                                                <span className="truncate max-w-[200px]" title={clinic.direccion}>
-                                                    {clinic.direccion}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="flex flex-col text-sm text-gray-600">
-                                                <span className="flex items-center gap-2">
-                                                    <Phone size={12} /> {clinic.telefono}
-                                                </span>
-                                                {clinic.email_recordatorios && (
-                                                    <span className="flex items-center gap-2 mt-1">
-                                                        <Mail size={12} /> {clinic.email_recordatorios}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )) : (
+                    <>
+                        <div className="table-responsive">
+                            <table className="data-table">
+                                <thead>
                                     <tr>
-                                        <td colSpan="4" className="empty-cell">No se encontraron clínicas</td>
+                                        <th>Clínica</th>
+                                        <th>Empresa madre</th>
+                                        <th>Dirección</th>
+                                        <th>Contacto</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {filteredClinics.length > 0 ? paginatedClinics.map((clinic) => (
+                                        <tr key={clinic.id_clinica}>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-success/10 p-2 rounded-full text-success">
+                                                        <Building size={16} />
+                                                    </div>
+                                                    <span className="font-medium text-gray-900">{clinic.nombre}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="text-gray-700 font-medium">
+                                                    {clinic.company?.nombre || 'Sin empresa'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="flex items-center gap-2 text-gray-600">
+                                                    <MapPin size={14} />
+                                                    <span className="truncate max-w-[200px]" title={clinic.direccion}>
+                                                        {clinic.direccion}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="flex flex-col text-sm text-gray-600">
+                                                    <span className="flex items-center gap-2">
+                                                        <Phone size={12} /> {clinic.telefono}
+                                                    </span>
+                                                    {clinic.email_recordatorios && (
+                                                        <span className="flex items-center gap-2 mt-1">
+                                                            <Mail size={12} /> {clinic.email_recordatorios}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="4" className="empty-cell">No se encontraron clínicas</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                         <Pagination page={page} total={filteredClinics.length} pageSize={pageSize} onPageChange={setPage} />
+                    </>
                 )}
             </Card>
 

@@ -96,7 +96,7 @@ const UsersPage = () => {
         setModalOpen(true);
     };
 
-    // Preparar eliminaciÃ³n
+    // Preparar eliminación
     const confirmDelete = (user) => {
         setUserToDelete(user);
         setConfirmOpen(true);
@@ -108,11 +108,11 @@ const UsersPage = () => {
 
         try {
             await api.delete(`/users/${userToDelete.id_usuario}`);
-            // Optimistic update
+            // Actualización optimista
             setUsers(users.filter(u => u.id_usuario !== userToDelete.id_usuario));
         } catch (error) {
             console.error('Error deleting user:', error);
-            // Mostrar error en toast o alert custom (por ahora alert simple pero controlado)
+            // Mostrar error en alerta sencilla
             alert('No se pudo eliminar el usuario. Puede tener registros asociados.');
         } finally {
             setConfirmOpen(false);
@@ -139,7 +139,7 @@ const UsersPage = () => {
         } catch (error) {
             console.error('Error saving user:', error);
             const serverMsg = error.response?.data?.message || error.response?.data?.error || '';
-            // Intento de reactivación si el correo ya existe eliminado
+            // Intento de reactivar si el correo ya existe eliminado
             const messageText = (serverMsg || '').toLowerCase();
             const duplicateEmail = messageText.includes('email') || messageText.includes('correo') || error.response?.status === 409;
             if (!editingUser && duplicateEmail) {

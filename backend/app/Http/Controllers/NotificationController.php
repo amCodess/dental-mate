@@ -4,20 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-// Make sure a Notification model exists - it was in SQL but haven't made a model for it yet. 
-// I should use generic DB or create a model. I'll stick to a simple Model based approach assuming User creates it later or I create it now.
-// Given previous instructions didn't explicitly ask for Notification Model generation (just controller), I will quickly make a model to be safe or use DB.
-// Let's assume I should make the model. I'll make the controller assume the model exists, and I'll create the model file too to be helpful.
 use App\Models\Notification;
 
 class NotificationController extends Controller
 {
     public function index(Request $request)
     {
-        // In a real scenario, filter by auth user
-        // $user = auth()->user();
-        // $notifications = Notification::where('id_usuario', $user->id)->get();
-        // For now just return all for MVP
+        // Aquí podríamos filtrar por usuario logueado; devolvemos todas por ahora
         $notifications = Notification::query()
             ->select([
                 'id_notificacion',

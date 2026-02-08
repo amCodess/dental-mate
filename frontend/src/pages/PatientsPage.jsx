@@ -85,7 +85,7 @@ const PatientsPage = () => {
         setValue('apellido', patient.apellido);
         setValue('email', patient.email);
         setValue('telefono', patient.telefono);
-        // Formatear fecha para input date si existe
+        // Formatear fecha para el input de fecha si existe
         if (patient.fecha_nacimiento) {
             setValue('fecha_nacimiento', patient.fecha_nacimiento.split('T')[0]);
         }
@@ -114,7 +114,7 @@ const PatientsPage = () => {
 
     const onSubmit = async (data) => {
         try {
-            // Limpieza de datos: convertir strings vacíos a null
+            // Limpia datos: strings vacíos a null
             const cleanedData = Object.fromEntries(
                 Object.entries(data).map(([key, value]) => [key, value === '' ? null : value])
             );

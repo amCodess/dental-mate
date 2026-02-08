@@ -21,7 +21,7 @@ import { Button, Input, Card, Modal, ConfirmDialog } from '../components/ui';
 import { persistSelection } from '../utils/clinicSelection';
 import './CompanyClinicDetails.css';
 
-// Esquema para clínicas (copiado/adaptado de ClinicsPage)
+// Esquema para clínicas (tomado de ClinicsPage)
 const clinicSchema = yup.object().shape({
     nombre: yup.string().required('El nombre de la clínica es requerido'),
     direccion: yup.string().required('La dirección es requerida'),
@@ -122,7 +122,7 @@ const CompanyDetailsPage = () => {
         setModalOpen(true);
     };
 
-    // Navegación a detalle de clínica deshabilitada: solo edición/eliminación desde acciones.
+    // Sin ir a detalle, solo editar o borrar
 
     const handleDeleteClick = (clinic) => {
         setConfirmDialog({ isOpen: true, clinic });

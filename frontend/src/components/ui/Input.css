@@ -66,7 +66,6 @@
   border: 1px solid var(--color-gray-200);
 }
 
-/* Icon Support */
 .input-has-icon-left .input-field {
   padding-left: var(--space-12);
 }
@@ -106,7 +105,6 @@
   right: 0;
 }
 
-/* Error State */
 .input-error .input-field {
   background-color: #fef2f2;
   border-color: var(--color-error-light);
@@ -129,7 +127,6 @@
   margin-left: var(--space-1);
 }
 
-/* Selects: alineados con la altura/estilo de los inputs */
 .select-wrapper {
   position: relative;
   display: flex;

@@ -6,18 +6,15 @@
     font-family: var(--font-primary);
     font-weight: 600;
     border-radius: var(--radius-xl);
-    /* Match inputs radius */
     transition: all var(--transition-base);
     cursor: pointer;
     border: 1px solid transparent;
-    /* default transparent border */
     position: relative;
     overflow: hidden;
     letter-spacing: 0.01em;
 }
 
 .btn::before {
-    /* Shine effect element */
     content: '';
     position: absolute;
     top: 0;
@@ -56,7 +53,6 @@
     padding: 0 var(--space-6);
     font-size: var(--text-base);
     height: 52px;
-    /* Match input height */
 }
 
 .btn-lg {
@@ -65,9 +61,6 @@
     height: 60px;
 }
 
-/* Variantes Innovadoras */
-
-/* PRIMARY: Deep gradient + Colored shadow + Inner light */
 .btn-primary {
     background: var(--gradient-primary);
     color: white;
@@ -88,7 +81,6 @@
     opacity: 1;
 }
 
-/* SECONDARY: Vibrant gradient */
 .btn-secondary {
     background: var(--gradient-secondary);
     color: white;
@@ -101,7 +93,6 @@
     box-shadow: var(--shadow-success);
 }
 
-/* GHOST: Minimalist but interactive */
 .btn-ghost {
     background: transparent;
     color: var(--color-gray-600);
@@ -112,7 +103,6 @@
     color: var(--color-primary-600);
 }
 
-/* OUTLINE: Modern border */
 .btn-outline {
     background: white;
     color: var(--color-primary-600);
@@ -126,7 +116,6 @@
     box-shadow: 0 2px 4px rgba(10, 77, 104, 0.05);
 }
 
-/* DANGER */
 .btn-danger {
     background: var(--color-error);
     color: white;
@@ -139,7 +128,6 @@
     transform: translateY(-2px);
 }
 
-/* Loading Spinner */
 .btn-spinner {
     width: 20px;
     height: 20px;

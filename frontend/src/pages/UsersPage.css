@@ -242,7 +242,6 @@
     font-family: inherit;
     font-size: var(--text-base);
     appearance: none;
-    /* simple chevron managed by browser or custom needed */
 }
 
 .select-field:focus {
@@ -251,7 +250,7 @@
     box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
-/* Loading */
+
 .loading-state {
     padding: var(--space-10);
     display: flex;
@@ -270,7 +269,7 @@
     animation: spin 0.8s linear infinite;
 }
 
-/* Menu visibility */
+
 .visibility-section {
     margin-top: var(--space-3);
     padding: var(--space-3);
@@ -330,4 +329,4 @@
     }
 }
 
-/* Override table width to auto to prevent excessive spacing */
+

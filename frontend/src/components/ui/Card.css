@@ -1,18 +1,15 @@
 .card {
   background-color: white;
   border-radius: var(--radius-xl);
-  /* Increased radius for modern look */
   overflow: hidden;
   transition: all var(--transition-base);
   font-family: var(--font-primary);
 }
 
-/* Variants */
 .card-default {
   background-color: white;
   box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
-  /* Subtle border */
 }
 
 .card-elevated {
@@ -21,7 +18,6 @@
     0 10px 15px -3px rgba(0, 0, 0, 0.05),
     0 4px 6px -2px rgba(0, 0, 0, 0.02),
     0 0 0 1px rgba(0, 0, 0, 0.02);
-  /* Crisp edge */
   border: none;
 }
 
@@ -37,7 +33,6 @@
   box-shadow: none;
 }
 
-/* Padding */
 .card-padding-none .card-content {
   padding: 0;
 }
@@ -54,7 +49,6 @@
   padding: var(--space-8);
 }
 
-/* Clickable */
 .card-clickable {
   cursor: pointer;
 }
@@ -64,7 +58,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Parts */
 .card-header {
   padding: var(--space-5) var(--space-5) var(--space-2) var(--space-5);
 }
@@ -92,7 +85,6 @@
   gap: var(--space-3);
 }
 
-/* Responsive adjustment */
 @media (max-width: 640px) {
   .card-padding-lg .card-content {
     padding: var(--space-5);

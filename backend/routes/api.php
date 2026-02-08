@@ -12,20 +12,20 @@ use App\Http\Controllers\SupplierController;
 
 Route::prefix('v1')->group(function () {
 
-    // Auth Public Routes
+    // Rutas públicas
     Route::get('test', function() { return response()->json(['status' => 'ok', 'db' => DB::connection()->getDatabaseName()]); });
     Route::post('auth/register', [AuthController::class, 'register']);
     Route::post('auth/login', [AuthController::class, 'login']);
 
-    // Protected Routes
+    // Rutes protegidos por autenticación JWT
     Route::middleware('auth:api')->group(function () {
 
-        // Auth Management
+        // Manejo de autenticación
         Route::post('auth/refresh', [AuthController::class, 'refresh']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/me', [AuthController::class, 'me']);
 
-        // Resources
+        // Recursos protegidos
         Route::apiResource('users', \App\Http\Controllers\UserController::class);
 
         Route::apiResource('patients', PatientController::class);

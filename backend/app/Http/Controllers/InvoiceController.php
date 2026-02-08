@@ -9,9 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** Lista facturas con filtros opcionales */
     public function index()
     {
         $query = Invoice::query()
@@ -35,8 +33,7 @@ class InvoiceController extends Controller
 
         if (request()->has('clinic_id')) {
             $clinic = request()->get('clinic_id');
-            // Incluimos facturas asociadas directamente a la clínica
-            // o facturas sin clínica explícita pero cuyo paciente pertenece a la clínica.
+            // Facturas de la clínica o de pacientes de esa clínica
             $query->where(function ($q) use ($clinic) {
                 $q->where('id_clinica', $clinic)
                   ->orWhereHas('patient', function ($qp) use ($clinic) {
@@ -52,9 +49,7 @@ class InvoiceController extends Controller
         return response()->json($invoices);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Crea una factura */
     public function store(Request $request)
     {
         if (!$request->filled('fecha_emision')) {
@@ -77,9 +72,7 @@ class InvoiceController extends Controller
         return response()->json($invoice, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    /** Muestra una factura por id */
     public function show($id)
     {
         $invoice = Invoice::with(['patient:id_paciente,nombre,apellido'])->find($id);
@@ -87,9 +80,7 @@ class InvoiceController extends Controller
         return response()->json($invoice);
     }
 
-    /**
-     * Generate and download PDF.
-     */
+    
     public function downloadPdf($id)
     {
         $invoice = Invoice::with('patient')->find($id);
@@ -98,15 +89,12 @@ class InvoiceController extends Controller
             return response()->json(['message' => 'Invoice not found'], 404);
         }
 
-        // Simple view for PDF. In a real app, create resources/views/invoices/pdf.blade.php
         $pdf = Pdf::loadHTML("<h1>Factura #{$invoice->id_factura}</h1><p>Paciente: {$invoice->patient->nombre}</p><p>Importe: {$invoice->importe_total}</p>");
         
         return $pdf->download("factura_{$invoice->id_factura}.pdf");
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    /** Actualiza una factura */
     public function update(Request $request, $id)
     {
         $invoice = Invoice::find($id);
@@ -116,9 +104,7 @@ class InvoiceController extends Controller
         return response()->json($invoice);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /** Borra una factura */
     public function destroy($id)
     {
         $invoice = Invoice::find($id);

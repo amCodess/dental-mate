@@ -98,7 +98,7 @@ const BillingPage = () => {
         }
     };
 
-    // Calculate simple stats from loaded invoices (client-side for MVP)
+    // Sacar stats simples de las facturas cargadas (en cliente)
     const totalRevenue = invoices.reduce((acc, curr) => acc + parseFloat(curr.importe_total), 0);
 
     const filteredInvoices = invoices.filter(inv => {

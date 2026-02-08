@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            // Validate token or just fetch profile
+            // Revisar token o pedir el perfil
             api.post('/auth/me')
                 .then(response => setUser(response.data))
                 .catch(() => {
@@ -26,16 +26,10 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const response = await api.post('/auth/login', { email, password });
-        const { access_token, user: userData } = response.data; // Adjust based on AuthController response structure
-        // If AuthController returns 'token' at root or inside. Checked AuthController:
-        // returns { access_token, token_type, ... } from respondWithToken BUT AuthController::login returns respondWithToken DIRECTLY.
-        // Wait, respondWithToken returns response()->json(...).
+        const { access_token, user: userData } = response.data; // según lo devuelva el backend
 
         localStorage.setItem('token', access_token);
-        // We might need to fetch user separately if not included in login response, 
-        // but let's assume valid token allows immediate /auth/me call or we update AuthController to return user.
-        // My AuthController implementation of login DOES NOT return user, only token struct.
-        // So I should fetch /auth/me after login.
+        // Si no viene el usuario en la respuesta, pedimos /auth/me
 
         if (userData) {
             setUser(userData);
@@ -47,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        // Optional: call API logout
+        // Se podría llamar al logout en el backend
         localStorage.removeItem('token');
         clearSelection();
         setUser(null);
@@ -55,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (name, email, password) => {
         const response = await api.post('/auth/register', { name, email, password });
-        // Backend returns { message, user, token: { access_token, token_type, expires_in } }
+        // El backend devuelve { message, user, token: { access_token, token_type, expires_in } }
         const tokenData = response.data.token || response.data;
         const access_token = tokenData.access_token || response.data.access_token;
         localStorage.setItem('token', access_token);

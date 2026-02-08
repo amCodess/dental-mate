@@ -57,7 +57,6 @@
 .patient-info {
     flex: 1;
     min-width: 0;
-    /* Truncate fix */
 }
 
 .patient-name {
@@ -160,7 +159,7 @@
     margin: 0;
 }
 
-/* Empty state */
+
 .empty-state-icon {
     width: 80px;
     height: 80px;

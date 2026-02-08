@@ -9,7 +9,7 @@ const Layout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const location = useLocation();
 
-    // Determine title based on path
+    // Decide el título según la ruta
     const getPageTitle = (pathname) => {
         switch (true) {
             case pathname === '/dashboard': return 'Dashboard';
@@ -40,7 +40,7 @@ const Layout = () => {
                 />
 
                 <main className="layout-main">
-                    <Outlet /> {/* Renders the child route element */}
+                    <Outlet /> {}
                 </main>
             </div>
         </div>

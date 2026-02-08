@@ -7,8 +7,8 @@ const Card = ({
     subtitle,
     footer,
     className = '',
-    variant = 'default', // default, elevated, outlined
-    padding = 'md', // none, sm, md, lg
+    variant = 'default', // normal, elevado, bordeado
+    padding = 'md', // sin, chico, medio, grande
     onClick,
     ...props
 }) => {

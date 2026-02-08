@@ -10,7 +10,7 @@ const Modal = ({
     title,
     children,
     footer,
-    size = 'md', // sm, md, lg, xl
+    size = 'md', // chica, media, grande, extra
     closeOnOverlayClick = true
 }) => {
     useEffect(() => {

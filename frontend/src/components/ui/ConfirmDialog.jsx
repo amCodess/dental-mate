@@ -1,5 +1,5 @@
 import React from 'react';
-// Imports corrected to avoid circular dependency
+// Importes corregidos para evitar dependencias circulares
 import Button from './Button';
 import Modal from './Modal';
 import { AlertTriangle } from 'lucide-react';

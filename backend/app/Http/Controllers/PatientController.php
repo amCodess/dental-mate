@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class PatientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** Lista pacientes con filtros opcionales */
     public function index(Request $request)
     {
         $query = Patient::query()->where('deleted', false);
@@ -53,17 +51,15 @@ class PatientController extends Controller
         return response()->json($patients);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Crea un paciente */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id_empresa' => 'nullable|integer', // Puede ser null si se asigna después o default
+            'id_empresa' => 'nullable|integer', // puede venir vacío y ponerlo después
             'id_clinica' => 'nullable|integer|exists:Clinicas,id_clinica',
             'nombre' => 'required|string|max:100',
-            'apellido' => 'required|string|max:100', // Campos requeridos
-            'id_usuario' => 'nullable|integer|exists:Usuarios,id_usuario', // Id usuario nullable
+            'apellido' => 'required|string|max:100', // obligatorio
+            'id_usuario' => 'nullable|integer|exists:Usuarios,id_usuario', // usuario opcional
             'telefono' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:150',
         ]);
@@ -72,7 +68,7 @@ class PatientController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        // Asignar id_empresa por defecto si no viene (ej: id 1 para demo)
+        // Si no viene empresa, poner la 1 por defecto
         $data = $request->all();
         if (!isset($data['id_empresa'])) {
             $data['id_empresa'] = 1; // Default
@@ -85,15 +81,13 @@ class PatientController extends Controller
             }
         }
 
-        // Asegurarse de que no incluya campos no fillable si los hubiere
+        // Crear paciente con los datos limpios
         $patient = Patient::create($data);
 
         return response()->json($patient, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    /** Muestra un paciente por id */
     public function show($id)
     {
         $patient = Patient::with('appointments')->find($id);
@@ -105,9 +99,7 @@ class PatientController extends Controller
         return response()->json($patient);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    /** Actualiza un paciente */
     public function update(Request $request, $id)
     {
         $patient = Patient::find($id);
@@ -121,9 +113,7 @@ class PatientController extends Controller
         return response()->json($patient);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /** Borra un paciente (lógico) */
     public function destroy($id)
     {
         $patient = Patient::find($id);

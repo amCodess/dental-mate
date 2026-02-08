@@ -84,7 +84,7 @@ const AppointmentsPage = () => {
                 (apt.patient ? (!clinicId || Number(apt.patient.id_clinica || apt.patient.clinic_id) === Number(clinicId)) : true)
             ).map(apt => ({
                 ...apt,
-                id: apt.id_cita ?? apt.id, // normaliza id para evitar undefined en acciones
+                id: apt.id_cita ?? apt.id, // id seguro para las acciones
                 invoice: apt.invoice || apt.factura || null,
                 pago_status: apt.pago_status ?? apt.invoice?.pago_status ?? apt.factura?.pago_status ?? null
             }));
@@ -355,7 +355,7 @@ const AppointmentsPage = () => {
         });
 
         try {
-            // Guardar cambios de la cita junto con el estado completado
+            // Guardar cita con estado completado
             await api.put(`/appointments/${aptId}`, payload);
 
             // Crear factura con los datos actualizados
@@ -367,7 +367,7 @@ const AppointmentsPage = () => {
                 overrideAmount: newPaidTotal
             });
 
-            // Refrescar citas para reflejar estado/pago
+            // Refrescar citas para ver el nuevo estado
             await fetchAppointments();
         } catch (error) {
             console.error('Error al confirmar pago:', error);
@@ -440,7 +440,7 @@ const AppointmentsPage = () => {
 
     const handleMarkPaid = async (apt) => {
         const currentForm = getValues();
-        // Reutiliza la misma lógica de submit de pago para conservar cambios de formulario
+        // Reutiliza el mismo envío de pago para no duplicar lógica
         await handleSubmitPayment(currentForm);
     };
 

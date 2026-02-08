@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CompanyController extends Controller
 {
-    /**
-     * Muestra una lista de empresas.
-     */
+    /** Lista empresas */
     public function index()
     {
         // Solo para debug o admin panel
@@ -29,10 +27,7 @@ class CompanyController extends Controller
         return response()->json($companies);
     }
 
-    /**
-     * Almacena una nueva empresa en la base de datos.
-     * Solo accesible por SuperAdmin (gestionado por ruta/middleware).
-     */
+    /** Crea una empresa (solo superadmin) */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -57,9 +52,7 @@ class CompanyController extends Controller
         ], 201);
     }
 
-    /**
-     * Muestra la empresa especificada.
-     */
+    /** Muestra una empresa por id */
     public function show(string $id)
     {
         $company = Company::find($id);

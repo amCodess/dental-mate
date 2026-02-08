@@ -3,8 +3,8 @@ import './Badge.css';
 
 const Badge = ({
     children,
-    variant = 'neutral', // success, warning, error, info, neutral, primary
-    size = 'md', // sm, md
+    variant = 'neutral', // éxito, aviso, error, info, neutro, primario
+    size = 'md', // chico, medio
     dot = false,
     className = '',
     ...props
