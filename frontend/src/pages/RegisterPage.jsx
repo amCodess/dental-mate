@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../context/AuthContext';
+import { clearSelection } from '../utils/clinicSelection';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -30,7 +31,8 @@ const RegisterPage = () => {
         setIsLoading(true);
         try {
             await registerUser(data.name, data.email, data.password);
-            navigate('/');
+            clearSelection();
+            navigate('/select-clinic');
         } catch (error) {
             if (error.response?.status === 400 && error.response?.data) {
                 const serverErrors = error.response.data;

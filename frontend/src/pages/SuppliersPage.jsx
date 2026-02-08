@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getStoredSelection } from '../utils/clinicSelection';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -19,7 +20,8 @@ const schema = yup.object().shape({
 const SuppliersPage = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const companyId = Number(searchParams.get('companyId') || 1);
+    const storedSelection = getStoredSelection();
+    const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);

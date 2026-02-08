@@ -36,7 +36,6 @@ const Layout = () => {
             <div className={`layout-content-wrapper ${collapsed ? 'collapsed-content' : ''}`}>
                 <Header
                     title={title}
-                    collapsed={collapsed}
                     setMobileOpen={setMobileOpen}
                 />
 

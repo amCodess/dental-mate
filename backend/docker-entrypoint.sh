@@ -16,34 +16,43 @@ if [ ! -f ".env" ]; then
     # If copy failed (no example), we might need to rely on the one created by the user or creating a dummy
 fi
 
-# Generate key if not set
-if grep -q "APP_KEY=" .env && [ -z "$(grep "APP_KEY=base64" .env)" ]; then
-    echo "Generating application key..."
-    php artisan key:generate
+# Generate key (forced if APP_AUTO_KEYGENERATE=true)
+if [ "${APP_AUTO_KEYGENERATE}" = "true" ]; then
+    echo "Generating application key (forced)..."
+    php artisan key:generate --force
+else
+    if grep -q "APP_KEY=" .env && [ -z "$(grep "APP_KEY=base64" .env)" ]; then
+        echo "Generating application key..."
+        php artisan key:generate
+    fi
 fi
 
-# Run migrations with retry to wait for DB readiness
-echo "Running database migrations..."
-set +e
-status=1
-attempt=1
-max_attempts=30
-while [ $attempt -le $max_attempts ]; do
-    php artisan migrate --force --no-interaction
-    status=$?
-    if [ $status -eq 0 ]; then
-        echo "Migrations complete."
-        break
-    fi
-    echo "Migration failed (attempt $attempt/$max_attempts). Retrying in 2s..."
-    sleep 2
-    attempt=$((attempt + 1))
-done
-set -e
+# Run migrations with retry to wait for DB readiness (optional)
+if [ "${APP_RUN_MIGRATIONS}" = "true" ]; then
+    echo "Running database migrations..."
+    set +e
+    status=1
+    attempt=1
+    max_attempts=30
+    while [ $attempt -le $max_attempts ]; do
+        php artisan migrate --force --no-interaction
+        status=$?
+        if [ $status -eq 0 ]; then
+            echo "Migrations complete."
+            break
+        fi
+        echo "Migration failed (attempt $attempt/$max_attempts). Retrying in 2s..."
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+    set -e
 
-if [ $status -ne 0 ]; then
-    echo "Migrations failed after $max_attempts attempts."
-    exit $status
+    if [ $status -ne 0 ]; then
+        echo "Migrations failed after $max_attempts attempts."
+        exit $status
+    fi
+else
+    echo "Skipping migrations (APP_RUN_MIGRATIONS != true)."
 fi
 
 # Optional config/route caching for faster boot

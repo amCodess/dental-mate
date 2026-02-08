@@ -15,6 +15,8 @@ services:
       - DB_DATABASE=dental_mate
       - DB_USERNAME=dental_user
       - DB_PASSWORD=secret
+      - APP_RUN_MIGRATIONS=false
+      - APP_AUTO_KEYGENERATE=true
     depends_on:
       - db
 

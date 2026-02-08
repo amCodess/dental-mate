@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
@@ -143,7 +144,8 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth('api')->user()->load('role'));
+        $user = auth('api')->user();
+        return response()->json($this->loadUserRelations($user));
     }
 
     /**
@@ -173,7 +175,21 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user()->load('role')
+            'user' => $this->loadUserRelations(auth('api')->user())
         ]);
+    }
+
+    private function loadUserRelations($user)
+    {
+        if (!$user) {
+            return null;
+        }
+
+        $relations = ['role'];
+        if (Schema::hasTable('Usuarios_Clinicas') && Schema::hasColumn('Usuarios_Clinicas', 'menu_citas')) {
+            $relations[] = 'clinics:id_clinica';
+        }
+
+        return $user->load($relations);
     }
 }

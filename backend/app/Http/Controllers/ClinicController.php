@@ -15,23 +15,36 @@ class ClinicController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $user = auth('api')->user();
+        $isSuperAdmin = $user && $user->role && $user->role->nombre_role === 'superadmin';
+
         $query = Clinic::query()
             ->select([
-                'id_clinica',
-                'id_empresa',
-                'nombre',
-                'telefono',
-                'email_recordatorios',
-                'telefono_recordatorios',
-                'nombre_remitente',
-                'direccion',
-                'fecha_creacion'
+                'Clinicas.id_clinica',
+                'Clinicas.id_empresa',
+                'Clinicas.nombre',
+                'Clinicas.telefono',
+                'Clinicas.email_recordatorios',
+                'Clinicas.telefono_recordatorios',
+                'Clinicas.nombre_remitente',
+                'Clinicas.direccion',
+                'Clinicas.fecha_creacion'
             ])
             ->with(['company:id_empresa,nombre'])
-            ->where('deleted', false);
+            ->where('Clinicas.deleted', false);
+
+        if (!$isSuperAdmin && $user) {
+            $query->join('Usuarios_Clinicas as uc', function ($join) use ($user) {
+                $join->on('Clinicas.id_clinica', '=', 'uc.id_clinica')
+                    ->where('uc.id_usuario', '=', $user->id_usuario);
+            });
+            $query->addSelect([
+                'uc.rol as user_role'
+            ]);
+        }
         
         if ($request->has('company_id')) {
-            $query->where('id_empresa', $request->get('company_id'));
+            $query->where('Clinicas.id_empresa', $request->get('company_id'));
         }
 
         return response()->json($query->get());

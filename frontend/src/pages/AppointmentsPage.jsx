@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getStoredSelection } from '../utils/clinicSelection';
 import {
     format,
     startOfMonth,
@@ -15,7 +16,7 @@ import {
     parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, X, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Clock, User, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '../services/api';
 import { Button, Card, Modal, Input, Badge } from '../components/ui';
@@ -24,41 +25,50 @@ import './AppointmentsPage.css';
 const AppointmentsPage = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const clinicIdParam = searchParams.get('clinicId');
+    const storedSelection = getStoredSelection();
+    const clinicIdParam = searchParams.get('clinicId') || storedSelection.clinicId;
     const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
-    const companyId = Number(searchParams.get('companyId') || 1);
+    const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [appointments, setAppointments] = useState([]);
-    const [patients, setPatients] = useState([]); // Simplified patient list
+    const [patients, setPatients] = useState([]);
+    const [treatments, setTreatments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
-    const [viewMode, setViewMode] = useState('month'); // 'month', 'week' (simplified to month first)
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, setValue, watch } = useForm({
         defaultValues: {
             id_empresa: companyId,
-            duracion_minutos: 30
+            duracion_minutos: 30,
+            precio: '',
+            motivo: '',
+            motivo_detallado: ''
         }
     });
 
-    // Calendar generation logic
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
     const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+    const toArray = (payload) => {
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload?.data)) return payload.data;
+        if (Array.isArray(payload?.data?.data)) return payload.data.data;
+        return [];
+    };
 
     const fetchAppointments = async () => {
         try {
             setLoading(true);
-            // In a real app, pass start/end dates to filter by month
             const response = await api.get('/appointments', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
-            setAppointments(response.data);
+            setAppointments(toArray(response));
         } catch (error) {
             console.error('Error fetching appointments:', error);
+            setAppointments([]);
         } finally {
             setLoading(false);
         }
@@ -66,16 +76,26 @@ const AppointmentsPage = () => {
 
     const fetchPatients = async () => {
         try {
-            const response = await api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } }); // Pagination might be an issue in real app
-            setPatients(response.data.data || []);
+            const response = await api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
+            setPatients(toArray(response));
         } catch (error) {
             console.error('Error fetching patients:', error);
+        }
+    };
+
+    const fetchTreatments = async () => {
+        try {
+            const response = await api.get('/treatments', { params: { company_id: companyId || undefined, clinic_id: clinicId || undefined } });
+            setTreatments(toArray(response));
+        } catch (error) {
+            console.error('Error fetching treatments:', error);
         }
     };
 
     useEffect(() => {
         fetchAppointments();
         fetchPatients();
+        fetchTreatments();
     }, [currentDate, clinicId, companyId]);
 
     const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -83,29 +103,61 @@ const AppointmentsPage = () => {
 
     const handleDateClick = (day) => {
         setSelectedDate(day);
-        // Open modal pre-filled? or just show details below?
-    };
-
-    const handleNewAppointment = () => {
         reset({
-            fecha: format(selectedDate, 'yyyy-MM-dd'),
+            fecha: format(day, 'yyyy-MM-dd'),
             hora: '09:00',
             duracion_minutos: 30,
             id_empresa: companyId,
-            id_empleado: 1 // Default employee
+            id_empleado: 1,
+            precio: '',
+            motivo: '',
+            motivo_detallado: ''
         });
         setModalOpen(true);
     };
+
+    const handleNewAppointment = () => {
+        handleDateClick(selectedDate);
+    };
+
+    const selectedTreatmentId = watch('id_tratamiento');
+    const treatmentProducts = useMemo(() => {
+        if (!selectedTreatmentId) return [];
+        const treatment = treatments.find(t => String(t.id_tratamiento || t.id) === String(selectedTreatmentId));
+        if (!treatment) return [];
+        if (Array.isArray(treatment.products)) return treatment.products;
+        if (Array.isArray(treatment.productos)) return treatment.productos;
+        return [];
+    }, [selectedTreatmentId, treatments]);
+
+    const defaultPrice = useMemo(() => {
+        if (treatmentProducts.length > 0) {
+            const sum = treatmentProducts.reduce((acc, p) => acc + Number(p.precio || p.price || 0), 0);
+            return sum ? sum.toFixed(2) : '';
+        }
+        const treatment = treatments.find(t => String(t.id_tratamiento || t.id) === String(selectedTreatmentId));
+        if (treatment?.precio) return Number(treatment.precio).toFixed(2);
+        return '';
+    }, [treatmentProducts, treatments, selectedTreatmentId]);
+
+    useEffect(() => {
+        if (selectedTreatmentId) {
+            setValue('precio', defaultPrice);
+        }
+    }, [selectedTreatmentId, defaultPrice, setValue]);
 
     const onSubmit = async (data) => {
         try {
             const payload = {
                 ...data,
                 id_empresa: companyId,
-                id_empleado: data.id_empleado || 1, // Default to 1 if not set
+                id_empleado: data.id_empleado || 1,
                 id_paciente: parseInt(data.id_paciente),
                 duracion_minutos: parseInt(data.duracion_minutos),
-                id_clinica: clinicId || undefined
+                id_clinica: clinicId || undefined,
+                id_tratamiento: data.id_tratamiento ? parseInt(data.id_tratamiento) : undefined,
+                precio: data.precio ? parseFloat(data.precio) : undefined,
+                motivo: data.motivo || data.motivo_detallado || null
             };
             await api.post('/appointments', payload);
             setModalOpen(false);
@@ -115,7 +167,10 @@ const AppointmentsPage = () => {
                 hora: '09:00',
                 duracion_minutos: 30,
                 id_empresa: companyId,
-                id_empleado: 1
+                id_empleado: 1,
+                precio: '',
+                motivo: '',
+                motivo_detallado: ''
             });
         } catch (error) {
             console.error('Error creating appointment:', error);
@@ -123,9 +178,7 @@ const AppointmentsPage = () => {
         }
     };
 
-    const dayAppointments = (day) => {
-        return appointments.filter(apt => isSameDay(parseISO(apt.fecha), day));
-    };
+    const dayAppointments = (day) => appointments.filter(apt => isSameDay(parseISO(apt.fecha), day));
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -173,7 +226,7 @@ const AppointmentsPage = () => {
                     ))}
                 </div>
                 <div className="days-grid">
-                    {calendarDays.map((day, idx) => {
+                    {calendarDays.map((day) => {
                         const isCurrentMonth = isSameMonth(day, monthStart);
                         const isSelected = isSameDay(day, selectedDate);
                         const isToday = isSameDay(day, new Date());
@@ -202,30 +255,33 @@ const AppointmentsPage = () => {
                 </div>
             </div>
 
-            {/* Selected Day Details Panel */}
             <Card className="selected-day-panel" title={`Citas del ${format(selectedDate, 'd MMMM', { locale: es })}`}>
+                <div className="panel-header">
+                    <div className="panel-actions">
+                        <Button size="sm" onClick={() => setSelectedDate(addDays(selectedDate, -1))} variant="ghost" icon={<ChevronLeft size={14} />} />
+                        <Button size="sm" onClick={() => setSelectedDate(addDays(selectedDate, 1))} variant="ghost" icon={<ChevronRight size={14} />} />
+                    </div>
+                    <Button size="sm" onClick={handleNewAppointment} icon={<Plus size={14} />}>Agregar cita</Button>
+                </div>
                 {dayAppointments(selectedDate).length === 0 ? (
                     <p className="text-gray-500 py-4">No hay citas programadas para este día.</p>
                 ) : (
                     <div className="day-agenda-list">
                         {dayAppointments(selectedDate).map(apt => (
-                            <div key={apt.id_cita} className="agenda-item">
+                            <div key={apt.id_cita || `${apt.fecha}-${apt.hora}`} className="agenda-item">
                                 <div className="agenda-time">
                                     <Clock size={16} />
                                     <span>{apt.hora.substring(0, 5)}</span>
                                 </div>
                                 <div className="agenda-info">
                                     <h4>{apt.patient?.nombre} {apt.patient?.apellido}</h4>
-                                    <p className="agenda-subtitle">Consulta General • {apt.duracion_minutos} min</p>
+                                    <p className="agenda-subtitle">Motivo: {apt.motivo || 'N/D'} • Tratamiento: {apt.tratamiento?.nombre_tratamiento || 'N/D'} • {apt.duracion_minutos} min</p>
                                 </div>
                                 <Badge variant={getStatusColor(apt.estado)}>{apt.estado}</Badge>
                             </div>
                         ))}
                     </div>
                 )}
-                <Button variant="outline" size="sm" className="mt-4" onClick={handleNewAppointment}>
-                    Agregar cita aquí
-                </Button>
             </Card>
 
             <Modal
@@ -271,14 +327,75 @@ const AppointmentsPage = () => {
                         />
                     </div>
 
+                    <div className="form-row">
+                        <Input
+                            type="number"
+                            label="Duración (min)"
+                            min="15"
+                            step="15"
+                            fullWidth
+                            {...register('duracion_minutos')}
+                        />
+                        <div className="input-container full-width">
+                            <label className="input-label">Motivo de la cita</label>
+                            <div className="select-wrapper">
+                                <select className="select-field" {...register('motivo')}>
+                                    <option value="">Selecciona motivo...</option>
+                                    <option value="Revisión general">Revisión general</option>
+                                    <option value="Urgencia">Urgencia</option>
+                                    <option value="Seguimiento">Seguimiento</option>
+                                    <option value="Tratamiento">Tratamiento específico</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <Input
-                        type="number"
-                        label="Duración (min)"
-                        min="15"
-                        step="15"
+                        label="Motivo detallado (opcional)"
+                        placeholder="Escribe una nota breve"
                         fullWidth
-                        {...register('duracion_minutos')}
+                        {...register('motivo_detallado')}
                     />
+
+                    <div className="form-row">
+                        <div className="input-container full-width">
+                            <label className="input-label">Tratamiento (opcional)</label>
+                            <div className="select-wrapper">
+                                <select className="select-field" {...register('id_tratamiento')}>
+                                    <option value="">Selecciona tratamiento...</option>
+                                    {treatments.map(t => (
+                                        <option key={t.id_tratamiento || t.id} value={t.id_tratamiento || t.id}>
+                                            {t.nombre_tratamiento || t.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <Input
+                            type="number"
+                            label="Precio sugerido (€)"
+                            min="0"
+                            step="0.01"
+                            fullWidth
+                            placeholder="Auto desde productos"
+                            {...register('precio')}
+                        />
+                    </div>
+
+                    {treatmentProducts.length > 0 && (
+                        <div className="product-list">
+                            <div className="product-list-header">Productos del tratamiento</div>
+                            <ul>
+                                {treatmentProducts.map(prod => (
+                                    <li key={prod.id_producto || prod.id}>
+                                        <span>{prod.nombre_producto || prod.nombre}</span>
+                                        <span className="product-price">{Number(prod.precio || prod.price || 0).toFixed(2)}€</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="product-total">Suma productos: {defaultPrice || '0.00'}€</div>
+                        </div>
+                    )}
 
                     <Input
                         label="Notas"

@@ -8,6 +8,7 @@ import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 import { useLocation } from 'react-router-dom';
+import { getStoredSelection } from '../utils/clinicSelection';
 
 // Esquema de validación
 const userSchema = yup.object().shape({
@@ -21,14 +22,42 @@ const userSchema = yup.object().shape({
         return !value || value.length >= 6;
     }),
     id_role: yup.number().required('El rol es requerido'),
+    menu_citas: yup.boolean(),
+    menu_pacientes: yup.boolean(),
+    menu_facturacion: yup.boolean(),
+    menu_productos: yup.boolean(),
+    menu_proveedores: yup.boolean(),
+    menu_tratamientos: yup.boolean(),
+    menu_usuarios: yup.boolean()
 });
+
+const defaultMenuVisibility = {
+    menu_citas: true,
+    menu_pacientes: true,
+    menu_facturacion: true,
+    menu_productos: true,
+    menu_proveedores: true,
+    menu_tratamientos: true,
+    menu_usuarios: true
+};
+
+const menuOptions = [
+    { key: 'menu_citas', label: 'Citas' },
+    { key: 'menu_pacientes', label: 'Pacientes' },
+    { key: 'menu_facturacion', label: 'Facturacion' },
+    { key: 'menu_productos', label: 'Productos' },
+    { key: 'menu_proveedores', label: 'Proveedores' },
+    { key: 'menu_tratamientos', label: 'Tratamientos' },
+    { key: 'menu_usuarios', label: 'Usuarios' }
+];
 
 const UsersPage = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const clinicIdParam = searchParams.get('clinicId');
+    const storedSelection = getStoredSelection();
+    const clinicIdParam = searchParams.get('clinicId') || storedSelection.clinicId;
     const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
-    const companyId = Number(searchParams.get('companyId') || 1);
+    const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -44,7 +73,7 @@ const UsersPage = () => {
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(userSchema),
-        defaultValues: { mode: 'create', id_role: '', id_empresa: companyId }
+        defaultValues: { mode: 'create', id_role: '', id_empresa: companyId, ...defaultMenuVisibility }
     });
 
     const fetchUsers = async (term) => {
@@ -97,21 +126,44 @@ const UsersPage = () => {
         fetchRoles();
     }, []);
 
+    const resolveMenuValue = (value, fallback) => {
+        if (value === undefined || value === null) return fallback;
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'number') return value === 1;
+        if (typeof value === 'string') {
+            const normalized = value.toLowerCase();
+            if (['true', 't', '1', 'yes'].includes(normalized)) return true;
+            if (['false', 'f', '0', 'no'].includes(normalized)) return false;
+        }
+        return fallback;
+    };
+
+    const buildMenuValues = (user) => {
+        return Object.keys(defaultMenuVisibility).reduce((acc, key) => {
+            acc[key] = resolveMenuValue(user?.[key], defaultMenuVisibility[key]);
+            return acc;
+        }, {});
+    };
+
     const handleOpenCreate = () => {
         setEditingUser(null);
         const firstRoleId = roles[0]?.id_role || '';
-        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId, id_empresa: companyId });
+        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId, id_empresa: companyId, ...defaultMenuVisibility });
         setModalOpen(true);
     };
 
     const handleOpenEdit = (user) => {
         setEditingUser(user);
-        setValue('mode', 'edit');
-        setValue('nombre', user.nombre);
-        setValue('apellido', user.apellido);
-        setValue('email', user.email);
-        setValue('id_role', user.id_role);
-        setValue('password', '');
+        reset({
+            mode: 'edit',
+            nombre: user.nombre,
+            apellido: user.apellido,
+            email: user.email,
+            id_role: user.id_role,
+            password: '',
+            id_empresa: companyId,
+            ...buildMenuValues(user)
+        });
         setModalOpen(true);
     };
 
@@ -146,11 +198,14 @@ const UsersPage = () => {
             payload.id_role = Number(payload.id_role || fallbackRole || 0);
             if (!payload.password) delete payload.password;
             delete payload.mode;
+            if (clinicId) {
+                payload.clinic_id = clinicId;
+            }
 
             if (editingUser) {
                 await api.put(`/users/${editingUser.id_usuario}`, payload);
             } else {
-                await api.post('/users', { ...payload, id_empresa: companyId, clinic_id: clinicId || undefined });
+                await api.post('/users', { ...payload, id_empresa: companyId });
             }
             setModalOpen(false);
             fetchUsers();
@@ -309,21 +364,38 @@ const UsersPage = () => {
                         {...register('email')}
                     />
 
-                        <div className="input-container full-width">
-                            <label className="input-label">Rol de usuario</label>
-                            <div className="select-wrapper">
-                                <Shield size={16} className="select-icon" />
-                        <select className="select-field" {...register('id_role')}>
-                            <option value="">Selecciona un rol</option>
-                            {roles.map(role => (
-                                <option key={role.id_role} value={role.id_role}>
-                                    {role.nombre_role || role.nombre || 'rol'}
-                                </option>
-                            ))}
-                        </select>
-                            </div>
-                            {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
+                    <div className="input-container full-width">
+                        <label className="input-label">Rol de usuario</label>
+                        <div className="select-wrapper">
+                            <Shield size={16} className="select-icon" />
+                            <select className="select-field" {...register('id_role')}>
+                                <option value="">Selecciona un rol</option>
+                                {roles.map(role => (
+                                    <option key={role.id_role} value={role.id_role}>
+                                        {role.nombre_role || role.nombre || 'rol'}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
+                        {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
+                    </div>
+
+                    {clinicId && (
+                        <div className="visibility-section">
+                            <div className="visibility-header">
+                                <h4 className="visibility-title">Visibilidad del menu principal</h4>
+                                <p className="visibility-subtitle">Selecciona que modulos vera en el sidebar.</p>
+                            </div>
+                            <div className="visibility-grid">
+                                {menuOptions.map(option => (
+                                    <label key={option.key} className="visibility-option">
+                                        <input type="checkbox" {...register(option.key)} />
+                                        <span>{option.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <Input
                         label={editingUser ? "Nueva contraseña (opcional)" : "Contraseña"}

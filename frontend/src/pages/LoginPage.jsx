@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { clearSelection } from '../utils/clinicSelection';
 import { Button, Input } from '../components/ui';
 import './LoginPage.css';
 
@@ -29,7 +30,8 @@ const LoginPage = () => {
         setServerError('');
         try {
             await login(data.email, data.password);
-            navigate('/dashboard');
+            clearSelection();
+            navigate('/select-clinic');
         } catch (error) {
             console.error('Login error:', error);
             if (error.response?.status === 401) {

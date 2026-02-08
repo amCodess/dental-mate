@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getStoredSelection } from '../utils/clinicSelection';
 import { useForm } from 'react-hook-form';
 import { DollarSign, FileText, Download, Plus, Search, CreditCard, AlertCircle, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
@@ -9,9 +10,10 @@ import './BillingPage.css';
 const BillingPage = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const clinicIdParam = searchParams.get('clinicId');
+    const storedSelection = getStoredSelection();
+    const clinicIdParam = searchParams.get('clinicId') || storedSelection.clinicId;
     const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
-    const companyId = Number(searchParams.get('companyId') || 1);
+    const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);

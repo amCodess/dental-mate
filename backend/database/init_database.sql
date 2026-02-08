@@ -257,6 +257,13 @@ CREATE TABLE IF NOT EXISTS "Usuarios_Clinicas" (
   "id_usuario" int NOT NULL,
   "id_clinica" int NOT NULL,
   "rol" "Tenant_role_enum" NOT NULL,
+  "menu_citas" boolean NOT NULL DEFAULT true,
+  "menu_pacientes" boolean NOT NULL DEFAULT true,
+  "menu_facturacion" boolean NOT NULL DEFAULT true,
+  "menu_productos" boolean NOT NULL DEFAULT true,
+  "menu_proveedores" boolean NOT NULL DEFAULT true,
+  "menu_tratamientos" boolean NOT NULL DEFAULT true,
+  "menu_usuarios" boolean NOT NULL DEFAULT true,
   "fecha_creacion" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "ux_usuarios_clinicas_usuario_clinica" UNIQUE ("id_usuario","id_clinica")
@@ -816,6 +823,56 @@ DO $$ BEGIN
 END$$;
 
 -- =========================================================
+-- 3.9) INDEXES (PERFORMANCE)
+-- =========================================================
+-- Usuarios
+CREATE INDEX IF NOT EXISTS "idx_usuarios_email" ON "Usuarios" ("email");
+CREATE INDEX IF NOT EXISTS "idx_usuarios_id_role" ON "Usuarios" ("id_role");
+CREATE INDEX IF NOT EXISTS "idx_usuarios_deleted" ON "Usuarios" ("deleted");
+
+-- Roles
+CREATE INDEX IF NOT EXISTS "idx_roles_nombre_role" ON "Roles" ("nombre_role");
+
+-- Pacientes
+CREATE INDEX IF NOT EXISTS "idx_pacientes_id_empresa" ON "Pacientes" ("id_empresa");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_id_clinica" ON "Pacientes" ("id_clinica");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_nombre" ON "Pacientes" ("nombre");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_apellido" ON "Pacientes" ("apellido");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_email" ON "Pacientes" ("email");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_telefono" ON "Pacientes" ("telefono");
+CREATE INDEX IF NOT EXISTS "idx_pacientes_fecha_creacion" ON "Pacientes" ("fecha_creacion" DESC);
+CREATE INDEX IF NOT EXISTS "idx_pacientes_deleted" ON "Pacientes" ("deleted");
+
+-- Facturacion
+CREATE INDEX IF NOT EXISTS "idx_facturacion_id_empresa" ON "Facturacion" ("id_empresa");
+CREATE INDEX IF NOT EXISTS "idx_facturacion_id_paciente" ON "Facturacion" ("id_paciente");
+CREATE INDEX IF NOT EXISTS "idx_facturacion_fecha_emision" ON "Facturacion" ("fecha_emision" DESC);
+CREATE INDEX IF NOT EXISTS "idx_facturacion_pago_status" ON "Facturacion" ("pago_status");
+
+-- Clinicas
+CREATE INDEX IF NOT EXISTS "idx_clinicas_id_empresa" ON "Clinicas" ("id_empresa");
+
+-- Usuarios_Clinicas
+CREATE INDEX IF NOT EXISTS "idx_usuarios_clinicas_id_empresa" ON "Usuarios_Clinicas" ("id_empresa");
+CREATE INDEX IF NOT EXISTS "idx_usuarios_clinicas_id_usuario" ON "Usuarios_Clinicas" ("id_usuario");
+CREATE INDEX IF NOT EXISTS "idx_usuarios_clinicas_id_clinica" ON "Usuarios_Clinicas" ("id_clinica");
+
+-- Usuarios_Empresas
+CREATE INDEX IF NOT EXISTS "idx_usuarios_empresas_id_usuario" ON "Usuarios_Empresas" ("id_usuario");
+CREATE INDEX IF NOT EXISTS "idx_usuarios_empresas_id_empresa" ON "Usuarios_Empresas" ("id_empresa");
+
+-- Citas
+CREATE INDEX IF NOT EXISTS "idx_citas_id_empresa" ON "Citas" ("id_empresa");
+CREATE INDEX IF NOT EXISTS "idx_citas_id_paciente" ON "Citas" ("id_paciente");
+CREATE INDEX IF NOT EXISTS "idx_citas_id_empleado" ON "Citas" ("id_empleado");
+CREATE INDEX IF NOT EXISTS "idx_citas_fecha" ON "Citas" ("fecha");
+CREATE INDEX IF NOT EXISTS "idx_citas_deleted" ON "Citas" ("deleted");
+
+-- Notificaciones
+CREATE INDEX IF NOT EXISTS "idx_notificaciones_id_usuario" ON "Notificaciones" ("id_usuario");
+CREATE INDEX IF NOT EXISTS "idx_notificaciones_id_empresa" ON "Notificaciones" ("id_empresa");
+CREATE INDEX IF NOT EXISTS "idx_notificaciones_leida" ON "Notificaciones" ("leida");
+
 -- 4) INYECCIÓN DE DATOS POR DEFECTO (SAFE DATA INSERTION)
 -- =========================================================
 DO $$
@@ -895,6 +952,628 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = user_id) THEN
         INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
         VALUES (empresa_id, clinica_id, user_id, 'Administración');
+    END IF;
+
+END $$;
+
+-- 4.8) Datos adicionales: empresas, clinicas, usuarios y pacientes
+DO $$
+DECLARE
+    empleado_role_id int;
+    usuario_role_id int;
+    super_role_id int;
+    empresa_hq int;
+    empresa_sonrisa int;
+    empresa_mundo int;
+    empresa_bright int;
+    clinica_hq_central int;
+    clinica_hq_norte int;
+    clinica_sonrisa_mad int;
+    clinica_sonrisa_bcn int;
+    clinica_mundo_val int;
+    clinica_mundo_sev int;
+    clinica_bright_bil int;
+    clinica_bright_zar int;
+    -- empleados
+    emp_sonrisa_owner int;
+    emp_sonrisa_owner_bcn int;
+    emp_sonrisa_staff int;
+    emp_mundo_owner int;
+    emp_mundo_owner_sev int;
+    emp_mundo_staff int;
+    emp_bright_owner int;
+    emp_bright_owner_zar int;
+    emp_bright_staff int;
+    emp_hq_owner int;
+    -- pacientes
+    pac_sonrisa_mad int;
+    pac_sonrisa_bcn int;
+    pac_mundo_val int;
+    pac_mundo_sev int;
+    pac_bright_bil int;
+    pac_bright_zar int;
+    pac_hq_central int;
+    pac_hq_norte int;
+    -- proveedores / productos / tratamientos / citas / facturas
+    prov_id int;
+    prod_id int;
+    trat_id int;
+    cita_id int;
+    factura_id int;
+    tmp_user_id int;
+    user_hashed_pass varchar := '$2y$12$BJWgQbPtt7r1IArX8Mzi0eS5eAo2vvs02ewd22XaGeWFONhwAheva';
+BEGIN
+    SELECT "id_role" INTO empleado_role_id FROM "Roles" WHERE "nombre_role" = 'empleado';
+    SELECT "id_role" INTO usuario_role_id FROM "Roles" WHERE "nombre_role" = 'usuario';
+    SELECT "id_role" INTO super_role_id FROM "Roles" WHERE "nombre_role" = 'superadmin';
+
+    SELECT "id_empresa" INTO empresa_hq FROM "Empresas" WHERE "nombre" = 'DentalMate HQ';
+
+    -- Empresas adicionales
+    IF NOT EXISTS (SELECT 1 FROM "Empresas" WHERE "nombre" = 'Sonrisa Plus') THEN
+        INSERT INTO "Empresas" ("nombre", "nif", "email", "telefono")
+        VALUES ('Sonrisa Plus', 'B11223344', 'contacto@sonrisaplus.com', '+34 910 111 222')
+        RETURNING "id_empresa" INTO empresa_sonrisa;
+    ELSE
+        SELECT "id_empresa" INTO empresa_sonrisa FROM "Empresas" WHERE "nombre" = 'Sonrisa Plus';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empresas" WHERE "nombre" = 'Mundo Dental') THEN
+        INSERT INTO "Empresas" ("nombre", "nif", "email", "telefono")
+        VALUES ('Mundo Dental', 'C22334455', 'hola@mundodental.com', '+34 960 333 444')
+        RETURNING "id_empresa" INTO empresa_mundo;
+    ELSE
+        SELECT "id_empresa" INTO empresa_mundo FROM "Empresas" WHERE "nombre" = 'Mundo Dental';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empresas" WHERE "nombre" = 'BrightSmiles Group') THEN
+        INSERT INTO "Empresas" ("nombre", "nif", "email", "telefono")
+        VALUES ('BrightSmiles Group', 'D33445566', 'team@brightsmiles.com', '+34 944 555 666')
+        RETURNING "id_empresa" INTO empresa_bright;
+    ELSE
+        SELECT "id_empresa" INTO empresa_bright FROM "Empresas" WHERE "nombre" = 'BrightSmiles Group';
+    END IF;
+
+    -- Clinicas por empresa
+    -- DentalMate HQ adicionales
+    SELECT "id_clinica" INTO clinica_hq_central FROM "Clinicas" WHERE "nombre" = 'Clinica Central' AND "id_empresa" = empresa_hq;
+    IF clinica_hq_central IS NULL THEN
+        SELECT "id_clinica" INTO clinica_hq_central FROM "Clinicas" WHERE "nombre" = 'Clinica Central' AND "id_empresa" = empresa_hq;
+    END IF;
+    IF clinica_hq_central IS NULL THEN
+        SELECT "id_clinica" INTO clinica_hq_central FROM "Clinicas" WHERE "id_empresa" = empresa_hq LIMIT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'Clinica Norte HQ' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_hq, 'Clinica Norte HQ', '+34 900 555 111', 'Av. de la Paz 45, Madrid')
+        RETURNING "id_clinica" INTO clinica_hq_norte;
+    ELSE
+        SELECT "id_clinica" INTO clinica_hq_norte FROM "Clinicas" WHERE "nombre" = 'Clinica Norte HQ' AND "id_empresa" = empresa_hq;
+    END IF;
+    -- garantizar empleado superadmin en ambas clinicas HQ
+    SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'admin@dentalmate.com';
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_hq, clinica_hq_central, tmp_user_id, 'Administracion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_hq_owner FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_hq_central;
+
+    -- Sonrisa Plus
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'Clinica Sonrisa Madrid' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_sonrisa, 'Clinica Sonrisa Madrid', '+34 910 333 111', 'Calle Serrano 22, Madrid')
+        RETURNING "id_clinica" INTO clinica_sonrisa_mad;
+    ELSE
+        SELECT "id_clinica" INTO clinica_sonrisa_mad FROM "Clinicas" WHERE "nombre" = 'Clinica Sonrisa Madrid' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'Clinica Sonrisa Barcelona' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_sonrisa, 'Clinica Sonrisa Barcelona', '+34 933 200 210', 'Passeig de Gracia 58, Barcelona')
+        RETURNING "id_clinica" INTO clinica_sonrisa_bcn;
+    ELSE
+        SELECT "id_clinica" INTO clinica_sonrisa_bcn FROM "Clinicas" WHERE "nombre" = 'Clinica Sonrisa Barcelona' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+
+    -- Mundo Dental
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'Mundo Dental Valencia' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_mundo, 'Mundo Dental Valencia', '+34 960 440 550', 'Av. del Puerto 12, Valencia')
+        RETURNING "id_clinica" INTO clinica_mundo_val;
+    ELSE
+        SELECT "id_clinica" INTO clinica_mundo_val FROM "Clinicas" WHERE "nombre" = 'Mundo Dental Valencia' AND "id_empresa" = empresa_mundo;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'Mundo Dental Sevilla' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_mundo, 'Mundo Dental Sevilla', '+34 955 770 880', 'Av. de la Constitucion 14, Sevilla')
+        RETURNING "id_clinica" INTO clinica_mundo_sev;
+    ELSE
+        SELECT "id_clinica" INTO clinica_mundo_sev FROM "Clinicas" WHERE "nombre" = 'Mundo Dental Sevilla' AND "id_empresa" = empresa_mundo;
+    END IF;
+
+    -- BrightSmiles Group
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'BrightSmiles Bilbao' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_bright, 'BrightSmiles Bilbao', '+34 944 880 990', 'Gran Via 80, Bilbao')
+        RETURNING "id_clinica" INTO clinica_bright_bil;
+    ELSE
+        SELECT "id_clinica" INTO clinica_bright_bil FROM "Clinicas" WHERE "nombre" = 'BrightSmiles Bilbao' AND "id_empresa" = empresa_bright;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Clinicas" WHERE "nombre" = 'BrightSmiles Zaragoza' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Clinicas" ("id_empresa", "nombre", "telefono", "direccion")
+        VALUES (empresa_bright, 'BrightSmiles Zaragoza', '+34 976 770 660', 'Paseo Independencia 20, Zaragoza')
+        RETURNING "id_clinica" INTO clinica_bright_zar;
+    ELSE
+        SELECT "id_clinica" INTO clinica_bright_zar FROM "Clinicas" WHERE "nombre" = 'BrightSmiles Zaragoza' AND "id_empresa" = empresa_bright;
+    END IF;
+
+    -- Usuarios y asignaciones
+    -- Sonrisa Plus Admin
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'laura.admin@sonrisaplus.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Laura', 'Admin', 'laura.admin@sonrisaplus.com', user_hashed_pass, 'activo', super_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'laura.admin@sonrisaplus.com';
+        UPDATE "Usuarios" SET "id_role" = super_role_id WHERE "id_usuario" = tmp_user_id;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_sonrisa, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_mad) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_sonrisa, tmp_user_id, clinica_sonrisa_mad, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_bcn) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_sonrisa, tmp_user_id, clinica_sonrisa_bcn, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_sonrisa, clinica_sonrisa_mad, tmp_user_id, 'Administracion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_sonrisa_owner FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_mad;
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_bcn) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_sonrisa, clinica_sonrisa_bcn, tmp_user_id, 'Administracion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_sonrisa_owner_bcn FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_bcn;
+
+    -- Sonrisa Plus Staff
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'pablo.staff@sonrisaplus.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Pablo', 'Staff', 'pablo.staff@sonrisaplus.com', user_hashed_pass, 'activo', empleado_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'pablo.staff@sonrisaplus.com';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_sonrisa, 'staff');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_mad) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_sonrisa, tmp_user_id, clinica_sonrisa_mad, 'empleado');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_sonrisa, clinica_sonrisa_mad, tmp_user_id, 'Higienista')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_sonrisa_staff FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_sonrisa_mad;
+
+    -- Mundo Dental Manager
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'marta.manager@mundodental.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Marta', 'Manager', 'marta.manager@mundodental.com', user_hashed_pass, 'activo', super_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'marta.manager@mundodental.com';
+        UPDATE "Usuarios" SET "id_role" = super_role_id WHERE "id_usuario" = tmp_user_id;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_mundo, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_val) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_mundo, tmp_user_id, clinica_mundo_val, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_sev) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_mundo, tmp_user_id, clinica_mundo_sev, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_mundo, clinica_mundo_val, tmp_user_id, 'Gestion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_mundo_owner FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_val;
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_sev) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_mundo, clinica_mundo_sev, tmp_user_id, 'Gestion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_mundo_owner_sev FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_sev;
+
+    -- Mundo Dental Staff
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'carlos.staff@mundodental.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Carlos', 'Staff', 'carlos.staff@mundodental.com', user_hashed_pass, 'activo', empleado_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'carlos.staff@mundodental.com';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_mundo, 'staff');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_val) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_mundo, tmp_user_id, clinica_mundo_val, 'empleado');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_mundo, clinica_mundo_val, tmp_user_id, 'Asistente')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_mundo_staff FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_mundo_val;
+
+    -- BrightSmiles Admin
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'ana.admin@brightsmiles.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Ana', 'Admin', 'ana.admin@brightsmiles.com', user_hashed_pass, 'activo', super_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'ana.admin@brightsmiles.com';
+        UPDATE "Usuarios" SET "id_role" = super_role_id WHERE "id_usuario" = tmp_user_id;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_bright, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_bil) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_bright, tmp_user_id, clinica_bright_bil, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_zar) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_bright, tmp_user_id, clinica_bright_zar, 'owner');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_bright, clinica_bright_bil, tmp_user_id, 'Coordinacion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_bright_owner FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_bil;
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_zar) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_bright, clinica_bright_zar, tmp_user_id, 'Coordinacion')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_bright_owner_zar FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_zar;
+
+    -- BrightSmiles Staff
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "email" = 'eva.higienista@brightsmiles.com') THEN
+        INSERT INTO "Usuarios" ("nombre", "apellido", "email", "password", "estado", "id_role")
+        VALUES ('Eva', 'Higienista', 'eva.higienista@brightsmiles.com', user_hashed_pass, 'activo', empleado_role_id)
+        RETURNING "id_usuario" INTO tmp_user_id;
+    ELSE
+        SELECT "id_usuario" INTO tmp_user_id FROM "Usuarios" WHERE "email" = 'eva.higienista@brightsmiles.com';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Empresas" WHERE "id_usuario" = tmp_user_id AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Usuarios_Empresas" ("id_usuario", "id_empresa", "rol")
+        VALUES (tmp_user_id, empresa_bright, 'staff');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Usuarios_Clinicas" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_bil) THEN
+        INSERT INTO "Usuarios_Clinicas" ("id_empresa", "id_usuario", "id_clinica", "rol")
+        VALUES (empresa_bright, tmp_user_id, clinica_bright_bil, 'empleado');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Empleados" WHERE "id_usuario" = tmp_user_id) THEN
+        INSERT INTO "Empleados" ("id_empresa", "id_clinica", "id_usuario", "especialidad")
+        VALUES (empresa_bright, clinica_bright_bil, tmp_user_id, 'Higienista')
+        ON CONFLICT ("id_usuario") DO NOTHING;
+    END IF;
+    SELECT "id_empleado" INTO emp_bright_staff FROM "Empleados" WHERE "id_usuario" = tmp_user_id AND "id_clinica" = clinica_bright_bil;
+
+    -- Pacientes de ejemplo
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'lucia.perez@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_sonrisa, clinica_sonrisa_mad, 'Lucia', 'Perez', 'lucia.perez@pacientes.com', '1990-02-14', '+34 611 100 200', 'Calle Mayor 10, Madrid');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'diego.romero@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_sonrisa, clinica_sonrisa_bcn, 'Diego', 'Romero', 'diego.romero@pacientes.com', '1985-07-09', '+34 622 300 400', 'Carrer de Balmes 15, Barcelona');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'maria.lago@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_mundo, clinica_mundo_val, 'Maria', 'Lago', 'maria.lago@pacientes.com', '1992-11-21', '+34 633 500 600', 'Av. Reino de Valencia 3, Valencia');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'javier.torres@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_mundo, clinica_mundo_sev, 'Javier', 'Torres', 'javier.torres@pacientes.com', '1988-04-02', '+34 644 700 800', 'Calle San Fernando 12, Sevilla');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'nerea.iglesias@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_bright, clinica_bright_bil, 'Nerea', 'Iglesias', 'nerea.iglesias@pacientes.com', '1996-06-18', '+34 655 880 990', 'Calle Diputacion 40, Bilbao');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'sergio.campos@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_bright, clinica_bright_zar, 'Sergio', 'Campos', 'sergio.campos@pacientes.com', '1983-09-30', '+34 666 100 120', 'Paseo Sagasta 25, Zaragoza');
+    END IF;
+
+    -- Pacientes para HQ
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'carmen.lopez@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_hq, clinica_hq_central, 'Carmen', 'Lopez', 'carmen.lopez@pacientes.com', '1991-01-11', '+34 677 800 900', 'Calle Alcala 20, Madrid');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Pacientes" WHERE "email" = 'alberto.marin@pacientes.com') THEN
+        INSERT INTO "Pacientes" ("id_empresa", "id_clinica", "nombre", "apellido", "email", "fecha_nacimiento", "telefono", "direccion")
+        VALUES (empresa_hq, clinica_hq_norte, 'Alberto', 'Marin', 'alberto.marin@pacientes.com', '1987-12-05', '+34 688 321 654', 'Av. Europa 14, Alcobendas');
+    END IF;
+
+    -- Mapear pacientes a variables
+    SELECT "id_paciente" INTO pac_sonrisa_mad FROM "Pacientes" WHERE "email" = 'lucia.perez@pacientes.com';
+    SELECT "id_paciente" INTO pac_sonrisa_bcn FROM "Pacientes" WHERE "email" = 'diego.romero@pacientes.com';
+    SELECT "id_paciente" INTO pac_mundo_val FROM "Pacientes" WHERE "email" = 'maria.lago@pacientes.com';
+    SELECT "id_paciente" INTO pac_mundo_sev FROM "Pacientes" WHERE "email" = 'javier.torres@pacientes.com';
+    SELECT "id_paciente" INTO pac_bright_bil FROM "Pacientes" WHERE "email" = 'nerea.iglesias@pacientes.com';
+    SELECT "id_paciente" INTO pac_bright_zar FROM "Pacientes" WHERE "email" = 'sergio.campos@pacientes.com';
+    SELECT "id_paciente" INTO pac_hq_central FROM "Pacientes" WHERE "email" = 'carmen.lopez@pacientes.com';
+    SELECT "id_paciente" INTO pac_hq_norte FROM "Pacientes" WHERE "email" = 'alberto.marin@pacientes.com';
+
+    -- Datos clinicos para todas las clinicas
+    -- Proveedores, productos, tratamientos, citas y facturacion
+
+    -- Helper: proveedor/producto/tratamiento para HQ Central
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'Dental Supplies HQ' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_hq, 'Dental Supplies HQ', 'Laura Proveedor', 'proveedor@hq.com', '+34 900 800 900', 'Calle Comercio 1, Madrid')
+        RETURNING "id_proveedor" INTO prov_id;
+    ELSE
+        SELECT "id_proveedor" INTO prov_id FROM "Proveedores" WHERE "nombre" = 'Dental Supplies HQ' AND "id_empresa" = empresa_hq;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Kit Higiene HQ' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_hq, 'Kit Higiene HQ', 45.00, 18.00, true, 50, 10)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Kit Higiene HQ' AND "id_empresa" = empresa_hq;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Limpieza Premium HQ' AND "id_empresa" = empresa_hq) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
+        VALUES (empresa_hq, 'Limpieza Premium HQ', 'Limpieza y profilaxis completa', 1, 80.00)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Limpieza Premium HQ' AND "id_empresa" = empresa_hq;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_hq, prod_id, trat_id)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF emp_hq_owner IS NOT NULL AND pac_hq_central IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_hq, clinica_hq_central, pac_hq_central, emp_hq_owner, CURRENT_DATE + 1, '10:00', 'Confirmada', 'Control general', 45, 'Normal', 'Media'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_hq_central AND "fecha" = CURRENT_DATE + 1 AND "id_clinica" = clinica_hq_central)
+        RETURNING "id_cita" INTO cita_id;
+        IF cita_id IS NULL THEN
+            SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_hq_central AND "id_clinica" = clinica_hq_central ORDER BY "id_cita" DESC LIMIT 1;
+        END IF;
+
+        INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+        SELECT empresa_hq, clinica_hq_central, pac_hq_central, cita_id, CURRENT_DATE, 80.00, 0, 'Pagado', 'Tarjeta'
+        WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_hq_central);
+    END IF;
+
+    -- Sonrisa Madrid
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'Sonrisa Insumos' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_sonrisa, 'Sonrisa Insumos', 'Proveedor SM', 'stock@sonrisaplus.com', '+34 910 555 777', 'C/ Comercio 15, Madrid')
+        RETURNING "id_proveedor" INTO prov_id;
+    ELSE
+        SELECT "id_proveedor" INTO prov_id FROM "Proveedores" WHERE "nombre" = 'Sonrisa Insumos' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Blanqueamiento Plus' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_sonrisa, 'Blanqueamiento Plus', 120.00, 40.00, true, 30, 5)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Blanqueamiento Plus' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Blanqueamiento LED' AND "id_empresa" = empresa_sonrisa) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
+        VALUES (empresa_sonrisa, 'Blanqueamiento LED', 'Sesion de blanqueamiento intensivo', 1, 190.00)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Blanqueamiento LED' AND "id_empresa" = empresa_sonrisa;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_sonrisa, prod_id, trat_id)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF emp_sonrisa_owner IS NOT NULL AND pac_sonrisa_mad IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_sonrisa, clinica_sonrisa_mad, pac_sonrisa_mad, emp_sonrisa_owner, CURRENT_DATE + 2, '11:30', 'Confirmada', 'Blanqueamiento inicial', 60, 'Normal', 'Alta'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_sonrisa_mad AND "id_clinica" = clinica_sonrisa_mad);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_sonrisa_mad AND "id_clinica" = clinica_sonrisa_mad ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_sonrisa, clinica_sonrisa_mad, pac_sonrisa_mad, cita_id, CURRENT_DATE, 190.00, 0, 'Pagado', 'Tarjeta'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_sonrisa_mad);
+        END IF;
+    END IF;
+
+    IF (emp_sonrisa_owner_bcn IS NOT NULL OR emp_sonrisa_owner IS NOT NULL) AND pac_sonrisa_bcn IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_sonrisa, clinica_sonrisa_bcn, pac_sonrisa_bcn, COALESCE(emp_sonrisa_owner_bcn, emp_sonrisa_owner), CURRENT_DATE + 3, '09:00', 'Confirmada', 'Revision general', 40, 'Normal', 'Media'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_sonrisa_bcn AND "id_clinica" = clinica_sonrisa_bcn);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_sonrisa_bcn AND "id_clinica" = clinica_sonrisa_bcn ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_sonrisa, clinica_sonrisa_bcn, pac_sonrisa_bcn, cita_id, CURRENT_DATE, 85.00, 0, 'Pagado', 'Tarjeta'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_sonrisa_bcn);
+        END IF;
+    END IF;
+
+    -- Mundo Dental
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'Mundo Stocks' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_mundo, 'Mundo Stocks', 'Proveedor MD', 'stocks@mundodental.com', '+34 960 222 333', 'Av. Mar 4, Valencia')
+        RETURNING "id_proveedor" INTO prov_id;
+    ELSE
+        SELECT "id_proveedor" INTO prov_id FROM "Proveedores" WHERE "nombre" = 'Mundo Stocks' AND "id_empresa" = empresa_mundo;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Implante Titanium MD' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_mundo, 'Implante Titanium MD', 900.00, 350.00, true, 15, 3)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Implante Titanium MD' AND "id_empresa" = empresa_mundo;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_mundo) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
+        VALUES (empresa_mundo, 'Implante unitario', 'Colocacion de implante unitario', 1, 1200.00)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Implante unitario' AND "id_empresa" = empresa_mundo;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_mundo, prod_id, trat_id)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF emp_mundo_owner IS NOT NULL AND pac_mundo_val IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_mundo, clinica_mundo_val, pac_mundo_val, emp_mundo_owner, CURRENT_DATE + 4, '10:30', 'Confirmada', 'Plan implante', 70, 'Normal', 'Alta'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_mundo_val AND "id_clinica" = clinica_mundo_val);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_mundo_val AND "id_clinica" = clinica_mundo_val ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_mundo, clinica_mundo_val, pac_mundo_val, cita_id, CURRENT_DATE, 1200.00, 0, 'Parcial', 'Transferencia'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_mundo_val);
+        END IF;
+    END IF;
+
+    IF (emp_mundo_owner_sev IS NOT NULL OR emp_mundo_owner IS NOT NULL) AND pac_mundo_sev IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_mundo, clinica_mundo_sev, pac_mundo_sev, COALESCE(emp_mundo_owner_sev, emp_mundo_owner), CURRENT_DATE + 5, '12:00', 'Confirmada', 'Revision periodontal', 45, 'Normal', 'Media'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_mundo_sev AND "id_clinica" = clinica_mundo_sev);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_mundo_sev AND "id_clinica" = clinica_mundo_sev ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_mundo, clinica_mundo_sev, pac_mundo_sev, cita_id, CURRENT_DATE, 140.00, 0, 'Pagado', 'Efectivo'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_mundo_sev);
+        END IF;
+    END IF;
+
+    -- BrightSmiles
+    IF NOT EXISTS (SELECT 1 FROM "Proveedores" WHERE "nombre" = 'Bright Supply' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Proveedores" ("id_empresa","nombre","contacto","email","telefono","direccion")
+        VALUES (empresa_bright, 'Bright Supply', 'Proveedor BS', 'supply@brightsmiles.com', '+34 944 111 222', 'Gran Via 10, Bilbao')
+        RETURNING "id_proveedor" INTO prov_id;
+    ELSE
+        SELECT "id_proveedor" INTO prov_id FROM "Proveedores" WHERE "nombre" = 'Bright Supply' AND "id_empresa" = empresa_bright;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Productos" WHERE "nombre_producto" = 'Ortodoncia Invisible BS' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Productos" ("id_empresa","nombre_producto","precio","coste","vendible","stock_actual","stock_minimo")
+        VALUES (empresa_bright, 'Ortodoncia Invisible BS', 2500.00, 900.00, true, 8, 2)
+        RETURNING "id_producto" INTO prod_id;
+    ELSE
+        SELECT "id_producto" INTO prod_id FROM "Productos" WHERE "nombre_producto" = 'Ortodoncia Invisible BS' AND "id_empresa" = empresa_bright;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_bright) THEN
+        INSERT INTO "Tratamientos" ("id_empresa","nombre_tratamiento","descripcion","unidades","precio")
+        VALUES (empresa_bright, 'Ortodoncia invisible', 'Alineadores transparentes', 1, 3000.00)
+        RETURNING "id_tratamiento" INTO trat_id;
+    ELSE
+        SELECT "id_tratamiento" INTO trat_id FROM "Tratamientos" WHERE "nombre_tratamiento" = 'Ortodoncia invisible' AND "id_empresa" = empresa_bright;
+    END IF;
+    IF prod_id IS NOT NULL AND trat_id IS NOT NULL THEN
+        INSERT INTO "Productos_Tratamientos" ("id_empresa","id_producto","id_tratamiento")
+        VALUES (empresa_bright, prod_id, trat_id)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    -- fallback: si no tenemos empleado owner para bright, toma cualquiera de la empresa
+    IF emp_bright_owner IS NULL THEN
+        SELECT "id_empleado" INTO emp_bright_owner
+        FROM "Empleados" e
+        JOIN "Clinicas" c ON c."id_clinica" = e."id_clinica"
+        WHERE c."id_empresa" = empresa_bright
+        ORDER BY e."id_empleado" LIMIT 1;
+    END IF;
+    IF emp_bright_owner_zar IS NULL THEN
+        emp_bright_owner_zar := emp_bright_owner;
+    END IF;
+
+    IF emp_bright_owner IS NOT NULL AND pac_bright_bil IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_bright, clinica_bright_bil, pac_bright_bil, emp_bright_owner, CURRENT_DATE + 6, '09:30', 'Confirmada', 'Plan ortodoncia', 60, 'Normal', 'Alta'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_bright_bil AND "id_clinica" = clinica_bright_bil);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_bright_bil AND "id_clinica" = clinica_bright_bil ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_bright, clinica_bright_bil, pac_bright_bil, cita_id, CURRENT_DATE, 3000.00, 0, 'Parcial', 'Tarjeta'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_bright_bil);
+        END IF;
+    END IF;
+
+    IF (emp_bright_owner_zar IS NOT NULL OR emp_bright_owner IS NOT NULL) AND pac_bright_zar IS NOT NULL THEN
+        INSERT INTO "Citas" ("id_empresa","id_clinica","id_paciente","id_empleado","fecha","hora","estado","notas","duracion_minutos","tipo","prioridad")
+        SELECT empresa_bright, clinica_bright_zar, pac_bright_zar, COALESCE(emp_bright_owner_zar, emp_bright_owner), CURRENT_DATE + 7, '12:30', 'Confirmada', 'Revision anual', 40, 'Normal', 'Media'
+        WHERE NOT EXISTS (SELECT 1 FROM "Citas" WHERE "id_paciente" = pac_bright_zar AND "id_clinica" = clinica_bright_zar);
+        SELECT "id_cita" INTO cita_id FROM "Citas" WHERE "id_paciente" = pac_bright_zar AND "id_clinica" = clinica_bright_zar ORDER BY "id_cita" DESC LIMIT 1;
+        IF cita_id IS NOT NULL THEN
+            INSERT INTO "Facturacion" ("id_empresa","id_clinica","id_paciente","id_cita","fecha_emision","importe_total","descuento","pago_status","tipo_pago")
+            SELECT empresa_bright, clinica_bright_zar, pac_bright_zar, cita_id, CURRENT_DATE, 95.00, 0, 'Pagado', 'Efectivo'
+            WHERE NOT EXISTS (SELECT 1 FROM "Facturacion" WHERE "id_cita" = cita_id AND "id_paciente" = pac_bright_zar);
+        END IF;
     END IF;
 
 END $$;

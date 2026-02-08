@@ -2,18 +2,18 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Shield } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
 
-// Esquema para administradores
+// Esquema para superadministradores
 const adminSchema = yup.object().shape({
     nombre: yup.string().required('El nombre es requerido'),
     apellido: yup.string().required('El apellido es requerido'),
-    email: yup.string().email('Email inválido').required('El email es requerido'),
-    password: yup.string().test('password-required', 'La contraseña es requerida (min 6 caracteres)', function (value) {
+    email: yup.string().email('Email invalido').required('El email es requerido'),
+    password: yup.string().test('password-required', 'La contrasena es requerida (min 6 caracteres)', function (value) {
         if (this.parent.mode === 'create') {
             return !!value && value.length >= 6;
         }
@@ -41,16 +41,16 @@ const AdminsPage = () => {
     const fetchAdmins = async (term) => {
         try {
             setLoading(true);
-            // Filtramos por roles 'admin' y 'superadmin'
+            // Solo superadmins (rol de sistema)
             const response = await api.get('/users', {
                 params: {
                     search: term,
-                    role_in: 'admin,superadmin'
+                    role_in: 'superadmin'
                 }
             });
-            setUsers(response.data.data);
+            setUsers(response.data.data || []);
         } catch (error) {
-            console.error('Error fetching admins:', error);
+            console.error('Error fetching superadmins:', error);
         } finally {
             setLoading(false);
         }
@@ -72,12 +72,11 @@ const AdminsPage = () => {
                 };
             });
 
-            // Solo mostrar roles administrativos para asignar
-            const adminRoles = normalizedRoles.filter(role => ['admin', 'superadmin'].includes(role._name));
-            setRoles(adminRoles);
+            const superRoles = normalizedRoles.filter(role => ['superadmin'].includes(role._name));
+            setRoles(superRoles);
 
-            if (!editingUser && adminRoles.length > 0) {
-                setValue('id_role', adminRoles[0].id_role);
+            if (!editingUser && superRoles.length > 0) {
+                setValue('id_role', superRoles[0].id_role);
             }
         } catch (error) {
             console.error('Error fetching roles:', error);
@@ -121,8 +120,8 @@ const AdminsPage = () => {
             await api.delete(`/users/${userToDelete.id_usuario}`);
             setUsers(users.filter(u => u.id_usuario !== userToDelete.id_usuario));
         } catch (error) {
-            console.error('Error deleting user:', error);
-            alert('No se pudo eliminar el administrador.');
+            console.error('Error deleting superadmin:', error);
+            alert('No se pudo eliminar el superadmin.');
         } finally {
             setConfirmOpen(false);
             setUserToDelete(null);
@@ -142,7 +141,7 @@ const AdminsPage = () => {
             setModalOpen(false);
             fetchAdmins();
         } catch (error) {
-            console.error('Error saving admin:', error);
+            console.error('Error saving superadmin:', error);
             alert('Error al guardar: ' + (error.response?.data?.message || 'Error desconocido'));
         }
     };
@@ -151,11 +150,11 @@ const AdminsPage = () => {
         <div className="users-page animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h2 className="page-heading">Administradores del sistema</h2>
-                    <p className="page-subheading">Gestiona los usuarios con acceso privilegiado (Super Admin y Admin)</p>
+                    <h2 className="page-heading">Superadministradores del sistema</h2>
+                    <p className="page-subheading">Gestiona usuarios con acceso total (solo Super Admin)</p>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
-                    Nuevo administrador
+                    Nuevo superadmin
                 </Button>
             </div>
 
@@ -164,7 +163,7 @@ const AdminsPage = () => {
                     <Search size={18} className="search-input-icon" />
                     <input
                         type="text"
-                        placeholder="Buscar administrador..."
+                        placeholder="Buscar superadmin..."
                         className="search-input"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -175,14 +174,14 @@ const AdminsPage = () => {
             <Card padding="none" className="users-table-card card-elevated">
                 {loading ? (
                     <div className="loading-state">
-                        <div className="spinner"></div> Cargando administradores...
+                        <div className="spinner"></div> Cargando superadmins...
                     </div>
                 ) : (
                     <div className="table-responsive">
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Administrador</th>
+                                    <th>Superadmin</th>
                                     <th>Email</th>
                                     <th>Rol</th>
                                     <th>Estado</th>
@@ -195,7 +194,7 @@ const AdminsPage = () => {
                                         <td>
                                             <div className="user-cell">
                                                 <div className="user-avatar-sm bg-primary/10 text-primary">
-                                                    {user.nombre.charAt(0)}
+                                                    {user.nombre?.charAt(0)}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-medium text-gray-900">{user.nombre} {user.apellido}</span>
@@ -204,8 +203,8 @@ const AdminsPage = () => {
                                         </td>
                                         <td className="text-gray-600">{user.email}</td>
                                         <td>
-                                            <Badge variant={user.role?.nombre_role === 'superadmin' ? 'primary' : 'info'} dot>
-                                                {user.role?.nombre_role}
+                                            <Badge variant="primary" dot>
+                                                {user.role?.nombre_role || 'superadmin'}
                                             </Badge>
                                         </td>
                                         <td>
@@ -226,7 +225,7 @@ const AdminsPage = () => {
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="5" className="empty-cell">No se encontraron administradores</td>
+                                        <td colSpan="5" className="empty-cell">No se encontraron superadmins</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -238,29 +237,28 @@ const AdminsPage = () => {
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title={editingUser ? 'Editar administrador' : 'Nuevo administrador'}
+                title={editingUser ? 'Editar superadmin' : 'Nuevo superadmin'}
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
                         <Button variant="primary" onClick={handleSubmit(onSubmit)}>
-                            {editingUser ? 'Guardar cambios' : 'Crear administrador'}
+                            {editingUser ? 'Guardar cambios' : 'Crear superadmin'}
                         </Button>
                     </>
                 }
             >
                 <form className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Nombre" placeholder="Ej. Carlos" fullWidth error={errors.nombre?.message} {...register('nombre')} />
-                        <Input label="Apellido" placeholder="Ej. Ruiz" fullWidth error={errors.apellido?.message} {...register('apellido')} />
+                        <Input label="Nombre" placeholder="Ej. Ana" fullWidth error={errors.nombre?.message} {...register('nombre')} />
+                        <Input label="Apellido" placeholder="Ej. Garcia" fullWidth error={errors.apellido?.message} {...register('apellido')} />
                     </div>
-                    <Input label="Email" type="email" placeholder="admin@sistema.com" fullWidth error={errors.email?.message} {...register('email')} />
+                    <Input label="Email" type="email" placeholder="superadmin@sistema.com" fullWidth error={errors.email?.message} {...register('email')} />
 
                     <div className="input-container full-width">
-                        <label className="input-label">Rol de sistema</label>
+                        <label className="input-label">Rol de sistema (solo Super Admin)</label>
                         <div className="select-wrapper">
                             <Shield size={16} className="select-icon" />
-                            <select className="select-field" {...register('id_role')}>
-                                <option value="">Selecciona un rol...</option>
+                            <select className="select-field" {...register('id_role')} disabled>
                                 {roles.map(role => (
                                     <option key={role.id_role} value={role.id_role}>
                                         {role.nombre_role}
@@ -272,7 +270,7 @@ const AdminsPage = () => {
                     </div>
 
                     <Input
-                        label={editingUser ? "Nueva contraseña (opcional)" : "Contraseña"}
+                        label={editingUser ? 'Nueva contrasena (opcional)' : 'Contrasena'}
                         type="password"
                         fullWidth
                         error={errors.password?.message}
@@ -285,8 +283,8 @@ const AdminsPage = () => {
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={handleDelete}
-                title="Eliminar administrador"
-                message={`¿Estás seguro de que deseas eliminar a ${userToDelete?.nombre}?`}
+                title="Eliminar superadmin"
+                message={`Estas seguro de que deseas eliminar a ${userToDelete?.nombre}?`}
                 confirmText="Eliminar"
                 variant="danger"
             />

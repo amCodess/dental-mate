@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -15,12 +15,21 @@ import ProductsPage from './pages/ProductsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import TreatmentsPage from './pages/TreatmentsPage';
 import UsersPage from './pages/UsersPage';
+import ClinicSelectorPage from './pages/ClinicSelectorPage';
+import { getStoredSelection } from './utils/clinicSelection';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requireClinic = false }) => {
     const { user, loading } = useAuth();
+    const location = useLocation();
 
     if (loading) return <div className="flex justify-center items-center h-screen">Cargando...</div>;
     if (!user) return <Navigate to="/login" />;
+    if (requireClinic) {
+        const stored = getStoredSelection();
+        if (!stored.clinicId) {
+            return <Navigate to="/select-clinic" replace state={{ from: location }} />;
+        }
+    }
 
     return children;
 };
@@ -32,9 +41,14 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/select-clinic" element={
+                        <ProtectedRoute>
+                            <ClinicSelectorPage />
+                        </ProtectedRoute>
+                    } />
 
                     <Route path="/" element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requireClinic>
                             <Layout />
                         </ProtectedRoute>
                     }>

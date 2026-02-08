@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class UserController extends Controller
 {
@@ -20,15 +21,15 @@ class UserController extends Controller
 
         $query = User::query()
             ->select([
-                'id_usuario',
-                'nombre',
-                'apellido',
-                'email',
-                'id_role',
-                'estado'
+                'Usuarios.id_usuario',
+                'Usuarios.nombre',
+                'Usuarios.apellido',
+                'Usuarios.email',
+                'Usuarios.id_role',
+                'Usuarios.estado'
             ])
             ->with('role')
-            ->where('deleted', false);
+            ->where('Usuarios.deleted', false);
 
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -50,13 +51,26 @@ class UserController extends Controller
         // Filtrar por clínica
         if ($request->has('clinic_id')) {
             $clinicId = $request->get('clinic_id');
-            $query->whereHas('clinics', function ($q) use ($clinicId) {
-                $q->where('Usuarios_Clinicas.id_clinica', $clinicId);
+            $query->join('Usuarios_Clinicas as uc', function ($join) use ($clinicId) {
+                $join->on('Usuarios.id_usuario', '=', 'uc.id_usuario')
+                    ->where('uc.id_clinica', '=', $clinicId);
             });
+            if ($this->supportsMenuVisibility()) {
+                $query->addSelect([
+                    'uc.id_clinica as clinic_id',
+                    'uc.menu_citas as menu_citas',
+                    'uc.menu_pacientes as menu_pacientes',
+                    'uc.menu_facturacion as menu_facturacion',
+                    'uc.menu_productos as menu_productos',
+                    'uc.menu_proveedores as menu_proveedores',
+                    'uc.menu_tratamientos as menu_tratamientos',
+                    'uc.menu_usuarios as menu_usuarios'
+                ]);
+            }
         }
 
         // Paginación
-        $users = $query->orderBy('id_usuario', 'desc')->simplePaginate(10);
+        $users = $query->orderBy('Usuarios.id_usuario', 'desc')->simplePaginate(10);
 
         return response()->json($users);
     }
@@ -72,7 +86,14 @@ class UserController extends Controller
             'email' => 'required|email|unique:Usuarios,email',
             'password' => 'required|string|min:6',
             'id_role' => 'required|exists:Roles,id_role',
-            'clinic_id' => 'nullable|exists:Clinicas,id_clinica'
+            'clinic_id' => 'nullable|exists:Clinicas,id_clinica',
+            'menu_citas' => 'sometimes|boolean',
+            'menu_pacientes' => 'sometimes|boolean',
+            'menu_facturacion' => 'sometimes|boolean',
+            'menu_productos' => 'sometimes|boolean',
+            'menu_proveedores' => 'sometimes|boolean',
+            'menu_tratamientos' => 'sometimes|boolean',
+            'menu_usuarios' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -94,11 +115,13 @@ class UserController extends Controller
             if ($request->has('clinic_id')) {
                 $clinic = \App\Models\Clinic::find($request->clinic_id);
                 if ($clinic) {
+                    $menuVisibility = $this->getMenuVisibility($request, true);
                     // Associate to clinic AND company
                     $user->clinics()->syncWithoutDetaching([
                         $clinic->id_clinica => [
                             'rol' => 'empleado',
-                            'id_empresa' => $clinic->id_empresa
+                            'id_empresa' => $clinic->id_empresa,
+                            ...$menuVisibility
                         ]
                     ]);
                     // Also associate to company directly if needed? 
@@ -148,7 +171,15 @@ class UserController extends Controller
             'email' => 'sometimes|email|unique:Usuarios,email,' . $id . ',id_usuario',
             'password' => 'sometimes|nullable|string|min:6',
             'id_role' => 'sometimes|exists:Roles,id_role',
-            'estado' => 'sometimes|in:activo,inactivo'
+            'estado' => 'sometimes|in:activo,inactivo',
+            'clinic_id' => 'sometimes|exists:Clinicas,id_clinica',
+            'menu_citas' => 'sometimes|boolean',
+            'menu_pacientes' => 'sometimes|boolean',
+            'menu_facturacion' => 'sometimes|boolean',
+            'menu_productos' => 'sometimes|boolean',
+            'menu_proveedores' => 'sometimes|boolean',
+            'menu_tratamientos' => 'sometimes|boolean',
+            'menu_usuarios' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -172,6 +203,27 @@ class UserController extends Controller
             }
 
             $user->save();
+
+            if ($request->has('clinic_id')) {
+                $clinicId = $request->get('clinic_id');
+                $menuVisibility = $this->getMenuVisibility($request, false);
+
+                if (!empty($menuVisibility)) {
+                    $pivot = DB::table('Usuarios_Clinicas')
+                        ->where('id_usuario', $user->id_usuario)
+                        ->where('id_clinica', $clinicId)
+                        ->first();
+
+                    if (!$pivot) {
+                        return response()->json(['error' => 'Usuario no asociado a la clínica especificada'], 404);
+                    }
+
+                    DB::table('Usuarios_Clinicas')
+                        ->where('id_usuario', $user->id_usuario)
+                        ->where('id_clinica', $clinicId)
+                        ->update($menuVisibility);
+                }
+            }
 
             return response()->json([
                 'message' => 'Usuario actualizado exitosamente',
@@ -208,5 +260,39 @@ class UserController extends Controller
         // Si 'deleted' no está en fillable, $user->deleted = true funciona igual por asignación directa de propiedad.
 
         return response()->json(['message' => 'Usuario eliminado correctamente']);
+    }
+
+    private function getMenuVisibility(Request $request, bool $useDefaults): array
+    {
+        if (!$this->supportsMenuVisibility()) {
+            return [];
+        }
+
+        $fields = [
+            'menu_citas',
+            'menu_pacientes',
+            'menu_facturacion',
+            'menu_productos',
+            'menu_proveedores',
+            'menu_tratamientos',
+            'menu_usuarios'
+        ];
+
+        $visibility = [];
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $visibility[$field] = $request->boolean($field);
+            } elseif ($useDefaults) {
+                $visibility[$field] = true;
+            }
+        }
+
+        return $visibility;
+    }
+
+    private function supportsMenuVisibility(): bool
+    {
+        return Schema::hasTable('Usuarios_Clinicas')
+            && Schema::hasColumn('Usuarios_Clinicas', 'menu_citas');
     }
 }

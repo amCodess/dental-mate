@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { clearSelection } from '../utils/clinicSelection';
 
 const AuthContext = createContext();
 
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         // Optional: call API logout
         localStorage.removeItem('token');
+        clearSelection();
         setUser(null);
     };
 

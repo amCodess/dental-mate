@@ -1,0 +1,94 @@
+﻿.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.dialog-grid.full {
+  grid-template-columns: 1fr;
+}
+.product-picker {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.product-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.product-list-scroll {
+  max-height: 220px;
+  overflow: auto;
+  display: grid;
+  gap: var(--space-2);
+}
+.product-tile {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+  background: white;
+  cursor: pointer;
+  transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+.product-tile:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-sm);
+}
+.product-tile.selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 6px 18px rgba(10,77,104,0.15);
+}
+.product-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.product-name {
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+.product-price {
+  font-weight: 600;
+  color: var(--color-primary-700);
+}
+.product-chipbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.product-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-primary-100);
+}
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+auto-price-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}
+@media (max-width: 900px) {
+  .dialog-grid { grid-template-columns: 1fr; }
+}

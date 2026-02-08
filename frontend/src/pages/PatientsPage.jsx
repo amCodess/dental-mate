@@ -10,6 +10,7 @@ import { Button, Input, Card, Modal, Badge, ConfirmDialog } from '../components/
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './PatientsPage.css';
 import { useLocation } from 'react-router-dom';
+import { getStoredSelection } from '../utils/clinicSelection';
 
 const patientSchema = yup.object().shape({
     nombre: yup.string().required('El nombre es requerido'),
@@ -24,9 +25,10 @@ const patientSchema = yup.object().shape({
 const PatientsPage = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-    const clinicIdParam = searchParams.get('clinicId');
+    const storedSelection = getStoredSelection();
+    const clinicIdParam = searchParams.get('clinicId') || storedSelection.clinicId;
     const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
-    const companyId = Number(searchParams.get('companyId') || 1);
+    const companyId = Number(searchParams.get('companyId') || storedSelection.companyId || 1);
 
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);

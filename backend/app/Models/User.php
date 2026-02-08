@@ -107,7 +107,17 @@ class User extends Authenticatable implements JWTSubject
     public function clinics()
     {
         return $this->belongsToMany(Clinic::class, 'Usuarios_Clinicas', 'id_usuario', 'id_clinica')
-            ->withPivot('rol', 'id_empresa');
+            ->withPivot(
+                'rol',
+                'id_empresa',
+                'menu_citas',
+                'menu_pacientes',
+                'menu_facturacion',
+                'menu_productos',
+                'menu_proveedores',
+                'menu_tratamientos',
+                'menu_usuarios'
+            );
     }
 
     /**

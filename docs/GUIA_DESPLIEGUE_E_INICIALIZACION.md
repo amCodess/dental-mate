@@ -29,15 +29,27 @@ Esta es la forma más sencilla de levantar el entorno completo asegurando compat
     - **backend**: Laravel en http://localhost:8000.
     - **frontend**: React + Vite en http://localhost:5173.
 
+### 1.2.1 Inicializacion limpia (recomendada para evitar errores de login)
+Usa estos pasos si quieres que TODO se inicialice desde `backend/database/init_database.sql`.
+1.  Borra el volumen de la base de datos:
+    ```bash
+    docker compose down -v
+    ```
+2.  Levanta todo de nuevo:
+    ```bash
+    docker compose up -d --build
+    ```
+3.  Espera a que el backend termine de arrancar (revisa con `docker compose logs -f backend`).
+4.  Entra al frontend y prueba el login con las credenciales por defecto.
+
 ### 1.3 Configuración inicial
 1.  Espera unos segundos a que el contenedor de backend instale las dependencias automáticamente (monitoriza con `docker compose logs -f backend`).
-2.  Configura entorno y clave (solo la primera vez):
-    ```bash
-    docker compose exec backend php artisan key:generate
-    ```
-3.  La base de datos se inicializa automáticamente en el primer arranque del contenedor `db` (se ejecuta `backend/database/init_database.sql` cuando el volumen está vacío).
-4.  Las migraciones de Laravel se ejecutan automáticamente al arrancar el contenedor `backend` (incluye índices de rendimiento).
-    - Si necesitas forzarlas manualmente:
+2.  **La clave se genera automaticamente** en cada arranque del backend.
+    - Si quieres desactivar esto, pon `APP_AUTO_KEYGENERATE=false` en `docker-compose.yml`.
+3.  La base de datos se inicializa automáticamente en el primer arranque del contenedor `db` (se ejecuta `backend/database/init_database.sql` cuando el volumen esta vacio).
+4.  **No es necesario ejecutar migraciones** para un entorno limpio. Todo el schema (tablas, enums, indices, datos base) se crea desde `init_database.sql`.
+    - Por defecto el backend NO ejecuta migraciones automaticamente (APP_RUN_MIGRATIONS=false).
+    - Si en algun momento quieres ejecutar migraciones manualmente:
     ```bash
     docker compose exec backend php artisan migrate --force
     ```
@@ -72,6 +84,23 @@ El proyecto incluye **Adminer** para gestionar visualmente la base de datos sin 
 Esto te permitirá ver tablas como `Usuarios`, `cache`, `Roles`, etc.
 
 ### 2. Comandos útiles (Docker)
+Para habilitar migraciones al arrancar el backend:
+```bash
+# 1) Edita docker-compose.yml
+APP_RUN_MIGRATIONS=true
+
+# 2) Reinicia el backend
+docker compose restart backend
+```
+
+Para desactivar la generacion automatica de `APP_KEY`:
+```bash
+# 1) Edita docker-compose.yml
+APP_AUTO_KEYGENERATE=false
+
+# 2) Reinicia el backend
+docker compose restart backend
+```
 
 ---
 
@@ -94,9 +123,9 @@ Configura `.env` hacia `127.0.0.1` y ejecuta:
 ```bash
 cd backend
 composer install
-php artisan key:generate
 php artisan serve
 ```
+> Nota: no es necesario ejecutar `php artisan migrate` si cargaste `init_database.sql`.
 
 ### 2.3 Frontend
 ```bash
@@ -118,9 +147,23 @@ Detén servicios locales (XAMPP, Postgres) que usen los puertos 8000, 5173 o 543
     ```bash
     docker compose down -v
     docker compose up -d --build
-    docker compose exec backend php artisan migrate --force
     ```
 3.  Verifica que el frontend use `VITE_API_URL=http://localhost:8000/api/v1` (si usas Docker local).
+
+**Login devuelve error inesperado (500)**
+1.  Haz una inicializacion limpia para que el schema venga SOLO del script de init:
+    ```bash
+    docker compose down -v
+    docker compose up -d --build
+    ```
+2.  Espera a que el backend termine de arrancar (revisa `docker compose logs -f backend`).
+3.  Intenta nuevamente con:
+    - Usuario: `admin@dentalmate.com`
+    - Contraseña: `Admin123!`
+4.  Si alguien cambio la contraseña del superadmin, fuerza el reset:
+    ```bash
+    docker compose exec backend php artisan db:seed --class=ResetAdminPasswordSeeder
+    ```
 **Error de permisos en `storage/`**
 ```bash
 docker compose exec backend chown -R www-data:www-data /var/www/html/storage
