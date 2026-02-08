@@ -12,7 +12,7 @@ const Header = ({ title, setMobileOpen }) => {
         >
           <Menu size={22} />
         </button>
-        <h1 className="header-simple-title">{title}</h1>
+        {/* título oculto para no mostrar texto a la derecha del sidebar */}
       </div>
     </header>
   );

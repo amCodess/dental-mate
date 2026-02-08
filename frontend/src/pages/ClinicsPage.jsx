@@ -54,7 +54,11 @@ const ClinicsPage = () => {
 
     const onSubmit = async (data) => {
         try {
-            await api.post('/clinics', data);
+            const payload = {
+                ...data,
+                telefono: (data.telefono || '').trim(),
+            };
+            await api.post('/clinics', payload);
             setModalOpen(false);
             fetchData();
         } catch (error) {
@@ -209,7 +213,7 @@ const ClinicsPage = () => {
                     />
 
                     <Input
-                        label="Teléfono de contacto"
+                        label="Telefono de contacto"
                         placeholder="+34 910 000 000"
                         icon={<Phone size={16} />}
                         fullWidth

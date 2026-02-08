@@ -17,26 +17,9 @@ class ClinicController extends Controller
     {
         $user = auth('api')->user();
         $isSuperAdmin = $user && ($user->is_superadmin === true || $user->email === 'admin@dentalmate.com');
-
-        // Superadmin ve todas las clínicas sin restricciones
-        if ($isSuperAdmin) {
-            $allClinics = Clinic::query()
-                ->select([
-                    'Clinicas.id_clinica',
-                    'Clinicas.id_empresa',
-                    'Clinicas.nombre',
-                    'Clinicas.telefono',
-                    'Clinicas.email_recordatorios',
-                    'Clinicas.telefono_recordatorios',
-                    'Clinicas.nombre_remitente',
-                    'Clinicas.direccion',
-                    'Clinicas.fecha_creacion'
-                ])
-                ->with(['company:id_empresa,nombre'])
-                ->where('Clinicas.deleted', false)
-                ->get();
-
-            return response()->json($allClinics);
+        $companyId = $request->get('company_id', $request->get('id_empresa'));
+        if ($companyId !== null && !is_numeric($companyId)) {
+            return response()->json(['message' => 'company_id debe ser numérico'], 422);
         }
 
         $query = Clinic::query()
@@ -54,15 +37,15 @@ class ClinicController extends Controller
             ->with(['company:id_empresa,nombre'])
             ->where('Clinicas.deleted', false);
 
+        if (!is_null($companyId)) {
+            $query->where('Clinicas.id_empresa', (int)$companyId);
+        }
+
         if (!$isSuperAdmin && $user) {
             $query->join('Usuarios_Clinicas as uc', function ($join) use ($user) {
                 $join->on('Clinicas.id_clinica', '=', 'uc.id_clinica')
                     ->where('uc.id_usuario', '=', $user->id_usuario);
             });
-        }
-        
-        if ($request->has('company_id')) {
-            $query->where('Clinicas.id_empresa', $request->get('company_id'));
         }
 
         return response()->json($query->get());
@@ -88,6 +71,12 @@ class ClinicController extends Controller
             return response()->json($validator->errors(), 422);
         }
         $validated = $validator->validated();
+        if (isset($validated['telefono'])) {
+            $validated['telefono'] = preg_replace('/[^0-9+\\-\\s()]/', '', trim($validated['telefono']));
+        }
+        if (isset($validated['telefono_recordatorios'])) {
+            $validated['telefono_recordatorios'] = preg_replace('/[^0-9+\\-\\s()]/', '', trim($validated['telefono_recordatorios']));
+        }
         $company = Company::find($validated['id_empresa']);
         if (!$company) {
             return response()->json(['message' => 'La empresa especificada no existe.'], 404);
@@ -154,6 +143,12 @@ class ClinicController extends Controller
             return response()->json($validator->errors(), 422);
         }
         $validated = $validator->validated();
+        if (isset($validated['telefono'])) {
+            $validated['telefono'] = preg_replace('/[^0-9+\\-\\s()]/', '', trim($validated['telefono']));
+        }
+        if (isset($validated['telefono_recordatorios'])) {
+            $validated['telefono_recordatorios'] = preg_replace('/[^0-9+\\-\\s()]/', '', trim($validated['telefono_recordatorios']));
+        }
         $clinic->update($validated);
 
         return response()->json([

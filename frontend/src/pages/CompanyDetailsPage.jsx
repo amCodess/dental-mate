@@ -64,7 +64,9 @@ const CompanyDetailsPage = () => {
             }
 
             setCompany(resolvedCompany);
-            setClinics(clinicsRes?.data || []);
+            const clinicsData = clinicsRes?.data || [];
+            const filteredByCompany = clinicsData.filter(c => String(c.id_empresa) === String(id));
+            setClinics(filteredByCompany);
         } catch (error) {
             console.error('Error fetching details:', error);
             if (error.response?.status === 401 || error.response?.status === 403) {
@@ -83,8 +85,12 @@ const CompanyDetailsPage = () => {
 
     const handleSaveClinic = async (data) => {
         try {
-            // AÃ±adir id_empresa automÃ¡ticamente
-            const payload = { ...data, id_empresa: id };
+            // Añadir id_empresa automáticamente
+            const payload = { 
+                ...data, 
+                id_empresa: id,
+                telefono: (data.telefono || '').trim(),
+            };
             if (editingClinic) {
                 await api.put(`/clinics/${editingClinic.id_clinica}`, payload);
             } else {
@@ -287,7 +293,7 @@ const CompanyDetailsPage = () => {
                 <form className="form-stack">
                     <Input label="Nombre de la clínica" placeholder="Ej. Centro Madrid" fullWidth error={errors.nombre?.message} {...register('nombre')} />
                     <Input label="Dirección" placeholder="C/ Ejemplo 123" fullWidth icon={<MapPin size={16} />} error={errors.direccion?.message} {...register('direccion')} />
-                    <Input label="TelÃ©fono" placeholder="+34..." fullWidth icon={<Phone size={16} />} error={errors.telefono?.message} {...register('telefono')} />
+                    <Input label="Telefono" placeholder="+34 900 000 000" fullWidth icon={<Phone size={16} />} error={errors.telefono?.message} {...register('telefono')} />
                     <Input label="Correo de recordatorios (opcional)" type="email" fullWidth icon={<Mail size={16} />} error={errors.email_recordatorios?.message} {...register('email_recordatorios')} />
                 </form>
             </Modal>

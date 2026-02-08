@@ -72,8 +72,8 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
       
       <aside className={sidebarClass}>
         <div className="sidebar-header">
-          <div className="logo-container">
-            <div className="logo-icon">DM</div>
+          <div className="logo-container" aria-label="sidebar-brand">
+            {/* Ícono oculto; solo texto de marca */}
             {!collapsed && <span className="logo-text">DentalMate</span>}
           </div>
           <button 
