@@ -13,6 +13,6 @@ class Role extends Model
     protected $fillable = [
         'nombre_role',
         'descripcion',
-        'tipo' // 'empleado' o 'usuario'
+        'tipo' // 'sistema', 'empleado' o 'usuario'
     ];
 }

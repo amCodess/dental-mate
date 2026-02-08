@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Search, Plus, Edit2, Trash2, Calendar, Phone, MapPin, User, FileText } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Calendar, Phone, MapPin, User, FileText, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import api from '../services/api';
 import { Button, Input, Card, Modal, Badge, ConfirmDialog } from '../components/ui';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './PatientsPage.css';
+import { useLocation } from 'react-router-dom';
 
 const patientSchema = yup.object().shape({
     nombre: yup.string().required('El nombre es requerido'),
@@ -21,6 +22,12 @@ const patientSchema = yup.object().shape({
 });
 
 const PatientsPage = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const clinicIdParam = searchParams.get('clinicId');
+    const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
+    const companyId = Number(searchParams.get('companyId') || 1);
+
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
@@ -32,14 +39,14 @@ const PatientsPage = () => {
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(patientSchema),
         defaultValues: {
-            id_empresa: 1, // Por ahora harcodeado o tomar del contexto auth
+            id_empresa: companyId,
         }
     });
 
     const fetchPatients = async (term) => {
         try {
             setLoading(true);
-            const response = await api.get('/patients', { params: { search: term } });
+            const response = await api.get('/patients', { params: { search: term, clinic_id: clinicId || undefined, company_id: companyId || undefined } });
             setPatients(response.data.data);
         } catch (error) {
             console.error('Error fetching patients:', error);
@@ -62,7 +69,7 @@ const PatientsPage = () => {
             fecha_nacimiento: null,
             direccion: '',
             historial_medico: '',
-            id_empresa: 1
+            id_empresa: companyId
         });
         setModalOpen(true);
     };
@@ -107,7 +114,7 @@ const PatientsPage = () => {
                 Object.entries(data).map(([key, value]) => [key, value === '' ? null : value])
             );
 
-            const payload = { ...cleanedData, id_empresa: 1 }; // Asegurar tenant
+            const payload = { ...cleanedData, id_empresa: companyId, id_clinica: clinicId || undefined }; // Asegurar tenant
 
             if (editingPatient) {
                 await api.put(`/patients/${editingPatient.id_paciente}`, payload);
@@ -125,9 +132,14 @@ const PatientsPage = () => {
     return (
         <div className="patients-page animate-fade-in">
             <div className="page-header">
-                <div>
-                    <h2 className="page-heading">Pacientes</h2>
-                    <p className="page-subheading">Gestión y expediente digital</p>
+                <div className="header-left">
+                    <Button variant="ghost" onClick={() => window.history.back()} icon={<ArrowLeft size={16} />}>
+                        Volver
+                    </Button>
+                    <div className="header-titles">
+                        <h2 className="page-heading">Pacientes</h2>
+                        <p className="page-subheading">Gestión y expediente digital</p>
+                    </div>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
                     Nuevo paciente
@@ -153,45 +165,47 @@ const PatientsPage = () => {
                 ) : patients.length > 0 ? (
                     patients.map(patient => (
                         <Card key={patient.id_paciente} className="patient-card" padding="md">
-                            <div className="patient-card-header">
-                                <div className="patient-avatar">
-                                    {patient.nombre ? patient.nombre.charAt(0) : 'P'}
+                            <div className="patient-card-body">
+                                <div className="patient-card-header">
+                                    <div className="patient-avatar">
+                                        {patient.nombre ? patient.nombre.charAt(0) : 'P'}
+                                    </div>
+                                    <div className="patient-info">
+                                        <h3 className="patient-name">{patient.nombre} {patient.apellido}</h3>
+                                        <p className="patient-meta">
+                                            Exp: {patient.id_paciente.toString().padStart(6, '0')}
+                                        </p>
+                                    </div>
+                                    <div className="patient-actions">
+                                        <button className="icon-btn" onClick={() => handleOpenEdit(patient)}>
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button className="icon-btn text-error" onClick={() => handleDeleteClick(patient)}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="patient-info">
-                                    <h3 className="patient-name">{patient.nombre} {patient.apellido}</h3>
-                                    <p className="patient-meta">
-                                        Exp: {patient.id_paciente.toString().padStart(6, '0')}
-                                    </p>
-                                </div>
-                                <div className="patient-actions">
-                                    <button className="icon-btn" onClick={() => handleOpenEdit(patient)}>
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button className="icon-btn text-error" onClick={() => handleDeleteClick(patient)}>
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                            </div>
 
-                            <div className="patient-details">
-                                {patient.telefono && (
-                                    <div className="detail-row">
-                                        <Phone size={14} className="detail-icon" />
-                                        <span>{patient.telefono}</span>
-                                    </div>
-                                )}
-                                {patient.fecha_nacimiento && (
-                                    <div className="detail-row">
-                                        <Calendar size={14} className="detail-icon" />
-                                        <span>{format(new Date(patient.fecha_nacimiento), 'dd MMM yyyy', { locale: es })}</span>
-                                    </div>
-                                )}
-                                {patient.direccion && (
-                                    <div className="detail-row">
-                                        <MapPin size={14} className="detail-icon" />
-                                        <span>{patient.direccion}</span>
-                                    </div>
-                                )}
+                                <div className="patient-details">
+                                    {patient.telefono && (
+                                        <div className="detail-row">
+                                            <Phone size={14} className="detail-icon" />
+                                            <span>{patient.telefono}</span>
+                                        </div>
+                                    )}
+                                    {patient.fecha_nacimiento && (
+                                        <div className="detail-row">
+                                            <Calendar size={14} className="detail-icon" />
+                                            <span>{format(new Date(patient.fecha_nacimiento), 'dd MMM yyyy', { locale: es })}</span>
+                                        </div>
+                                    )}
+                                    {patient.direccion && (
+                                        <div className="detail-row">
+                                            <MapPin size={14} className="detail-icon" />
+                                            <span>{patient.direccion}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="patient-footer">

@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { DollarSign, FileText, Download, Plus, Search, CreditCard, AlertCircle } from 'lucide-react';
+import { DollarSign, FileText, Download, Plus, Search, CreditCard, AlertCircle, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Card, Badge, Modal, Input, LoadingSpinner, EmptyState } from '../components/ui';
 import './BillingPage.css';
 
 const BillingPage = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const clinicIdParam = searchParams.get('clinicId');
+    const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
+    const companyId = Number(searchParams.get('companyId') || 1);
+
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [patients, setPatients] = useState([]);
@@ -14,7 +21,7 @@ const BillingPage = () => {
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
         defaultValues: {
-            id_empresa: 1,
+            id_empresa: companyId,
             tipo_pago: 'Efectivo',
             pago_status: 'Pendiente'
         }
@@ -23,7 +30,7 @@ const BillingPage = () => {
     const fetchInvoices = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/invoices');
+            const response = await api.get('/invoices', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
             setInvoices(response.data.data || response.data);
         } catch (error) {
             console.error('Error fetching invoices:', error);
@@ -34,7 +41,7 @@ const BillingPage = () => {
 
     const fetchPatients = async () => {
         try {
-            const response = await api.get('/patients');
+            const response = await api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
             setPatients(response.data.data || []);
         } catch (error) {
             console.error('Error fetching patients:', error);
@@ -61,14 +68,15 @@ const BillingPage = () => {
         try {
             const payload = {
                 ...data,
-                id_empresa: 1,
+                id_empresa: companyId,
+                id_clinica: clinicId || undefined,
                 id_paciente: parseInt(data.id_paciente),
                 importe_total: parseFloat(data.importe_total)
             };
             await api.post('/invoices', payload);
             setModalOpen(false);
             fetchInvoices();
-            reset({ id_empresa: 1, tipo_pago: 'Efectivo', pago_status: 'Pendiente' });
+            reset({ id_empresa: companyId, tipo_pago: 'Efectivo', pago_status: 'Pendiente' });
         } catch (error) {
             console.error('Error creating invoice:', error);
             alert('Error al crear factura: ' + (error.response?.data?.message || 'Verifique los datos'));
@@ -91,9 +99,14 @@ const BillingPage = () => {
     return (
         <div className="billing-page animate-fade-in">
             <div className="page-header">
-                <div>
-                    <h2 className="page-heading">Facturación</h2>
-                    <p className="page-subheading">Control de ingresos y facturas emitidas</p>
+                <div className="header-left">
+                    <Button variant="ghost" onClick={() => window.history.back()} icon={<ArrowLeft size={16} />}>
+                        Volver
+                    </Button>
+                    <div className="header-titles">
+                        <h2 className="page-heading">Facturación</h2>
+                        <p className="page-subheading">Control de ingresos y facturas emitidas</p>
+                    </div>
                 </div>
                 <Button onClick={() => setModalOpen(true)} icon={<Plus size={18} />}>
                     Nueva factura

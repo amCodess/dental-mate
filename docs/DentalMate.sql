@@ -50,7 +50,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Rol_tipo_enum') THEN
-    CREATE TYPE "Rol_tipo_enum" AS ENUM ('empleado','usuario');
+    CREATE TYPE "Rol_tipo_enum" AS ENUM ('empleado','usuario','sistema');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Consentimiento_estado_enum') THEN

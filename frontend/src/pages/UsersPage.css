@@ -7,6 +7,27 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--space-6);
+    gap: var(--space-4);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.header-titles .page-heading {
+    margin: 0;
+}
+
+.header-titles .page-subheading {
+    margin: 0;
 }
 
 .page-heading {

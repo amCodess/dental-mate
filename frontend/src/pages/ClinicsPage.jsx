@@ -69,11 +69,11 @@ const ClinicsPage = () => {
         <div className="clinics-page animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h2 className="page-heading">Gestión de Clínicas</h2>
+                    <h2 className="page-heading">Gestión de clínicas</h2>
                     <p className="page-subheading">Administra las clínicas y sucursales asociadas a empresas</p>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
-                    Nueva Clínica
+                    Nueva clínica
                 </Button>
             </div>
 
@@ -101,7 +101,7 @@ const ClinicsPage = () => {
                             <thead>
                                 <tr>
                                     <th>Clínica</th>
-                                    <th>Empresa Madre</th>
+                                    <th>Empresa madre</th>
                                     <th>Dirección</th>
                                     <th>Contacto</th>
                                 </tr>
@@ -157,19 +157,19 @@ const ClinicsPage = () => {
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title="Registrar Nueva Clínica"
+                title="Registrar nueva clínica"
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
                         <Button variant="primary" onClick={handleSubmit(onSubmit)}>
-                            Crear Clínica
+                            Crear clínica
                         </Button>
                     </>
                 }
             >
                 <form className="clinic-form space-y-4">
                     <div className="input-container full-width">
-                        <label className="input-label">Empresa Madre</label>
+                        <label className="input-label">Empresa madre</label>
                         <div className="select-wrapper">
                             <Building size={16} className="select-icon" />
                             <select className="select-field" {...register('id_empresa')}>
@@ -185,8 +185,8 @@ const ClinicsPage = () => {
                     </div>
 
                     <Input
-                        label="Nombre de la Clínica"
-                        placeholder="Ej. Clínica Central Madrid"
+                        label="Nombre de la clínica"
+                        placeholder="Ej. Clínica central Madrid"
                         icon={<Building size={16} />}
                         fullWidth
                         error={errors.nombre?.message}
@@ -194,7 +194,7 @@ const ClinicsPage = () => {
                     />
 
                     <Input
-                        label="Dirección Física"
+                        label="Dirección física"
                         placeholder="Calle Principal 123, 28001 Madrid"
                         icon={<MapPin size={16} />}
                         fullWidth
@@ -203,7 +203,7 @@ const ClinicsPage = () => {
                     />
 
                     <Input
-                        label="Teléfono de Contacto"
+                        label="Teléfono de contacto"
                         placeholder="+34 910 000 000"
                         icon={<Phone size={16} />}
                         fullWidth

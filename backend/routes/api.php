@@ -7,6 +7,8 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 
 Route::prefix('v1')->group(function () {
 
@@ -32,6 +34,8 @@ Route::prefix('v1')->group(function () {
         Route::get('appointments/availability', [AppointmentController::class, 'availability']); // Custom extra route
 
         Route::apiResource('treatments', TreatmentController::class);
+        Route::apiResource('products', ProductController::class);
+        Route::apiResource('suppliers', SupplierController::class);
 
         Route::apiResource('invoices', InvoiceController::class);
         Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf']);

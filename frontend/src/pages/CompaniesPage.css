@@ -1,0 +1,62 @@
+.company-action-header {
+    min-width: 160px;
+}
+
+.company-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary-600);
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.company-action-btn.icon-right {
+    flex-direction: row-reverse;
+}
+
+.company-action-btn .btn-content {
+    display: inline-flex;
+    align-items: center;
+}
+
+.company-avatar {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--color-primary-600);
+    padding: 8px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.company-name {
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.company-nif {
+    color: var(--color-gray-600);
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.company-contact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-gray-600);
+}
+
+.company-date {
+    color: var(--color-gray-500);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .company-action-header {
+        min-width: 120px;
+    }
+}

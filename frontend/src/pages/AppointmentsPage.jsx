@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
     format,
     startOfMonth,
@@ -14,13 +15,19 @@ import {
     parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, X, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '../services/api';
 import { Button, Card, Modal, Input, Badge } from '../components/ui';
 import './AppointmentsPage.css';
 
 const AppointmentsPage = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const clinicIdParam = searchParams.get('clinicId');
+    const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
+    const companyId = Number(searchParams.get('companyId') || 1);
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [appointments, setAppointments] = useState([]);
@@ -31,7 +38,7 @@ const AppointmentsPage = () => {
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
         defaultValues: {
-            id_empresa: 1,
+            id_empresa: companyId,
             duracion_minutos: 30
         }
     });
@@ -48,7 +55,7 @@ const AppointmentsPage = () => {
         try {
             setLoading(true);
             // In a real app, pass start/end dates to filter by month
-            const response = await api.get('/appointments');
+            const response = await api.get('/appointments', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } });
             setAppointments(response.data);
         } catch (error) {
             console.error('Error fetching appointments:', error);
@@ -59,7 +66,7 @@ const AppointmentsPage = () => {
 
     const fetchPatients = async () => {
         try {
-            const response = await api.get('/patients'); // Pagination might be an issue in real app
+            const response = await api.get('/patients', { params: { clinic_id: clinicId || undefined, company_id: companyId || undefined } }); // Pagination might be an issue in real app
             setPatients(response.data.data || []);
         } catch (error) {
             console.error('Error fetching patients:', error);
@@ -69,7 +76,7 @@ const AppointmentsPage = () => {
     useEffect(() => {
         fetchAppointments();
         fetchPatients();
-    }, [currentDate]);
+    }, [currentDate, clinicId, companyId]);
 
     const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
     const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -84,7 +91,7 @@ const AppointmentsPage = () => {
             fecha: format(selectedDate, 'yyyy-MM-dd'),
             hora: '09:00',
             duracion_minutos: 30,
-            id_empresa: 1,
+            id_empresa: companyId,
             id_empleado: 1 // Default employee
         });
         setModalOpen(true);
@@ -94,10 +101,11 @@ const AppointmentsPage = () => {
         try {
             const payload = {
                 ...data,
-                id_empresa: 1,
+                id_empresa: companyId,
                 id_empleado: data.id_empleado || 1, // Default to 1 if not set
                 id_paciente: parseInt(data.id_paciente),
-                duracion_minutos: parseInt(data.duracion_minutos)
+                duracion_minutos: parseInt(data.duracion_minutos),
+                id_clinica: clinicId || undefined
             };
             await api.post('/appointments', payload);
             setModalOpen(false);
@@ -106,7 +114,7 @@ const AppointmentsPage = () => {
                 fecha: format(selectedDate, 'yyyy-MM-dd'),
                 hora: '09:00',
                 duracion_minutos: 30,
-                id_empresa: 1,
+                id_empresa: companyId,
                 id_empleado: 1
             });
         } catch (error) {
@@ -131,9 +139,14 @@ const AppointmentsPage = () => {
     return (
         <div className="appointments-page animate-fade-in">
             <div className="page-header">
-                <div>
-                    <h2 className="page-heading">Calendario de citas</h2>
-                    <p className="page-subheading">Gestiona tu agenda eficientemente</p>
+                <div className="header-left">
+                    <Button variant="ghost" onClick={() => window.history.back()} icon={<ArrowLeft size={16} />}>
+                        Volver
+                    </Button>
+                    <div className="header-titles">
+                        <h2 className="page-heading">Calendario de citas</h2>
+                        <p className="page-subheading">Gestiona tu agenda eficientemente</p>
+                    </div>
                 </div>
                 <div className="header-controls">
                     <div className="date-navigation">

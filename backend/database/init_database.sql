@@ -50,7 +50,7 @@ BEGIN
     CREATE TYPE "Operacion_enum" AS ENUM ('INSERT','UPDATE','DELETE');
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Rol_tipo_enum') THEN
-    CREATE TYPE "Rol_tipo_enum" AS ENUM ('empleado','usuario');
+    CREATE TYPE "Rol_tipo_enum" AS ENUM ('empleado','usuario','sistema');
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Consentimiento_estado_enum') THEN
     CREATE TYPE "Consentimiento_estado_enum" AS ENUM ('Aceptado','Rechazado','Pendiente');
@@ -830,10 +830,26 @@ BEGIN
     -- 4.1. Create Role 'superadmin' if not exists
     IF NOT EXISTS (SELECT 1 FROM "Roles" WHERE "nombre_role" = 'superadmin') THEN
         INSERT INTO "Roles" ("nombre_role", "descripcion", "tipo")
-        VALUES ('superadmin', 'Super Administrator', 'empleado')
+        VALUES ('superadmin', 'Super Administrator', 'sistema')
         RETURNING "id_role" INTO role_id;
     ELSE
         SELECT "id_role" INTO role_id FROM "Roles" WHERE "nombre_role" = 'superadmin';
+    END IF;
+
+    -- 4.1.1. Ensure base roles exist (admin, empleado, usuario)
+    IF NOT EXISTS (SELECT 1 FROM "Roles" WHERE "nombre_role" = 'admin') THEN
+        INSERT INTO "Roles" ("nombre_role", "descripcion", "tipo")
+        VALUES ('admin', 'Administrador del sistema', 'empleado');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Roles" WHERE "nombre_role" = 'empleado') THEN
+        INSERT INTO "Roles" ("nombre_role", "descripcion", "tipo")
+        VALUES ('empleado', 'Empleado de la clÃ­nica', 'empleado');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM "Roles" WHERE "nombre_role" = 'usuario') THEN
+        INSERT INTO "Roles" ("nombre_role", "descripcion", "tipo")
+        VALUES ('usuario', 'Usuario estÃ¡ndar', 'usuario');
     END IF;
 
     -- 4.2. Create Company 'DentalMate HQ'

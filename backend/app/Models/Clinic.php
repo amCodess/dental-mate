@@ -28,7 +28,7 @@ class Clinic extends Model
      *
      * @var string
      */
-    // Standard timestamps
+    const CREATED_AT = 'fecha_creacion';
 
     /**
      * Campos asignables masivamente.
@@ -62,6 +62,6 @@ class Clinic extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class, 'id_empresa', 'id');
+        return $this->belongsTo(Company::class, 'id_empresa', 'id_empresa');
     }
 }

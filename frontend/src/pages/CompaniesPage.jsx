@@ -7,6 +7,7 @@ import { Plus, Search, Building, Phone, Mail, FileText, ChevronRight } from 'luc
 import api from '../services/api';
 import { Button, Input, Card, Modal } from '../components/ui';
 import './UsersPage.css';
+import './CompaniesPage.css';
 
 const companySchema = yup.object().shape({
     nombre: yup.string().required('El nombre de la empresa es requerido'),
@@ -62,8 +63,8 @@ const CompaniesPage = () => {
     };
 
     const filteredCompanies = companies.filter(company =>
-        company.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.nif.toLowerCase().includes(searchTerm.toLowerCase())
+        company.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.nif?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -106,85 +107,59 @@ const CompaniesPage = () => {
                                     <th style={{ width: '22%' }}>Correo electrónico</th>
                                     <th style={{ width: '15%' }}>Teléfono</th>
                                     <th style={{ width: '13%' }}>Fecha de creación</th>
-                                    <th style={{ width: '10%', textAlign: 'right' }}>Acción</th>
+                                    <th className="company-action-header" style={{ textAlign: 'right' }}>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredCompanies.length > 0 ? filteredCompanies.map((company) => (
-                                    <tr 
-                                        key={company.id_empresa} 
+                                    <tr
+                                        key={company.id_empresa}
                                         onClick={() => handleRowClick(company.id_empresa)}
                                         className="cursor-pointer hover:bg-gray-50 transition-colors"
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <td>
                                             <div className="user-cell">
-                                                <div className="bg-primary/10 p-2 rounded-full text-primary" style={{ 
-                                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                                                    padding: '8px',
-                                                    borderRadius: '9999px',
-                                                    color: 'var(--color-primary-600)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    minWidth: '36px',
-                                                    minHeight: '36px'
-                                                }}>
+                                                <div className="company-avatar">
                                                     <Building size={16} />
                                                 </div>
-                                                <span className="font-medium" style={{ 
-                                                    fontWeight: '500',
-                                                    color: 'var(--color-gray-900)'
-                                                }}>
+                                                <span className="company-name">
                                                     {company.nombre}
                                                 </span>
                                             </div>
                                         </td>
                                         <td>
-                                            <span style={{ 
-                                                color: 'var(--color-gray-600)',
-                                                fontFamily: 'monospace',
-                                                fontSize: '0.875rem'
-                                            }}>
+                                            <span className="company-nif">
                                                 {company.nif}
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{ 
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                color: 'var(--color-gray-600)'
-                                            }}>
+                                            <div className="company-contact">
                                                 <Mail size={14} />
                                                 <span>{company.email}</span>
                                             </div>
                                         </td>
                                         <td>
-                                            <div style={{ 
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                color: 'var(--color-gray-600)'
-                                            }}>
+                                            <div className="company-contact">
                                                 <Phone size={14} />
                                                 <span>{company.telefono}</span>
                                             </div>
                                         </td>
-                                        <td style={{ 
-                                            color: 'var(--color-gray-500)',
-                                            fontSize: '0.875rem'
-                                        }}>
+                                        <td className="company-date">
                                             {new Date(company.fecha_creacion).toLocaleDateString('es-ES')}
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <Button variant="ghost" size="sm" style={{ 
-                                                color: 'var(--color-primary-600)',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '4px'
-                                            }}>
-                                                Ver clínicas <ChevronRight size={16} />
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="company-action-btn icon-right"
+                                                icon={<ChevronRight size={16} />}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRowClick(company.id_empresa);
+                                                }}
+                                            >
+                                                Ver clínicas
                                             </Button>
                                         </td>
                                     </tr>
@@ -235,7 +210,7 @@ const CompaniesPage = () => {
                         {...register('nif')}
                     />
 
-                    <div style={{ 
+                    <div style={{
                         display: 'grid',
                         gridTemplateColumns: '1fr 1fr',
                         gap: '1rem'

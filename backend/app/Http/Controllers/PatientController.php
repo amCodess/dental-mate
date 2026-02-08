@@ -16,6 +16,14 @@ class PatientController extends Controller
     {
         $query = Patient::query()->where('deleted', false);
 
+        if ($request->has('company_id') && !empty($request->company_id)) {
+            $query->where('id_empresa', $request->company_id);
+        }
+
+        if ($request->has('clinic_id') && !empty($request->clinic_id)) {
+            $query->where('id_clinica', $request->clinic_id);
+        }
+
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

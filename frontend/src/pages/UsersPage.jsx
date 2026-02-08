@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, User as UserIcon, Mail, Lock, Shield, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { Button, Input, Card, Badge, Modal, ConfirmDialog } from '../components/ui';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import './UsersPage.css';
+import { useLocation } from 'react-router-dom';
 
 // Esquema de validación
 const userSchema = yup.object().shape({
@@ -23,6 +24,12 @@ const userSchema = yup.object().shape({
 });
 
 const UsersPage = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const clinicIdParam = searchParams.get('clinicId');
+    const clinicId = clinicIdParam ? Number(clinicIdParam) : null;
+    const companyId = Number(searchParams.get('companyId') || 1);
+
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,14 +44,15 @@ const UsersPage = () => {
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(userSchema),
-        defaultValues: { mode: 'create', id_role: 2 }
+        defaultValues: { mode: 'create', id_role: '', id_empresa: companyId }
     });
 
     const fetchUsers = async (term) => {
         try {
             setLoading(true);
-            const response = await api.get('/users', { params: { search: term } });
-            setUsers(response.data.data);
+            const response = await api.get('/users', { params: { search: term, clinic_id: clinicId || undefined, company_id: companyId || undefined } });
+            const filtered = (response.data.data || []).filter(u => u.role?.nombre_role !== 'superadmin');
+            setUsers(filtered);
         } catch (error) {
             console.error('Error fetching users:', error);
         } finally {
@@ -55,7 +63,27 @@ const UsersPage = () => {
     const fetchRoles = async () => {
         try {
             const response = await api.get('/roles');
-            setRoles(response.data);
+            const rawRoles = Array.isArray(response.data)
+                ? response.data
+                : (response.data?.data || []);
+
+            const normalizedRoles = rawRoles.map(role => {
+                const roleName = role.nombre_role || role.nombre || '';
+                return {
+                    ...role,
+                    nombre_role: role.nombre_role || role.nombre,
+                    _name: roleName.toLowerCase().trim()
+                };
+            });
+
+            const filteredRoles = normalizedRoles.filter(role => role._name && role._name !== 'superadmin');
+            const rolesToUse = filteredRoles.length > 0 ? filteredRoles : normalizedRoles;
+
+            setRoles(rolesToUse);
+
+            if (!editingUser && rolesToUse.length > 0) {
+                setValue('id_role', rolesToUse[0].id_role);
+            }
         } catch (error) {
             console.error('Error fetching roles:', error);
         }
@@ -71,7 +99,8 @@ const UsersPage = () => {
 
     const handleOpenCreate = () => {
         setEditingUser(null);
-        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: 2 });
+        const firstRoleId = roles[0]?.id_role || '';
+        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId, id_empresa: companyId });
         setModalOpen(true);
     };
 
@@ -112,14 +141,16 @@ const UsersPage = () => {
 
     const onSubmit = async (data) => {
         try {
-            if (editingUser) {
-                const payload = { ...data };
-                if (!payload.password) delete payload.password;
-                delete payload.mode;
+            const payload = { ...data };
+            const fallbackRole = roles[0]?.id_role;
+            payload.id_role = Number(payload.id_role || fallbackRole || 0);
+            if (!payload.password) delete payload.password;
+            delete payload.mode;
 
+            if (editingUser) {
                 await api.put(`/users/${editingUser.id_usuario}`, payload);
             } else {
-                await api.post('/users', data);
+                await api.post('/users', { ...payload, id_empresa: companyId, clinic_id: clinicId || undefined });
             }
             setModalOpen(false);
             fetchUsers();
@@ -129,9 +160,9 @@ const UsersPage = () => {
         }
     };
 
-    const getRoleBadge = (roleId) => {
-        const role = roles.find(r => r.id_role === roleId);
-        const roleName = role ? role.nombre_role : 'desconocido';
+    const getRoleBadge = (user) => {
+        const roleFromList = roles.find(r => r.id_role === user.id_role);
+        const roleName = user?.role?.nombre_role || roleFromList?.nombre_role || 'desconocido';
 
         switch (roleName) {
             case 'superadmin': return <Badge variant="primary" dot>{roleName}</Badge>;
@@ -144,9 +175,14 @@ const UsersPage = () => {
     return (
         <div className="users-page animate-fade-in">
             <div className="page-header">
-                <div>
-                    <h2 className="page-heading">Gestión de usuarios</h2>
-                    <p className="page-subheading">Administra los accesos y roles del sistema</p>
+                <div className="header-left">
+                    <Button variant="ghost" onClick={() => window.history.back()} icon={<ArrowLeft size={16} />}>
+                        Volver
+                    </Button>
+                    <div className="header-titles">
+                        <h2 className="page-heading">Gestión de usuarios</h2>
+                        <p className="page-subheading">Administra los accesos y roles del sistema</p>
+                    </div>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
                     Nuevo usuario
@@ -198,7 +234,7 @@ const UsersPage = () => {
                                             </div>
                                         </td>
                                         <td className="text-gray-600">{user.email}</td>
-                                        <td>{getRoleBadge(user.id_role)}</td>
+                                        <td>{getRoleBadge(user)}</td>
                                         <td>
                                             <Badge variant={user.estado === 'activo' ? 'success' : 'neutral'}>
                                                 {user.estado}
@@ -273,21 +309,21 @@ const UsersPage = () => {
                         {...register('email')}
                     />
 
-                    <div className="input-container full-width">
-                        <label className="input-label">Rol de usuario</label>
-                        <div className="select-wrapper">
-                            <Shield size={16} className="select-icon" />
-                            <select className="select-field" {...register('id_role')}>
-                                <option value="">Selecciona un rol</option>
-                                {roles.map(role => (
-                                    <option key={role.id_role} value={role.id_role}>
-                                        {role.nombre_role}
-                                    </option>
-                                ))}
-                            </select>
+                        <div className="input-container full-width">
+                            <label className="input-label">Rol de usuario</label>
+                            <div className="select-wrapper">
+                                <Shield size={16} className="select-icon" />
+                        <select className="select-field" {...register('id_role')}>
+                            <option value="">Selecciona un rol</option>
+                            {roles.map(role => (
+                                <option key={role.id_role} value={role.id_role}>
+                                    {role.nombre_role || role.nombre || 'rol'}
+                                </option>
+                            ))}
+                        </select>
+                            </div>
+                            {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
                         </div>
-                        {errors.id_role && <span className="input-error-message">{errors.id_role.message}</span>}
-                    </div>
 
                     <Input
                         label={editingUser ? "Nueva contraseña (opcional)" : "Contraseña"}

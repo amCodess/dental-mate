@@ -106,12 +106,8 @@ class User extends Authenticatable implements JWTSubject
      */
     public function clinics()
     {
-        return $this->belongsToMany(Clinic::class, 'clinica_user', 'id_usuario', 'id_clinica')
-            ->withPivot('rol', 'id_empresa')
-            ->withTimestamps();
-        // Note: Check if pivotal columns id_usuario/id_clinica are correct in migration.
-        // Migration used: standard conventions likely? 
-        // Migration: $table->foreignId('id_usuario')...
+        return $this->belongsToMany(Clinic::class, 'Usuarios_Clinicas', 'id_usuario', 'id_clinica')
+            ->withPivot('rol', 'id_empresa');
     }
 
     /**
@@ -119,8 +115,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function companies()
     {
-        return $this->belongsToMany(Company::class, 'empresa_user', 'id_usuario', 'id_empresa')
-            ->withPivot('rol')
-            ->withTimestamps();
+        return $this->belongsToMany(Company::class, 'Usuarios_Empresas', 'id_usuario', 'id_empresa')
+            ->withPivot('rol');
     }
 }

@@ -7,6 +7,7 @@ import { AlertTriangle } from 'lucide-react';
 const ConfirmDialog = ({
     isOpen,
     onClose,
+    onCancel,
     onConfirm,
     title,
     message,
@@ -14,21 +15,25 @@ const ConfirmDialog = ({
     cancelText = 'Cancelar',
     variant = 'danger'
 }) => {
+    const handleClose = onClose || onCancel;
+
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={handleClose}
             title={title}
             footer={
                 <>
-                    <Button variant="ghost" onClick={onClose}>
+                    <Button variant="ghost" onClick={handleClose}>
                         {cancelText}
                     </Button>
                     <Button
                         variant={variant}
                         onClick={() => {
                             onConfirm();
-                            onClose();
+                            if (handleClose) {
+                                handleClose();
+                            }
                         }}
                     >
                         {confirmText}

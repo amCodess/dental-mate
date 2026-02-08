@@ -14,10 +14,11 @@ import {
     FileText,
     ChevronRight,
     Edit2,
-    Trash2
+    Trash2,
+    Users
 } from 'lucide-react';
 import api from '../services/api';
-import { Button, Input, Card, Modal, ConfirmDialog, Badge } from '../components/ui';
+import { Button, Input, Card, Modal, ConfirmDialog } from '../components/ui';
 import './CompanyClinicDetails.css';
 
 // Esquema para clínicas (copiado/adaptado de ClinicsPage)
@@ -35,7 +36,10 @@ const CompanyDetailsPage = () => {
     const [clinics, setClinics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
+    const [editingClinic, setEditingClinic] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, clinic: null });
+    const [errorMessage, setErrorMessage] = useState('');
 
     // Formulario para crear clínica
     const { register, handleSubmit, reset, formState: { errors } } = useForm({
@@ -45,16 +49,29 @@ const CompanyDetailsPage = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
+            setErrorMessage('');
+
             const [companyRes, clinicsRes] = await Promise.all([
-                api.get(`/companies/${id}`),
-                api.get('/clinics', { params: { company_id: id } })
+                api.get(`/companies/${id}`).catch(() => null),
+                api.get('/clinics', { params: { company_id: id } }).catch(() => ({ data: [] }))
             ]);
-            setCompany(companyRes.data);
-            setClinics(clinicsRes.data);
+
+            let resolvedCompany = companyRes?.data || null;
+
+            if (!resolvedCompany) {
+                const fallback = await api.get('/companies');
+                resolvedCompany = (fallback.data || []).find(c => String(c.id_empresa) === String(id)) || null;
+            }
+
+            setCompany(resolvedCompany);
+            setClinics(clinicsRes?.data || []);
         } catch (error) {
             console.error('Error fetching details:', error);
-            // Si falla, volver a lista
-            // navigate('/companies');
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                navigate('/login');
+                return;
+            }
+            setErrorMessage('No se pudo cargar la empresa. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -64,11 +81,17 @@ const CompanyDetailsPage = () => {
         fetchData();
     }, [id]);
 
-    const handleCreateClinic = async (data) => {
+    const handleSaveClinic = async (data) => {
         try {
             // Añadir id_empresa automáticamente
-            await api.post('/clinics', { ...data, id_empresa: id });
+            const payload = { ...data, id_empresa: id };
+            if (editingClinic) {
+                await api.put(`/clinics/${editingClinic.id_clinica}`, payload);
+            } else {
+                await api.post('/clinics', payload);
+            }
             setModalOpen(false);
+            setEditingClinic(null);
             fetchData(); // Recargar lista
         } catch (error) {
             console.error('Error creating clinic:', error);
@@ -77,7 +100,19 @@ const CompanyDetailsPage = () => {
     };
 
     const handleOpenCreate = () => {
+        setEditingClinic(null);
         reset({ nombre: '', direccion: '', telefono: '', email_recordatorios: '' });
+        setModalOpen(true);
+    };
+
+    const handleOpenEdit = (clinic) => {
+        setEditingClinic(clinic);
+        reset({
+            nombre: clinic.nombre || '',
+            direccion: clinic.direccion || '',
+            telefono: clinic.telefono || '',
+            email_recordatorios: clinic.email_recordatorios || ''
+        });
         setModalOpen(true);
     };
 
@@ -85,21 +120,53 @@ const CompanyDetailsPage = () => {
         navigate(`/clinics/${clinicId}`);
     };
 
+    const handleDeleteClick = (clinic) => {
+        setConfirmDialog({ isOpen: true, clinic });
+    };
+
+    const handleDeleteClinic = async () => {
+        if (!confirmDialog.clinic) return;
+        try {
+            await api.delete(`/clinics/${confirmDialog.clinic.id_clinica}`);
+            setConfirmDialog({ isOpen: false, clinic: null });
+            fetchData();
+        } catch (error) {
+            console.error('Error deleting clinic:', error);
+            alert('No se pudo eliminar la clínica.');
+        }
+    };
+
     if (loading) {
-        return <div className="p-8 flex justify-center">Cargando detalles...</div>;
+        return <div className="detail-loading">Cargando detalles...</div>;
     }
 
-    if (!company) return <div>Empresa no encontrada</div>;
+    if (!company) {
+        return (
+            <div className="company-details-page detail-page animate-fade-in">
+                <div className="details-header">
+                    <div className="details-heading">
+                        <Building className="text-primary" size={28} />
+                        <span>Empresa no encontrada</span>
+                    </div>
+                    <p className="details-subtitle">{errorMessage || 'No se encontró la empresa solicitada.'}</p>
+                    <div className="details-metadata">
+                        <Button variant="ghost" onClick={() => navigate('/companies')}>Volver a empresas</Button>
+                        <Button variant="primary" onClick={fetchData}>Reintentar</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const filteredClinics = clinics.filter(clinic =>
         clinic.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="company-details-page animate-fade-in">
-            <div className="mb-6">
-                <Button variant="ghost" className="mb-4 pl-0 hover:bg-transparent text-gray-500 hover:text-gray-900" onClick={() => navigate('/companies')}>
-                    <ArrowLeft size={18} className="mr-2" /> Volver a Empresas
+        <div className="company-details-page detail-page animate-fade-in">
+            <div className="detail-hero">
+                <Button variant="ghost" className="company-back-btn" onClick={() => navigate('/companies')}>
+                    <ArrowLeft size={18} /> Volver a empresas
                 </Button>
 
                 <div className="details-header">
@@ -116,96 +183,145 @@ const CompanyDetailsPage = () => {
                 </div>
             </div>
 
-            <div className="page-header mt-8">
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Clínicas Asociadas</h3>
-                    <p className="text-sm text-gray-500">Gestiona las sucursales de esta empresa</p>
+            <section className="detail-section">
+                <div className="page-header">
+                    <div>
+                        <h3 className="section-title">Clínicas asociadas</h3>
+                        <p className="section-subtitle">Gestiona las sucursales de esta empresa</p>
+                    </div>
+                    <Button onClick={handleOpenCreate} size="sm" icon={<Plus size={16} />}>
+                        Nueva clínica
+                    </Button>
                 </div>
-                <Button onClick={handleOpenCreate} size="sm" icon={<Plus size={16} />}>
-                    Nueva Clínica
-                </Button>
-            </div>
 
-            <div className="filters-bar">
-                <div className="search-container">
-                    <Search size={18} className="search-input-icon" />
-                    <input
-                        type="text"
-                        placeholder="Buscar clínica..."
-                        className="search-input"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="filters-bar">
+                    <div className="search-container">
+                        <Search size={18} className="search-input-icon" />
+                        <input
+                            type="text"
+                            placeholder="Buscar clínica..."
+                            className="search-input"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
-            </div>
 
-            <Card padding="none" className="users-table-card card-elevated">
-                <div className="table-responsive">
-                    <table className="data-table hoverable-rows">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Dirección</th>
-                                <th>Contacto</th>
-                                <th className="text-right">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredClinics.length > 0 ? filteredClinics.map(clinic => (
-                                <tr
-                                    key={clinic.id_clinica}
-                                    onClick={() => handleClinicClick(clinic.id_clinica)}
-                                    className="cursor-pointer hover:bg-gray-50 transition-colors"
-                                >
-                                    <td className="font-medium text-gray-900">{clinic.nombre}</td>
-                                    <td className="text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin size={14} /> {clinic.direccion}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="flex flex-col text-sm text-gray-600">
-                                            <span><Phone size={12} className="inline mr-1" /> {clinic.telefono}</span>
-                                        </div>
-                                    </td>
-                                    <td className="text-right">
-                                        <Button variant="ghost" size="sm" className="text-primary">
-                                            Gestionar Personal <ChevronRight size={16} />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            )) : (
+                <Card padding="none" className="users-table-card card-elevated">
+                    <div className="table-responsive">
+                        <table className="data-table hoverable-rows">
+                            <thead>
                                 <tr>
-                                    <td colSpan="4" className="empty-cell">No hay clínicas registradas para esta empresa</td>
+                                    <th>Nombre</th>
+                                    <th>Dirección</th>
+                                    <th>Contacto</th>
+                                    <th className="text-center">Acciones</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
+                            </thead>
+                            <tbody>
+                                {filteredClinics.length > 0 ? filteredClinics.map(clinic => (
+                                    <tr
+                                        key={clinic.id_clinica}
+                                        onClick={() => handleClinicClick(clinic.id_clinica)}
+                                        className="clickable-row"
+                                    >
+                                        <td className="font-medium text-gray-900">{clinic.nombre}</td>
+                                        <td className="text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin size={14} /> {clinic.direccion}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="flex flex-col text-sm text-gray-600">
+                                                <span><Phone size={12} className="inline mr-1" /> {clinic.telefono}</span>
+                                            </div>
+                                        </td>
+                                        <td className="text-center">
+                                            <div className="clinic-actions">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="clinic-action-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleClinicClick(clinic.id_clinica);
+                                                    }}
+                                                >
+                                                    <Users size={16} />
+                                                    Ver usuarios
+                                                    <ChevronRight size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="clinic-action-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenEdit(clinic);
+                                                    }}
+                                                >
+                                                    <Edit2 size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="clinic-action-btn danger"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClick(clinic);
+                                                    }}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="4" className="empty-cell">No hay clínicas registradas para esta empresa</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            </section>
 
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title="Nueva Clínica"
+                title={editingClinic ? "Editar clínica" : "Nueva clínica"}
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
-                        <Button variant="primary" onClick={handleSubmit(handleCreateClinic)}>
-                            Crear Clínica
+                        <Button variant="primary" onClick={handleSubmit(handleSaveClinic)}>
+                            {editingClinic ? "Guardar cambios" : "Crear clínica"}
                         </Button>
                     </>
                 }
             >
-                <form className="space-y-4">
-                    <Input label="Nombre de la Clínica" placeholder="Ej. Centro Madrid" fullWidth error={errors.nombre?.message} {...register('nombre')} />
+                <form className="form-stack">
+                    <Input label="Nombre de la clínica" placeholder="Ej. Centro Madrid" fullWidth error={errors.nombre?.message} {...register('nombre')} />
                     <Input label="Dirección" placeholder="C/ Ejemplo 123" fullWidth icon={<MapPin size={16} />} error={errors.direccion?.message} {...register('direccion')} />
                     <Input label="Teléfono" placeholder="+34..." fullWidth icon={<Phone size={16} />} error={errors.telefono?.message} {...register('telefono')} />
-                    <Input label="Email Recordatorios (Opcional)" type="email" fullWidth icon={<Mail size={16} />} error={errors.email_recordatorios?.message} {...register('email_recordatorios')} />
+                    <Input label="Correo de recordatorios (opcional)" type="email" fullWidth icon={<Mail size={16} />} error={errors.email_recordatorios?.message} {...register('email_recordatorios')} />
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title="Eliminar clínica"
+                message={`¿Seguro que deseas eliminar la clínica ${confirmDialog.clinic?.nombre}?`}
+                onConfirm={handleDeleteClinic}
+                onCancel={() => setConfirmDialog({ isOpen: false, clinic: null })}
+                variant="danger"
+            />
         </div>
     );
 };
 
 export default CompanyDetailsPage;
+
+
+
+

@@ -35,7 +35,7 @@ const AdminsPage = () => {
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(adminSchema),
-        defaultValues: { mode: 'create', id_role: 2 } // 2=admin por defecto (ajustar según DB)
+        defaultValues: { mode: 'create', id_role: '' }
     });
 
     const fetchAdmins = async (term) => {
@@ -59,9 +59,26 @@ const AdminsPage = () => {
     const fetchRoles = async () => {
         try {
             const response = await api.get('/roles');
+            const rawRoles = Array.isArray(response.data)
+                ? response.data
+                : (response.data?.data || []);
+
+            const normalizedRoles = rawRoles.map(role => {
+                const roleName = role.nombre_role || role.nombre || '';
+                return {
+                    ...role,
+                    nombre_role: role.nombre_role || role.nombre,
+                    _name: roleName.toLowerCase().trim()
+                };
+            });
+
             // Solo mostrar roles administrativos para asignar
-            const adminRoles = response.data.filter(r => ['admin', 'superadmin'].includes(r.nombre_role));
+            const adminRoles = normalizedRoles.filter(role => ['admin', 'superadmin'].includes(role._name));
             setRoles(adminRoles);
+
+            if (!editingUser && adminRoles.length > 0) {
+                setValue('id_role', adminRoles[0].id_role);
+            }
         } catch (error) {
             console.error('Error fetching roles:', error);
         }
@@ -77,7 +94,8 @@ const AdminsPage = () => {
 
     const handleOpenCreate = () => {
         setEditingUser(null);
-        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: '' });
+        const firstRoleId = roles[0]?.id_role || '';
+        reset({ mode: 'create', nombre: '', apellido: '', email: '', password: '', id_role: firstRoleId });
         setModalOpen(true);
     };
 
@@ -133,11 +151,11 @@ const AdminsPage = () => {
         <div className="users-page animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h2 className="page-heading">Administradores del Sistema</h2>
+                    <h2 className="page-heading">Administradores del sistema</h2>
                     <p className="page-subheading">Gestiona los usuarios con acceso privilegiado (Super Admin y Admin)</p>
                 </div>
                 <Button onClick={handleOpenCreate} icon={<Plus size={18} />}>
-                    Nuevo Administrador
+                    Nuevo administrador
                 </Button>
             </div>
 
@@ -220,12 +238,12 @@ const AdminsPage = () => {
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title={editingUser ? 'Editar Administrador' : 'Nuevo Administrador'}
+                title={editingUser ? 'Editar administrador' : 'Nuevo administrador'}
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
                         <Button variant="primary" onClick={handleSubmit(onSubmit)}>
-                            {editingUser ? 'Guardar Cambios' : 'Crear Administrador'}
+                            {editingUser ? 'Guardar cambios' : 'Crear administrador'}
                         </Button>
                     </>
                 }
@@ -238,7 +256,7 @@ const AdminsPage = () => {
                     <Input label="Email" type="email" placeholder="admin@sistema.com" fullWidth error={errors.email?.message} {...register('email')} />
 
                     <div className="input-container full-width">
-                        <label className="input-label">Rol de Sistema</label>
+                        <label className="input-label">Rol de sistema</label>
                         <div className="select-wrapper">
                             <Shield size={16} className="select-icon" />
                             <select className="select-field" {...register('id_role')}>
@@ -254,7 +272,7 @@ const AdminsPage = () => {
                     </div>
 
                     <Input
-                        label={editingUser ? "Nueva Contraseña (Opcional)" : "Contraseña"}
+                        label={editingUser ? "Nueva contraseña (opcional)" : "Contraseña"}
                         type="password"
                         fullWidth
                         error={errors.password?.message}
@@ -267,7 +285,7 @@ const AdminsPage = () => {
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={handleDelete}
-                title="Eliminar Administrador"
+                title="Eliminar administrador"
                 message={`¿Estás seguro de que deseas eliminar a ${userToDelete?.nombre}?`}
                 confirmText="Eliminar"
                 variant="danger"

@@ -11,6 +11,10 @@ import CompaniesPage from './pages/CompaniesPage';
 import CompanyDetailsPage from './pages/CompanyDetailsPage';
 import ClinicDetailsPage from './pages/ClinicDetailsPage';
 import AdminsPage from './pages/AdminsPage';
+import ProductsPage from './pages/ProductsPage';
+import SuppliersPage from './pages/SuppliersPage';
+import TreatmentsPage from './pages/TreatmentsPage';
+import UsersPage from './pages/UsersPage';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -39,6 +43,10 @@ function App() {
                         <Route path="patients" element={<PatientsPage />} />
                         <Route path="appointments" element={<AppointmentsPage />} />
                         <Route path="billing" element={<BillingPage />} />
+                        <Route path="users" element={<UsersPage />} />
+                        <Route path="products" element={<ProductsPage />} />
+                        <Route path="suppliers" element={<SuppliersPage />} />
+                        <Route path="treatments" element={<TreatmentsPage />} />
 
                         {/* Administration Routes */}
                         <Route path="companies" element={<CompaniesPage />} />
