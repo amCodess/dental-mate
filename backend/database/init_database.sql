@@ -908,8 +908,9 @@ DECLARE
     empresa_id int;
     clinica_id int;
     user_id int;
-    -- Password: 'Admin123!' (hash)
-    user_hashed_pass varchar := '$2y$12$BJWgQbPtt7r1IArX8Mzi0eS5eAo2vvs02ewd22XaGeWFONhwAheva'; 
+    -- Password por defecto para cuentas seed: 'Admin123!'
+    -- Generado con: php -r "echo password_hash('Admin123!', PASSWORD_BCRYPT, ['cost' => 12]);"
+    user_hashed_pass varchar := '$2y$12$m0FhaDn7GL5W/I4Ok65hR.OzGetKwqR4lwVU/6JEiBJ/pd.yfWnvC'; 
 BEGIN
     -- 4.2. Create Company 'DentalMate HQ'
     IF NOT EXISTS (SELECT 1 FROM "Empresas" WHERE "nombre" = 'DentalMate HQ') THEN

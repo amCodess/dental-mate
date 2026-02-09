@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Arr;
 
 class AuthController extends Controller
 {
@@ -100,15 +101,28 @@ class AuthController extends Controller
     }
 
 
-    public function login()
+    public function login(Request $request)
     {
         try {
             Log::info('Login attempt START', [
-                'headers' => request()->headers->all(),
-                'input' => request()->all()
+                'headers' => $request->headers->all(),
+                'input' => $request->all()
             ]);
 
-            $credentials = request(['email', 'password']);
+            $credentials = $request->only(['email', 'password']);
+            if (empty($credentials['email']) || empty($credentials['password'])) {
+                $jsonBody = json_decode($request->getContent(), true);
+                if (is_array($jsonBody)) {
+                    $credentials = array_merge($credentials, Arr::only($jsonBody, ['email', 'password']));
+                }
+            }
+
+            if (empty($credentials['email']) || empty($credentials['password'])) {
+                Log::warning('Login failed - missing credentials', [
+                    'content_type' => $request->header('Content-Type')
+                ]);
+                return response()->json(['error' => 'Faltan credenciales'], 422);
+            }
 
             // Buscar usuario explícitamente para controlar estados y superadmin
             $user = User::where('email', $credentials['email'] ?? null)->first();

@@ -21,5 +21,16 @@ if [ "${APP_RUN_MIGRATIONS}" = "true" ] || [ "${APP_RUN_MIGRATIONS}" = "1" ]; th
   php artisan migrate --force
 fi
 
+# Optimizar caches de Laravel para acelerar respuestas
+if [ "${APP_OPTIMIZE:-true}" = "true" ]; then
+  # Evitar fallo de view:cache si no hay vistas (API only)
+  mkdir -p resources/views
+  (
+    set +e
+    php artisan config:cache --quiet
+    php artisan route:cache --quiet
+  ) >/dev/null 2>&1 &
+fi
+
 # Servidor PHP embebido en el puerto 8000
 exec php -S 0.0.0.0:8000 -t public public/index.php
