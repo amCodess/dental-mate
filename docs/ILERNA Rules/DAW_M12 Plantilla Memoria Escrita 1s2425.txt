@@ -1,113 +1,0 @@
-MEMORIA ESCRITA DEL PROYECTO
-CFGS Desarrollo de Aplicaciones Web
-
-Título del proyecto
-Autor: Nombre y apellidos
-Tutor: Nombre del tutor
-Fecha de entrega: dd/mm/aaaa
-Convocatoria: _S____ (semestre de la convocatoria)
-Google AI Studio
-Documentos del proyecto:
-https://drive.google.com/drive/folders/1RR4Kjr8CWmtmjRk4uMFth0v8CYBHoeR2?u
-sp=sharing
-
-Índice de contenidos
-1. INTRODUCCIÓN (3-4 PÁGINAS)​
-
-3
-
-1.1. Motivación​
-
-3
-
-1.2. Abstract​
-
-3
-
-1.3. Objetivos propuestos (generales y específicos)​
-
-3
-
-2. Estado del Arte (4-5 páginas)​
-
-4
-
-3. METODOLOGÍA USADA (2-4 PÁGINAS)​
-
-5
-
-4. TECNOLOGÍAS Y HERRAMIENTAS UTILIZADAS EN EL PROYECTO​
-(2-3 PÁGINAS)​
-
-6
-
-5. PLANIFICACIÓN, DIAGNÓSTICO Y CONTEXTO LABORAL (1-2 PÁGINAS)​
-
-7
-
-6. ANÁLISIS DEL PROYECTO (8-16 PÁGINAS)​
-
-8
-
-7. DISEÑO DEL PROYECTO (6-14 PÁGINAS)​
-
-9
-
-8. DESPLIEGUE Y PRUEBAS (4-10 PÁGINAS)​
-
-10
-
-9. CONCLUSIONES (1-2 PÁGINAS)​
-
-11
-
-10. VÍAS FUTURAS (1-2 PÁGINAS)​
-
-12
-
-11. BIBLIOGRAFÍA/WEBGRAFÍA (1-2 PÁGINAS)​
-
-13
-
-12. ANEXOS​
-
-14
-
-1.1. MANUAL DE USUARIO​
-
-14
-
-En la normativa de proyectos vigente encontrarás una breve descripción de
-cada uno de estos apartados para saber qué información debes incluir en
-ellos
-
-1.​Introducción (3-4 Páginas)
-1.1.​ Motivación
-1.2.​ Abstract
-1.3.​ Objetivos propuestos (generales y específicos)
-
-2.​Estado del Arte (4-5 páginas)
-
-3.​Metodología usada (2-4 páginas)
-
-4.​Tecnologías y herramientas utilizadas en el proyecto​
-(2-3 páginas)
-
-5.​Planificación, Diagnóstico y Contexto Laboral (1-2 páginas)
-
-6.​Análisis del proyecto (8-16 páginas)
-
-7.​Diseño del proyecto (6-14 páginas)
-
-8.​Despliegue y pruebas (4-10 páginas)
-
-9.​Conclusiones (1-2 páginas)
-
-10.​ Vías futuras (1-2 páginas)
-
-11.​ Bibliografía/Webgrafía (1-2 páginas)
-
-12.​ Anexos
-1.1.​ Manual de Usuario
-
-
