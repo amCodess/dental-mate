@@ -1,0 +1,489 @@
+.calendar-container {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-gray-200);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-6);
+    min-height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.extra-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.header-titles .page-heading {
+    margin: 0;
+}
+
+.header-titles .page-subheading {
+    margin: 0;
+}
+
+.date-navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: white;
+    padding: 4px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-gray-200);
+}
+
+.current-month-label {
+    font-size: var(--text-base);
+    font-weight: 600;
+    min-width: 140px;
+    text-align: center;
+    text-transform: capitalize;
+    color: var(--color-gray-800);
+}
+
+.weekdays-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--color-gray-50);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.weekday-label {
+    padding: var(--space-3);
+    text-align: center;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    auto-rows: minmax(140px, 1fr);
+    flex: 1;
+}
+
+.day-cell {
+    border-right: 1px solid var(--color-gray-100);
+    border-bottom: 1px solid var(--color-gray-100);
+    padding: var(--space-2);
+    cursor: pointer;
+    background: white;
+    transition: background-color var(--transition-fast);
+    min-height: 140px;
+}
+
+.day-cell:hover {
+    background-color: var(--color-gray-50);
+}
+
+.day-cell.outside-month {
+    background-color: var(--color-gray-50);
+    color: var(--color-gray-400);
+}
+
+.day-cell.today {
+    background-color: var(--color-primary-50);
+}
+
+/* 
+.day-cell.selected {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+} 
+*/
+
+.day-number {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-1);
+}
+
+.day-num-text {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.today .day-num-text {
+    background: var(--color-primary-500);
+    color: white;
+}
+
+.day-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.apt-dot-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: var(--color-gray-100);
+    font-size: 11px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.more-appointments-btn {
+    margin-top: 4px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: var(--color-gray-200);
+    color: var(--color-gray-700);
+    font-size: 11px;
+    border: 1px solid var(--color-gray-300);
+    transition: background-color var(--transition-fast);
+}
+
+.more-appointments-btn:hover {
+    background: var(--color-gray-300);
+}
+
+.agenda-item.compact.clickable {
+    cursor: pointer;
+}
+
+.apt-time {
+    font-weight: 700;
+}
+
+.apt-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    color: var(--color-gray-700);
+}
+
+.apt-name { font-weight: 600; }
+.apt-sep { color: var(--color-gray-500); }
+.apt-motive { font-weight: 600; color: var(--color-gray-600); }
+
+.apt-dot-item.status-confirmada {
+    background: #dcfce7;
+    color: #166534;
+    border-left: 2px solid #166534;
+}
+
+.apt-dot-item.status-pendiente {
+    background: #fef9c3;
+    color: #854d0e;
+    border-left: 2px solid #854d0e;
+}
+
+.apt-dot-item.status-cancelada {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 2px solid #991b1b;
+}
+
+.apt-dot-item.status-completada {
+    background: #dcfce7;
+    color: #166534;
+    border-left: 2px solid #16a34a;
+}
+
+.apt-dot-item.status-parcial {
+    background: #e0f2fe;
+    color: #075985;
+    border-left: 2px solid #0284c7;
+}
+
+.apt-dot-item.status-pagado {
+    background: #dcfce7;
+    color: #166534;
+    border-left: 2px solid #16a34a;
+}
+
+.apt-dot-item.status-completada-sin-pago {
+    background: #ecfccb;
+    color: #3f6212;
+    border-left: 2px solid #65a30d;
+}
+
+.partial-badge {
+    margin-left: 6px;
+    background: #0284c7;
+    color: white;
+    border-radius: 999px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.apt-time {
+    font-weight: 700;
+}
+
+/* Day Panel */
+.day-agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.agenda-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+    gap: var(--space-4);
+}
+
+.agenda-time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    color: var(--color-gray-700);
+    min-width: 80px;
+}
+
+.agenda-info {
+    flex: 1;
+}
+
+.agenda-info h4 {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.agenda-subtitle {
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+}
+.agenda-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-2);
+    min-width: 220px;
+}
+.agenda-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.appointment-actions-inline {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.pill-btn {
+    border-radius: 999px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    border: 1px solid var(--color-gray-200);
+}
+
+.payment-card {
+    margin-top: 4px;
+    padding: 12px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    background: var(--color-gray-50);
+}
+
+.payment-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+.payment-hint-inline {
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+}
+
+.pill-btn {
+    border-radius: 999px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    box-shadow: none;
+    color: inherit;
+}
+
+.progress-bar {
+    margin-top: 6px;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.payment-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.payment-card-header h4 {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--color-gray-800);
+}
+
+.payment-hint {
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+}
+
+.payment-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-3);
+}
+
+.warning-text {
+    padding: 8px 10px;
+    background: #fff7ed;
+    border: 1px solid #fb923c;
+    color: #9a3412;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+}
+
+.inline-field-group {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-3);
+    align-items: end;
+}
+
+.payment-two-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-3);
+    align-items: start;
+}
+
+.hour-blocked-icon {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #dc2626;
+    margin-left: 6px;
+}
+
+.readonly-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #eef2ff;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+    font-size: var(--text-sm);
+}
+
+.readonly-amount {
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+/* Appointment Form */
+.appointment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.appointments-history-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.history-card {
+    margin-top: var(--space-4);
+}
+
+.history-table {
+    display: grid;
+    gap: 8px;
+}
+
+.history-row {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr 0.9fr 1.6fr 1.6fr 1fr 1fr 1fr 1fr 0.9fr;
+    align-items: center;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+}
+
+.history-head {
+    background: var(--color-gray-50);
+    font-weight: 700;
+}
+
+.input-container.full-width {
+    width: 100%;
+}

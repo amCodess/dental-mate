@@ -1,0 +1,63 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dental_mate_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html:cached
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=dental_mate
+      - DB_USERNAME=dental_user
+      - DB_PASSWORD=secret
+      - APP_RUN_MIGRATIONS=false
+      - APP_AUTO_KEYGENERATE=true
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dental_mate_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app:cached
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: dental_mate_db
+    environment:
+      - POSTGRES_DB=dental_mate
+      - POSTGRES_USER=dental_user
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Auto-initialize schema + seed data on first database boot (empty volume)
+      - ./backend/database/init_database.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  adminer:
+    image: adminer
+    container_name: dental_mate_adminer
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
