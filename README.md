@@ -1,3 +1,5 @@
+<img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=amCodess.dental-mate" />
+
 # DentalMate
 
 Aplicación web de gestión clínica desarrollada como **Trabajo de Fin de Grado (TFG) del ciclo DAW**.  
